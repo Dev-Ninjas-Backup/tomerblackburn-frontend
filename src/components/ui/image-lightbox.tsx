@@ -40,12 +40,12 @@ const ImageLightbox = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-xl flex items-center justify-center"
+        className="fixed inset-0 z-100 bg-black/50 backdrop-blur-2xl flex items-center justify-center"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
           aria-label="Close lightbox"
         >
           <X className="w-6 h-6 text-white" />
@@ -60,7 +60,7 @@ const ImageLightbox = ({
         {currentIndex > 0 && (
           <button
             onClick={onPrev}
-            className="absolute left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="absolute left-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
             aria-label="Previous image"
           >
             <ChevronLeft className="w-8 h-8 text-white" />
@@ -71,7 +71,7 @@ const ImageLightbox = ({
         {currentIndex < images.length - 1 && (
           <button
             onClick={onNext}
-            className="absolute right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="absolute right-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
             aria-label="Next image"
           >
             <ChevronRight className="w-8 h-8 text-white" />

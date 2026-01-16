@@ -32,7 +32,7 @@ const HeroSection = ({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center px-4 w-full max-w-2xl mx-auto">
+      <div className="relative z-10 text-center px-4 w-full max-w-xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -43,7 +43,7 @@ const HeroSection = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-3xl md:text-4xl font-bold mb-5 leading-tight"
+            className="text-2xl md:text-3xl font-bold mb-5 leading-tight"
           >
             {title}
           </motion.h1>
@@ -51,7 +51,7 @@ const HeroSection = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg md:text-xl mb-8 text-white/95 leading-relaxed"
+            className="text-base md:text-lg mb-8 text-white/95 leading-relaxed"
           >
             {subtitle}
           </motion.p>
