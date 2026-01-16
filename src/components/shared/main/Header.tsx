@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Menu,
   X,
@@ -70,18 +71,25 @@ const Header = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-14">
+            <nav className="hidden md:flex items-center space-x-8 lg:space-x-14">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-lg transition-colors ${
+                  className={`text-lg transition-colors relative ${
                     isActive(link.href)
                       ? "text-[#283878] font-semibold"
                       : "text-gray-600 font-light hover:text-[#283878]"
                   }`}
                 >
                   {link.label}
+                  {isActive(link.href) && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute -bottom-2 left-0 right-0 h-1 bg-[#283878] rounded-full"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
                 </Link>
               ))}
             </nav>
@@ -176,7 +184,7 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
-              
+
               {/* Mobile User Menu */}
               <div className="border-t mt-4 pt-4">
                 {!isLoggedIn ? (
