@@ -65,7 +65,7 @@ const ProjectSection = ({ project }: ProjectSectionProps) => {
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4"
+          className="columns-2 lg:columns-3 xl:columns-4 gap-4"
         >
           {project.images.map((image, index) => (
             <motion.div
