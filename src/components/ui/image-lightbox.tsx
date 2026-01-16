@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ImageWithFallback from "@/components/ui/image-with-fallback";
 
 interface ImageLightboxProps {
@@ -22,6 +22,35 @@ const ImageLightbox = ({
   onPrev,
   projectTitle,
 }: ImageLightboxProps) => {
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentIndex < images.length - 1) {
+      onNext();
+    }
+    if (isRightSwipe && currentIndex > 0) {
+      onPrev();
+    }
+  };
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,29 +85,29 @@ const ImageLightbox = ({
           {currentIndex + 1} / {images.length}
         </div>
 
-        {/* Previous Button */}
+        {/* Previous Button - Hidden on mobile */}
         {currentIndex > 0 && (
           <button
             onClick={onPrev}
-            className="absolute left-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
+            className="hidden md:block absolute left-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
             aria-label="Previous image"
           >
             <ChevronLeft className="w-8 h-8 text-white" />
           </button>
         )}
 
-        {/* Next Button */}
+        {/* Next Button - Hidden on mobile */}
         {currentIndex < images.length - 1 && (
           <button
             onClick={onNext}
-            className="absolute right-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
+            className="hidden md:block absolute right-4 z-10 p-3 rounded-full bg-black/50 hover:bg-black/30 transition-colors"
             aria-label="Next image"
           >
             <ChevronRight className="w-8 h-8 text-white" />
           </button>
         )}
 
-        {/* Image */}
+        {/* Image with touch support */}
         <motion.div
           key={currentIndex}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -87,6 +116,9 @@ const ImageLightbox = ({
           transition={{ duration: 0.3 }}
           className="relative w-full h-full flex items-center justify-center p-8"
           onClick={onClose}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
         >
           <div
             className="relative max-w-7xl max-h-full"

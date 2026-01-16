@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "BBurnBuilders - Home Remodel - Chicago, Illinois",
-  description: "GHome Remodel - Chicago, Illinois",
+  description: "Home Remodel - Chicago, Illinois",
 };
 
 export default function RootLayout({

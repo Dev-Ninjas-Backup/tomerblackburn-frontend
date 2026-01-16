@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { CompanyProfile } from './_components/CompanyProfile'
 import { EmailNotifications } from './_components/EmailNotifications'
 import { TeamMembers } from './_components/TeamMembers'
+import { SocialMediaLinks } from './_components/SocialMediaLinks'
 
 export default function SettingsPage() {
   const [companyData, setCompanyData] = useState({
@@ -26,6 +27,14 @@ export default function SettingsPage() {
     { id: 1, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: true },
     { id: 2, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: false }
   ])
+
+  const [socialLinks, setSocialLinks] = useState({
+    facebook: '',
+    instagram: '',
+    twitter: '',
+    linkedin: '',
+    youtube: ''
+  })
 
   const handleUpdateCompany = (data: any) => {
     setCompanyData({ ...companyData, ...data })
@@ -106,6 +115,18 @@ export default function SettingsPage() {
           members={teamMembers}
           onAddMember={handleAddMember}
           onRemoveMember={handleRemoveMember}
+        />
+      </motion.div>
+
+      {/* Social Media Links */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+      >
+        <SocialMediaLinks
+          socialLinks={socialLinks}
+          onUpdate={setSocialLinks}
         />
       </motion.div>
     </motion.div>
