@@ -78,7 +78,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.firstName}
             onChange={handleChange}
             required
-            className="w-full"
+            className="w-full p-6"
           />
         </div>
         <div>
@@ -92,7 +92,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.lastName}
             onChange={handleChange}
             required
-            className="w-full"
+            className="w-full p-6"
           />
         </div>
       </div>
@@ -110,7 +110,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full"
+            className="w-full p-6"
           />
         </div>
         <div>
@@ -124,7 +124,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.phone}
             onChange={handleChange}
             required
-            className="w-full"
+            className="w-full p-6"
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
           value={formData.address}
           onChange={handleChange}
           required
-          className="w-full"
+          className="w-full p-6"
         />
       </div>
 
@@ -155,7 +155,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.city}
             onValueChange={(value) => setFormData({ ...formData, city: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full p-6">
               <SelectValue placeholder="Choose City" />
             </SelectTrigger>
             <SelectContent>
@@ -176,7 +176,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             placeholder="Auto-filled"
             value="Illinois"
             disabled
-            className="w-full bg-gray-50"
+            className="w-full p-6 bg-gray-50"
           />
         </div>
         <div>
@@ -190,7 +190,7 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
             value={formData.zipCode}
             onChange={handleChange}
             required
-            className="w-full"
+            className="w-full p-6"
           />
         </div>
       </div>
@@ -206,8 +206,8 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
           value={formData.scopeOfWork}
           onChange={handleChange}
           required
-          rows={5}
-          className="w-full resize-none"
+          rows={10}
+          className="w-full p-6"
         />
       </div>
 
