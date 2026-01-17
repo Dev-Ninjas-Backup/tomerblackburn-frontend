@@ -84,7 +84,10 @@ const BathroomTypesSection = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-center"
         >
-          <Button className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-6 text-lg rounded-full">
+          <Button 
+            onClick={() => window.location.href = '/estimator/choose-bathroom-type'}
+            className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-6 text-lg rounded-full"
+          >
             Get Started Now →
           </Button>
         </motion.div>
