@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useEstimatorStore } from '@/store/estimatorStore'
-import { DollarSign, X } from 'lucide-react'
+import { useState } from "react";
+import { useEstimatorStore } from "@/store/estimatorStore";
+import { DollarSign, X } from "lucide-react";
 
 export const FloatingPriceCard = () => {
-  const { totalPrice, basePrice, additionalCosts } = useEstimatorStore()
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const { totalPrice, basePrice, additionalCosts } = useEstimatorStore();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <>
       {/* Desktop - Fixed Right Side (Always Visible) */}
-      <div className="hidden lg:block fixed top-24 right-6 w-80 bg-[#283878] text-white rounded-2xl shadow-2xl p-6 z-40">
+      <div className="hidden lg:block fixed top-48 right-6 w-80 bg-[#283878] text-white rounded-2xl shadow-2xl p-6 z-40">
         <h3 className="text-xl font-bold mb-4 text-center">
           Total Estimated Cost
         </h3>
@@ -28,7 +28,9 @@ export const FloatingPriceCard = () => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-300">Base Price:</span>
-              <span className="font-semibold">${basePrice.toLocaleString()}</span>
+              <span className="font-semibold">
+                ${basePrice.toLocaleString()}
+              </span>
             </div>
 
             {additionalCosts.length > 0 && (
@@ -36,7 +38,10 @@ export const FloatingPriceCard = () => {
                 <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
                 <div className="max-h-40 overflow-y-auto space-y-2 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/50">
                   {additionalCosts.map((cost, index) => (
-                    <div key={`${cost.id}-${index}`} className="flex justify-between text-xs">
+                    <div
+                      key={`${cost.id}-${index}`}
+                      className="flex justify-between text-xs"
+                    >
                       <span className="text-gray-300">{cost.name}:</span>
                       <span className="font-semibold">
                         +${cost.cost.toLocaleString()}
@@ -72,7 +77,7 @@ export const FloatingPriceCard = () => {
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className={`fixed bottom-24 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
-            isMobileOpen ? 'right-80' : 'right-0'
+            isMobileOpen ? "right-80" : "right-0"
           }`}
           aria-label="Toggle price summary"
         >
@@ -90,7 +95,7 @@ export const FloatingPriceCard = () => {
         {/* Sliding Panel */}
         <div
           className={`fixed top-0 right-0 w-80 h-full bg-[#283878] text-white shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
-            isMobileOpen ? 'translate-x-0' : 'translate-x-full'
+            isMobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
           <div className="p-6">
@@ -121,15 +126,22 @@ export const FloatingPriceCard = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-300">Base Price:</span>
-                  <span className="font-semibold">${basePrice.toLocaleString()}</span>
+                  <span className="font-semibold">
+                    ${basePrice.toLocaleString()}
+                  </span>
                 </div>
 
                 {additionalCosts.length > 0 && (
                   <>
-                    <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
+                    <div className="text-gray-300 mt-3 mb-2">
+                      Additional Items:
+                    </div>
                     <div className="space-y-2">
                       {additionalCosts.map((cost, index) => (
-                        <div key={`${cost.id}-${index}`} className="flex justify-between text-xs">
+                        <div
+                          key={`${cost.id}-${index}`}
+                          className="flex justify-between text-xs"
+                        >
                           <span className="text-gray-300">{cost.name}:</span>
                           <span className="font-semibold">
                             +${cost.cost.toLocaleString()}
@@ -144,7 +156,10 @@ export const FloatingPriceCard = () => {
                   <div className="flex justify-between font-bold">
                     <span>Additions Total:</span>
                     <span>
-                      ${additionalCosts.reduce((sum, c) => sum + c.cost, 0).toLocaleString()}
+                      $
+                      {additionalCosts
+                        .reduce((sum, c) => sum + c.cost, 0)
+                        .toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -158,5 +173,5 @@ export const FloatingPriceCard = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
