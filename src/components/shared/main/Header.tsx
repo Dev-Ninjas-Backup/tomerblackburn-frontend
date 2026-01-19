@@ -113,45 +113,22 @@ const Header = () => {
                   />
 
                   <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    {!isLoggedIn ? (
-                      <Link
-                        href="/login"
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <LogIn className="h-4 w-4" />
-                        <span>Login</span>
-                      </Link>
-                    ) : (
-                      <>
-                        <Link
-                          href="/account"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <UserCircle className="h-4 w-4" />
-                          <span>My Account</span>
-                        </Link>
-                        <Link
-                          href="/dashboard"
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <LayoutDashboard className="h-4 w-4" />
-                          <span>Dashboard</span>
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setIsUserMenuOpen(false);
-                            // TODO: Add logout logic
-                          }}
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          <span>Logout</span>
-                        </button>
-                      </>
-                    )}
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      <span>Login</span>
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
                   </div>
                 </>
               )}
@@ -187,45 +164,22 @@ const Header = () => {
 
               {/* Mobile User Menu */}
               <div className="border-t mt-4 pt-4">
-                {!isLoggedIn ? (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                ) : (
-                  <>
-                    <Link
-                      href="/account"
-                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <UserCircle className="h-4 w-4" />
-                      <span>My Account</span>
-                    </Link>
-                    <Link
-                      href="/dashboard"
-                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        // TODO: Add logout logic
-                      }}
-                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878] w-full text-left"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
-                    </button>
-                  </>
-                )}
+                <Link
+                  href="/login"
+                  className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
               </div>
             </nav>
           )}
