@@ -65,6 +65,7 @@ const BathroomTypesSection = () => {
                   src={type.image}
                   alt={type.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover"
                 />
               </div>
@@ -84,8 +85,10 @@ const BathroomTypesSection = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-center"
         >
-          <Button 
-            onClick={() => window.location.href = '/estimator/choose-bathroom-type'}
+          <Button
+            onClick={() =>
+              (window.location.href = "/estimator/choose-bathroom-type")
+            }
             className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-6 text-lg rounded-full"
           >
             Get Started Now →
