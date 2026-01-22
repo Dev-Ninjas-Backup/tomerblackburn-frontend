@@ -88,6 +88,8 @@ const Modal = ({
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded transition-colors"
+            title="Close modal"
+            aria-label="Close modal"
           >
             <X size={18} />
           </button>
@@ -242,7 +244,8 @@ const ColorPicker = ({
             }}
             className="w-6 h-6 rounded border border-gray-300 hover:scale-110 transition-transform"
             style={{ backgroundColor: color }}
-            title={color}
+            title={`Select color ${color}`}
+            aria-label={`Select color ${color}`}
           />
         ))}
       </div>
@@ -373,6 +376,8 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
             onChange={(e) => setHeading(e.target.value)}
             className="px-2 py-1 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 cursor-pointer appearance-none pr-7"
             style={{ minWidth: "100px" }}
+            title="Text style"
+            aria-label="Select text style"
           >
             <option value="0">Paragraph</option>
             <option value="1">Heading 1</option>
