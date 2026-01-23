@@ -14,14 +14,19 @@ import {
   LogOut,
 } from "lucide-react";
 import Image from "next/image";
+import { useAuthStore } from "@/store/authStore";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
+  
+  const { isAuthenticated, user, logout } = useAuthStore();
 
-  // TODO: Replace with actual auth state
-  const isLoggedIn = false;
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+  };
 
   const navLinks = [
     { label: "Home", href: "/" },
@@ -94,43 +99,68 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* User Icon */}
+            {/* User Menu */}
             <div className="hidden md:flex items-center relative">
-              <button
-                aria-label="User account"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="w-10 h-10 rounded-full bg-[#283878] text-white flex items-center justify-center hover:bg-[#2d3f6c] transition-colors"
-              >
-                <User className="h-5 w-5" />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isUserMenuOpen && (
+              {isAuthenticated ? (
                 <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsUserMenuOpen(false)}
-                  />
+                  <button
+                    aria-label="User account"
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#283878] text-white flex items-center justify-center font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                      <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                    </div>
+                  </button>
 
-                  <div className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                    <Link
-                      href="/login"
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <LogIn className="h-4 w-4" />
-                      <span>Login</span>
-                    </Link>
-                    <Link
-                      href="/dashboard"
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </div>
+                  {/* Dropdown Menu - Logged In */}
+                  {isUserMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      />
+
+                      <div className="absolute right-0 top-14 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                        </div>
+                        
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          <span>Dashboard</span>
+                        </Link>
+                        
+                        <div className="border-t border-gray-100 mt-1 pt-1">
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors w-full"
+                          >
+                            <LogOut className="h-4 w-4" />
+                            <span>Logout</span>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#283878] text-white rounded-lg hover:bg-[#2d3f6c] transition-colors font-medium"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
               )}
             </div>
 
@@ -164,22 +194,50 @@ const Header = () => {
 
               {/* Mobile User Menu */}
               <div className="border-t mt-4 pt-4">
-                <Link
-                  href="/login"
-                  className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Login</span>
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-2 py-3 mb-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#283878] text-white flex items-center justify-center font-semibold">
+                          {user?.name?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                          <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                    
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 py-2 text-red-600 hover:text-red-700 w-full"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span>Login</span>
+                  </Link>
+                )}
               </div>
             </nav>
           )}

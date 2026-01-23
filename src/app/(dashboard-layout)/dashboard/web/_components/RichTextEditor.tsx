@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -78,7 +78,10 @@ const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
       <div
         className="bg-white rounded-lg shadow-xl w-full max-w-md p-6"
         onClick={(e) => e.stopPropagation()}
@@ -169,34 +172,113 @@ const ImageModal = ({
   onSubmit: (url: string) => void;
 }) => {
   const [url, setUrl] = useState("");
+  const [uploadMode, setUploadMode] = useState<"url" | "file">("url");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setUrl(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(url);
-    onClose();
-    setUrl("");
+    if (url) {
+      onSubmit(url);
+      onClose();
+      setUrl("");
+      setUploadMode("url");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Insert Image">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Image URL
-          </label>
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoFocus
-          />
+        {/* Upload Mode Toggle */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setUploadMode("url")}
+            className={`px-3 py-1 text-sm rounded ${
+              uploadMode === "url"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            URL
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadMode("file")}
+            className={`px-3 py-1 text-sm rounded ${
+              uploadMode === "file"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            Upload File
+          </button>
         </div>
+
+        {uploadMode === "url" ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image URL
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoFocus
+            />
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Image File
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+          </div>
+        )}
+
+        {/* Image Preview */}
+        {url && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Preview
+            </label>
+            <img
+              src={url}
+              alt="Preview"
+              className="max-w-full h-32 object-contain border rounded"
+            />
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button
             type="submit"
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            disabled={!url}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Check size={16} />
             Insert
@@ -225,9 +307,26 @@ const ColorPicker = ({
   onSelect: (color: string) => void;
 }) => {
   const colors = [
-    "#000000", "#434343", "#666666", "#999999", "#b7b7b7", "#cccccc", "#d9d9d9", "#efefef",
-    "#f3f3f3", "#ffffff", "#980000", "#ff0000", "#ff9900", "#ffff00", "#00ff00", "#00ffff",
-    "#4a86e8", "#0000ff", "#9900ff", "#ff00ff",
+    "#000000",
+    "#434343",
+    "#666666",
+    "#999999",
+    "#b7b7b7",
+    "#cccccc",
+    "#d9d9d9",
+    "#efefef",
+    "#f3f3f3",
+    "#ffffff",
+    "#980000",
+    "#ff0000",
+    "#ff9900",
+    "#ffff00",
+    "#00ff00",
+    "#00ffff",
+    "#4a86e8",
+    "#0000ff",
+    "#9900ff",
+    "#ff00ff",
   ];
 
   if (!isOpen) return null;
@@ -295,31 +394,53 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
-  const addLink = useCallback((url: string) => {
-    if (!editor) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  }, [editor]);
+  const addLink = useCallback(
+    (url: string) => {
+      if (!editor) return;
+      if (url === "") {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+        return;
+      }
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .setLink({ href: url })
+        .run();
+    },
+    [editor],
+  );
 
-  const addImage = useCallback((url: string) => {
-    if (!editor) return;
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
+  const addImage = useCallback(
+    (url: string) => {
+      if (!editor) return;
+      if (url) {
+        editor.chain().focus().setImage({ 
+          src: url,
+          alt: "Inserted image",
+          title: "Click and drag corners to resize"
+        }).run();
+      }
+    },
+    [editor],
+  );
 
   const addTable = useCallback(() => {
     if (!editor) return;
-    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    editor
+      .chain()
+      .focus()
+      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+      .run();
   }, [editor]);
 
-  const setColor = useCallback((color: string) => {
-    if (!editor) return;
-    editor.chain().focus().setColor(color).run();
-  }, [editor]);
+  const setColor = useCallback(
+    (color: string) => {
+      if (!editor) return;
+      editor.chain().focus().setColor(color).run();
+    },
+    [editor],
+  );
 
   if (!editor) return null;
 
@@ -334,7 +455,11 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
     if (level === "0") {
       editor.chain().focus().setParagraph().run();
     } else {
-      editor.chain().focus().toggleHeading({ level: parseInt(level) }).run();
+      editor
+        .chain()
+        .focus()
+        .toggleHeading({ level: parseInt(level) })
+        .run();
     }
   };
 
@@ -361,7 +486,9 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
 
         {/* Clear Formatting */}
         <ToolbarButton
-          onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
+          onClick={() =>
+            editor.chain().focus().clearNodes().unsetAllMarks().run()
+          }
           title="Clear Formatting"
         >
           <RemoveFormatting size={16} />
@@ -426,7 +553,10 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
 
         {/* Color */}
         <div className="relative">
-          <ToolbarButton onClick={() => setColorPickerOpen(!colorPickerOpen)} title="Text Color">
+          <ToolbarButton
+            onClick={() => setColorPickerOpen(!colorPickerOpen)}
+            title="Text Color"
+          >
             <Palette size={16} />
           </ToolbarButton>
           <ColorPicker
@@ -496,7 +626,10 @@ const RichTextToolbar = ({ editor }: { editor: any }) => {
         >
           <LinkIcon size={16} />
         </ToolbarButton>
-        <ToolbarButton onClick={() => setImageModalOpen(true)} title="Insert Image">
+        <ToolbarButton
+          onClick={() => setImageModalOpen(true)}
+          title="Insert Image"
+        >
           <ImageIcon size={16} />
         </ToolbarButton>
         <ToolbarButton onClick={addTable} title="Insert Table">
@@ -594,8 +727,11 @@ export const RichTextEditor = ({
       },
     }),
     Image.configure({
+      inline: true,
+      allowBase64: true,
       HTMLAttributes: {
-        class: "max-w-full h-auto rounded",
+        class: "max-w-full h-auto rounded cursor-pointer",
+        style: "resize: both; overflow: auto;",
       },
     }),
     Table.configure({

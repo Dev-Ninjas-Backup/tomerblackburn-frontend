@@ -6,7 +6,7 @@ import { FileUpload } from "./FileUpload";
 
 export const AboutTab = () => {
   const [aboutContent, setAboutContent] = useState(
-    "I started BBurn Builders to bring the focus of the construction industry back where it belongs: on client communication and satisfaction."
+    "I started BBurn Builders to bring the focus of the construction industry back where it belongs: on client communication and satisfaction.",
   );
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
@@ -16,13 +16,18 @@ export const AboutTab = () => {
   };
 
   const handlePublish = () => {
-    console.log("Publishing About Us content...", { aboutContent, uploadedImage });
+    console.log("Publishing About Us content...", {
+      aboutContent,
+      uploadedImage,
+    });
   };
 
   return (
     <div className="w-full mx-auto">
-      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">About Us</h2>
-      
+      <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+        About Us
+      </h2>
+
       {/* Rich Text Editor */}
       <div className="mb-6 md:mb-8">
         <RichTextEditor

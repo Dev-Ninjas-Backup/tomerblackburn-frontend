@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { RichTextEditor } from "./RichTextEditor";
+import  {RichTextEditor}  from "./RichTextEditor";
 
 export const PrivacyTab = () => {
   const [privacyContent, setPrivacyContent] = useState(`
