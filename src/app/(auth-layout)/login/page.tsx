@@ -1,14 +1,48 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuthStore } from "@/store/authStore";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginPage = () => {
+  const router = useRouter();
+  const { login, isLoading } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await login(data.email, data.password);
+      router.push("/dashboard");
+    } catch (error) {
+      // Error toast is shown by the store
+    }
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Diagonal Split Background - Half Blue, Half White */}
@@ -46,7 +80,7 @@ const LoginPage = () => {
               </motion.div>
 
               {/* Form */}
-              <form className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {/* Email Field */}
                 <motion.div
                   className="space-y-2"
@@ -61,11 +95,16 @@ const LoginPage = () => {
                     Email *
                   </Label>
                   <Input
+                    {...register("email")}
                     id="email"
                     type="email"
                     placeholder="Enter your Email"
                     className="p-6"
+                    autoComplete="email"
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-600">{errors.email.message}</p>
+                  )}
                 </motion.div>
 
                 {/* Password Field */}
@@ -81,12 +120,30 @@ const LoginPage = () => {
                   >
                     Password *
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    className="p-6"
-                  />
+                  <div className="relative">
+                    <Input
+                      {...register("password")}
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className="p-6 pr-12"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm text-red-600">{errors.password.message}</p>
+                  )}
                 </motion.div>
 
                 {/* Sign In Button */}
@@ -97,9 +154,17 @@ const LoginPage = () => {
                 >
                   <Button
                     type="submit"
+                    disabled={isLoading}
                     className="w-full bg-[#2d4a8f] hover:bg-[#243a73] text-white p-6 mt-2"
                   >
-                    Sign In
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                        Signing in...
+                      </>
+                    ) : (
+                      "Sign In"
+                    )}
                   </Button>
                 </motion.div>
               </form>
