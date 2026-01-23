@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 import {
   LayoutDashboard,
   Bath,
@@ -89,20 +90,29 @@ const LogoutButton = ({
   showHoverTranslate = false,
 }: {
   showHoverTranslate?: boolean;
-}) => (
-  <div className="p-3 border-t border-gray-200">
-    <button
-      className={`
-        flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
-        hover:bg-gray-100 w-full transition-all duration-200
-        ${showHoverTranslate ? "hover:translate-x-1" : ""}
-      `}
-    >
-      <LogOut size={18} />
-      <span>Logout</span>
-    </button>
-  </div>
-);
+}) => {
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  return (
+    <div className="p-3 border-t border-gray-200">
+      <button
+        onClick={handleLogout}
+        className={`
+          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+          hover:bg-gray-100 w-full transition-all duration-200
+          ${showHoverTranslate ? "hover:translate-x-1" : ""}
+        `}
+      >
+        <LogOut size={18} />
+        <span>Logout</span>
+      </button>
+    </div>
+  );
+};
 
 export const Sidebar = () => {
   const pathname = usePathname();

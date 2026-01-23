@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { RichTextEditor } from "./RichTextEditor";
+import {RichTextEditor} from "./RichTextEditor";
 import { ServiceSection } from "./ServiceSection";
 
 export const HomeTab = () => {
   const [ourMission, setOurMission] = useState(
-    "Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most."
+    "Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.Manage your tasks efficiently from one place and stay focused on what matters most.",
   );
 
   const [services, setServices] = useState([
@@ -43,7 +43,7 @@ export const HomeTab = () => {
           return { ...service, [field]: value };
         }
         return service;
-      })
+      }),
     );
   };
 
