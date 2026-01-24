@@ -3,16 +3,19 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import Image from "next/image";
 
 interface PhilosophySectionProps {
-  title?: string;
+  aboutUsData?: {
+    title?: string;
+  } | null;
 }
 
-const PhilosophySection = ({
-  title = "Our Philosophy",
-}: PhilosophySectionProps) => {
+const PhilosophySection = ({ aboutUsData }: PhilosophySectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const title = aboutUsData?.title || "Our Philosophy";
 
   return (
     <section ref={ref} className="py-16 bg-white">

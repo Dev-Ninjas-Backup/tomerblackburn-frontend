@@ -1,47 +1,30 @@
 import React from "react";
 import ProjectSection from "./_components/ProjectSection";
+import { portfolioService } from "@/services/portfolio.service";
 
 export const metadata = {
   title: "Portfolio - BBurn Builders",
   description: "View our completed projects and see the quality of our work.",
 };
 
-const PortfolioPage = () => {
-  // TODO: Replace with API data
-  const projects = [
-    {
-      id: "lakeview-1",
-      title: "Lakeview",
-      images: [
-        "/images/portfolio/lakeview-1.jpg",
-        "/images/portfolio/lakeview-2.jpg",
-        "/images/portfolio/lakeview-3.jpg",
-        "/images/portfolio/lakeview-4.jpg",
-        "/images/portfolio/lakeview-5.jpg",
-        "/images/portfolio/lakeview-6.jpg",
-        "/images/portfolio/lakeview-7.jpg",
-        "/images/portfolio/lakeview-8.jpg",
-        "/images/portfolio/lakeview-9.jpg",
-        "/images/portfolio/lakeview-10.jpg",
-        "/images/portfolio/lakeview-11.jpg",
-        "/images/portfolio/lakeview-12.jpg",
-      ],
-    },
-    {
-      id: "lakeview-2",
-      title: "Lakeview",
-      images: [
-        "/images/portfolio/lakeview2-1.jpg",
-        "/images/portfolio/lakeview2-2.jpg",
-        "/images/portfolio/lakeview2-3.jpg",
-        "/images/portfolio/lakeview2-4.jpg",
-        "/images/portfolio/lakeview2-5.jpg",
-        "/images/portfolio/lakeview2-6.jpg",
-        "/images/portfolio/lakeview2-7.jpg",
-        "/images/portfolio/lakeview2-8.jpg",
-      ],
-    },
-  ];
+const PortfolioPage = async () => {
+  let projects: any[] = [];
+
+  try {
+    const response = await portfolioService.getAllCategories(false);
+    projects = response.data.data || [];
+  } catch (error) {
+    console.error("Failed to fetch portfolio categories:", error);
+    // Return empty array on error to prevent page crash
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <p className="text-gray-500">No portfolio projects available at the moment.</p>
+      </div>
+    );
+  }
 
   return (
     <div>

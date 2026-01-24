@@ -6,7 +6,7 @@ import { toast } from "sonner";
 export const useHomePageData = () => {
   return useQuery({
     queryKey: ["homePageData"],
-    queryFn: homePageService.getHomePageData,
+    queryFn: homePageService.getCompleteHomePageData,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
