@@ -1,27 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { FileUpload } from "./FileUpload";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface PortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; slug: string; description?: string; images: File[] }) => void;
+  onSave: (data: { name: string; images: File[] }) => void;
 }
 
 export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps) => {
   const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
+  if (!isOpen) return null;
 
   const handleFileUpload = (file: File) => {
     setUploadedFiles(prev => [...prev, file]);
@@ -32,29 +25,25 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
   };
 
   const handleSave = () => {
-    if (name.trim() && slug.trim()) {
-      onSave({ 
-        name: name.trim(), 
-        slug: slug.trim(),
-        description: description.trim() || undefined,
-        images: uploadedFiles 
-      });
+    if (name.trim()) {
+      onSave({ name: name.trim(), images: uploadedFiles });
       setName("");
-      setSlug("");
-      setDescription("");
       setUploadedFiles([]);
       onClose();
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New Portfolio</DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">Add New Portfolio</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
 
-        <div className="space-y-4">
+        <div className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Name *
@@ -65,32 +54,6 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Lake View"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Slug *
-            </label>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="lake-view"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Project description"
-              rows={3}
             />
           </div>
 
@@ -117,7 +80,6 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
                   <button
                     onClick={() => removeFile(index)}
                     className="text-red-500 hover:text-red-700"
-                    aria-label="Remove file"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -127,7 +89,7 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <div className="flex space-x-3 p-4 border-t">
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
@@ -140,8 +102,8 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
           >
             Add New Portfolio
           </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 };

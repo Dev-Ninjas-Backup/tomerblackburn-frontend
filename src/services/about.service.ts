@@ -1,17 +1,16 @@
 import axios from "axios";
-import { AboutPageData } from "@/types/about.types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 
-// About Page API Service
-export const aboutPageService = {
-  // Get about page data
-  getAboutPageData: async (): Promise<AboutPageData> => {
+// About Us API Service
+export const aboutService = {
+  // Get about us data
+  getAboutUsData: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/about`);
+      const response = await axios.get(`${API_BASE_URL}/about-us`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching about page data:", error);
+      console.error("Error fetching about us data:", error);
       throw error;
     }
   },
