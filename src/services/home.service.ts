@@ -5,10 +5,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8
 
 // Home Page API Service
 export const homePageService = {
-  // Get home page data
-  getHomePageData: async (): Promise<HomePageData> => {
+  // Get complete home page data
+  getCompleteHomePageData: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/home`);
+      const response = await axios.get(`${API_BASE_URL}/home-page/complete`);
       return response.data;
     } catch (error) {
       console.error("Error fetching home page data:", error);

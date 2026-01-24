@@ -1,65 +1,123 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Plus, Search, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { Plus, Search, Eye, Power, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { PortfolioModal } from "./PortfolioModal";
+import { EditPortfolioModal } from "./EditPortfolioModal";
 import { PortfolioDetailsModal } from "./PortfolioDetailsModal";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import {
+  usePortfolios,
+  useCreatePortfolio,
+  useUpdatePortfolio,
+  useDeletePortfolio,
+  useTogglePortfolioStatus,
+} from "@/hooks/usePortfolio";
+import { showToast, toastMessages } from "@/lib/toast";
 
 interface Portfolio {
-  id: number;
+  id: string;
   name: string;
-  date: string;
-  images: string[];
+  slug: string;
+  description?: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  images?: Array<{
+    id: string;
+    caption?: string;
+    displayOrder: number;
+    file?: {
+      id: string;
+      url: string;
+      filename: string;
+    };
+  }>;
 }
 
 export const PortfolioTab = () => {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([
-    { id: 123, name: "Lakeview", date: "12 Feb 2025", images: ["/images/portfolio/lakeview-1.jpg", "/images/portfolio/lakeview-2.jpg"] },
-    { id: 124, name: "Lakeview", date: "12 Feb 2025", images: ["/images/portfolio/lakeview-3.jpg"] },
-    { id: 125, name: "Lakeview", date: "12 Feb 2025", images: ["/images/portfolio/lakeview-4.jpg"] },
-  ]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [portfolioToDelete, setPortfolioToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setActiveDropdown(null);
-      }
-    };
+  const { data: portfolios = [], isLoading } = usePortfolios(true);
+  const createMutation = useCreatePortfolio();
+  const updateMutation = useUpdatePortfolio();
+  const deleteMutation = useDeletePortfolio();
+  const toggleStatusMutation = useTogglePortfolioStatus();
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const filteredPortfolios = portfolios.filter(portfolio =>
+  const filteredPortfolios = portfolios.filter((portfolio: Portfolio) =>
     portfolio.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    portfolio.id.toString().includes(searchTerm)
+    portfolio.slug.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddPortfolio = (data: { name: string; images: File[] }) => {
-    const newPortfolio: Portfolio = {
-      id: Date.now(),
-      name: data.name,
-      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-      images: data.images.map(file => URL.createObjectURL(file))
-    };
-    setPortfolios(prev => [newPortfolio, ...prev]);
+  const handleAddPortfolio = async (data: { name: string; slug: string; description?: string; images: File[] }) => {
+    try {
+      await createMutation.mutateAsync({
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+      });
+      setIsModalOpen(false);
+      showToast.success("Portfolio created successfully", `${data.name} has been added to your portfolio.`);
+    } catch (error) {
+      console.error("Failed to create portfolio:", error);
+      showToast.error("Failed to create portfolio", "Please try again later.");
+    }
   };
 
   const handleViewDetails = (portfolio: Portfolio) => {
     setSelectedPortfolio(portfolio);
     setIsDetailsModalOpen(true);
-    setActiveDropdown(null);
   };
 
-  const handleDelete = (id: number) => {
-    setPortfolios(prev => prev.filter(p => p.id !== id));
-    setActiveDropdown(null);
+  const handleEdit = (portfolio: Portfolio) => {
+    setSelectedPortfolio(portfolio);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = async (id: string, data: { name: string; slug: string; description?: string }) => {
+    try {
+      await updateMutation.mutateAsync({ id, data });
+      setIsEditModalOpen(false);
+      showToast.success("Portfolio updated successfully", `${data.name} has been updated.`);
+    } catch (error) {
+      console.error("Failed to update portfolio:", error);
+      showToast.error("Failed to update portfolio", "Please try again later.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setPortfolioToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!portfolioToDelete) return;
+    
+    try {
+      await deleteMutation.mutateAsync(portfolioToDelete);
+      showToast.success("Portfolio deleted successfully");
+      setIsDeleteModalOpen(false);
+      setPortfolioToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete portfolio:", error);
+      showToast.error("Failed to delete portfolio", "Please try again later.");
+    }
+  };
+
+  const handleToggleStatus = async (id: string) => {
+    try {
+      await toggleStatusMutation.mutateAsync(id);
+      showToast.success("Status updated successfully");
+    } catch (error) {
+      console.error("Failed to toggle status:", error);
+      showToast.error("Failed to update status", "Please try again later.");
+    }
   };
 
   return (
@@ -80,7 +138,7 @@ export const PortfolioTab = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
-            placeholder="Search by name and id"
+            placeholder="Search by name and slug"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -90,75 +148,103 @@ export const PortfolioTab = () => {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Id</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredPortfolios.map((portfolio) => (
-                <tr key={portfolio.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{portfolio.id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{portfolio.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{portfolio.date}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    <div className="relative" ref={dropdownRef}>
-                      <button
-                        onClick={() => setActiveDropdown(activeDropdown === portfolio.id ? null : portfolio.id)}
-                        className="p-1 hover:bg-gray-100 rounded"
-                        title="More actions"
-                        aria-label="More actions"
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                      {activeDropdown === portfolio.id && (
-                        <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+        {isLoading ? (
+          <div className="p-8 text-center text-gray-500">Loading...</div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Images</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredPortfolios.map((portfolio: Portfolio) => (
+                    <tr key={portfolio.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">{portfolio.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500">{portfolio.slug}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{portfolio.images?.length || 0}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          portfolio.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {portfolio.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {new Date(portfolio.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleViewDetails(portfolio)}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                            className="p-1.5 hover:bg-blue-50 text-blue-600 rounded"
+                            title="View Details"
+                            aria-label="View Details"
                           >
-                            View Details
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(portfolio)}
+                            className="p-1.5 hover:bg-green-50 text-green-600 rounded"
+                            title="Edit"
+                            aria-label="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleToggleStatus(portfolio.id)}
+                            className="p-1.5 hover:bg-gray-100 text-gray-600 rounded"
+                            title={portfolio.isActive ? 'Deactivate' : 'Activate'}
+                            aria-label={portfolio.isActive ? 'Deactivate' : 'Activate'}
+                            disabled={toggleStatusMutation.isPending}
+                          >
+                            <Power size={16} />
                           </button>
                           <button
                             onClick={() => handleDelete(portfolio.id)}
-                            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+                            className="p-1.5 hover:bg-red-50 text-red-600 rounded"
+                            title="Delete"
+                            aria-label="Delete"
+                            disabled={deleteMutation.isPending}
                           >
-                            Delete
+                            <Trash2 size={16} />
                           </button>
                         </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Rows per page</span>
-            <select className="border border-gray-300 rounded px-2 py-1 text-sm" title="Rows per page" aria-label="Rows per page">
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Page 1 of 1</span>
-            <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Previous page" aria-label="Previous page">
-              <ChevronLeft size={16} />
-            </button>
-            <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Next page" aria-label="Next page">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-700">Rows per page</span>
+                <select className="border border-gray-300 rounded px-2 py-1 text-sm" title="Rows per page" aria-label="Rows per page">
+                  <option>10</option>
+                  <option>25</option>
+                  <option>50</option>
+                </select>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-700">Page 1 of 1</span>
+                <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Previous page" aria-label="Previous page">
+                  <ChevronLeft size={16} />
+                </button>
+                <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Next page" aria-label="Next page">
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <PortfolioModal
@@ -167,10 +253,29 @@ export const PortfolioTab = () => {
         onSave={handleAddPortfolio}
       />
 
+      <EditPortfolioModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleUpdate}
+        portfolio={selectedPortfolio}
+      />
+
       <PortfolioDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
         portfolio={selectedPortfolio}
+      />
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setPortfolioToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Portfolio"
+        message="Are you sure you want to delete this portfolio? This action cannot be undone and will remove all associated images."
+        isLoading={deleteMutation.isPending}
       />
     </div>
   );

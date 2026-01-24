@@ -5,44 +5,34 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 
-interface Service {
+interface ServiceData {
+  id: string;
   title: string;
   description: string;
-  image: string;
+  image?: {
+    url: string;
+  } | null;
 }
 
 interface ServicesSectionProps {
   title?: string;
-  services?: Service[];
+  services?: ServiceData[];
 }
-
-const defaultServices: Service[] = [
-  {
-    title: "RESPONSIVE COMMUNICATION",
-    description:
-      "We follow up, follow through, and stay in touch, so you always know what's going on with your project.",
-    image: "/images/service-1.jpg",
-  },
-  {
-    title: "ACCURATE BUDGETING",
-    description:
-      "We create accurate estimates and keep our overhead low, so you can make the most of your money, without unnecessary expenses.",
-    image: "/images/service-2.jpg",
-  },
-  {
-    title: "SMART SCHEDULING",
-    description:
-      "We never take on too many jobs at once, so your project gets our full attention and doesn't experience delays.",
-    image: "/images/service-3.jpg",
-  },
-];
 
 const ServicesSection = ({
   title = "Why Our Service Stands Out",
-  services = defaultServices,
+  services = [],
 }: ServicesSectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  // Placeholder image for services without images
+  const getServiceImage = (service: ServiceData) => {
+    if (service.image?.url) {
+      return service.image.url;
+    }
+    return "data:image/svg+xml,%3Csvg width='400' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-size='18' fill='%23374151' text-anchor='middle' dy='.3em'%3EService Image%3C/text%3E%3C/svg%3E";
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -91,7 +81,7 @@ const ServicesSection = ({
         >
           {services.map((service, index) => (
             <motion.div
-              key={index}
+              key={service.id}
               variants={cardVariants}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className="bg-white overflow-hidden"
@@ -103,7 +93,7 @@ const ServicesSection = ({
                   className="w-full h-full"
                 >
                   <ImageWithFallback
-                    src={service.image}
+                    src={getServiceImage(service)}
                     alt={service.title}
                     fill
                     className="object-cover"

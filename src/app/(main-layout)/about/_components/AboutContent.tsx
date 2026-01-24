@@ -7,32 +7,27 @@ import ImageWithFallback from "@/components/ui/image-with-fallback";
 import Link from "next/link";
 
 interface AboutContentProps {
-  founderName?: string;
-  founderTitle?: string;
-  content?: string[];
-  ctaText?: string;
-  ctaLink?: string;
-  image?: string;
+  aboutUsData?: {
+    ownerInfo?: string;
+    description?: string;
+    image?: {
+      url: string;
+    } | null;
+  } | null;
 }
 
-const AboutContent = ({
-  founderName = "Tomer Blackburn",
-  founderTitle = "BBurn Builders founder & owner",
-  content = [
-    "I started BBurn Builders to bring the focus of the construction industry back where it belongs: on client communication and satisfaction.",
-    "We care about turning your vision into reality and making it a great experience for you.",
-    "That's why we are honest and transparent about our schedule, your project's timeline, and how we are going to manage your budget.",
-    "We keep our costs down because you shouldn't have to pay for unnecessary overhead expenses.",
-    "We discuss all the details upfront and prepare accurate estimates to make the most of your money, so you know what to expect from the start, with no surprises.",
-    "As the owner, I personally manage every single project, so you can have a direct line of communication with me and the peace of mind of a project manager who doesn't hide from you.",
-    "Most importantly, we never start a new job unless we know it can have our full attention.",
-  ],
-  ctaText = "get in touch for a free quote",
-  ctaLink = "/contact",
-  image = "/images/about-founder.jpg",
-}: AboutContentProps) => {
+const AboutContent = ({ aboutUsData }: AboutContentProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const ownerInfo =
+    aboutUsData?.ownerInfo ||
+    "From Tomer Blackburn, BBurn Builders founder & owner";
+  const description =
+    aboutUsData?.description ||
+    "I started BBurn Builders to bring the focus of the construction industry back where it belongs: on client communication and satisfaction.";
+  const placeholderImage =
+    "data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' font-size='18' fill='%23374151' text-anchor='middle' dy='.3em'%3EOwner Photo%3C/text%3E%3C/svg%3E";
 
   return (
     <section ref={ref} className="pb-16 bg-white">
@@ -49,37 +44,30 @@ const AboutContent = ({
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 ABOUT US
               </h3>
-              <p className="text-gray-500 italic">
-                From {founderName}, {founderTitle}
-              </p>
+              <p className="text-gray-500 italic">{ownerInfo}</p>
             </div>
-
-            {content.map((paragraph, index) => (
-              <motion.p
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={
-                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
-                }
-                transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
-                className="text-gray-700 leading-relaxed"
-              >
-                {paragraph}
-              </motion.p>
-            ))}
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-gray-600 leading-relaxed"
+            >
+              {description}
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               className="text-gray-700"
             >
               If the BBurn Builders philosophy resonates with you,{" "}
               <Link
-                href={ctaLink}
+                href="/contact"
                 className="text-[#283878] underline hover:text-[#1f2d5c] font-medium"
               >
-                {ctaText}
+                get in touch for a free quote
               </Link>{" "}
               on your project!
             </motion.p>
@@ -93,8 +81,8 @@ const AboutContent = ({
             className="lg:col-span-1 relative h-[600px] rounded-3xl overflow-hidden shadow-xl"
           >
             <ImageWithFallback
-              src={image}
-              alt={founderName}
+              src={aboutUsData?.image?.url || placeholderImage}
+              alt="Owner photo"
               fill
               className="object-cover"
             />

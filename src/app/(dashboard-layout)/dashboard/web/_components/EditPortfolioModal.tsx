@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { Trash2 } from "lucide-react";
-import { FileUpload } from "./FileUpload";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,47 +9,50 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface PortfolioModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: { name: string; slug: string; description?: string; images: File[] }) => void;
+interface Portfolio {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
 }
 
-export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps) => {
+interface EditPortfolioModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (id: string, data: { name: string; slug: string; description?: string }) => void;
+  portfolio: Portfolio | null;
+}
+
+export const EditPortfolioModal = ({ isOpen, onClose, onSave, portfolio }: EditPortfolioModalProps) => {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  const handleFileUpload = (file: File) => {
-    setUploadedFiles(prev => [...prev, file]);
-  };
+  useEffect(() => {
+    if (portfolio) {
+      setName(portfolio.name);
+      setSlug(portfolio.slug);
+      setDescription(portfolio.description || "");
+    }
+  }, [portfolio]);
 
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-  };
+  if (!portfolio) return null;
 
   const handleSave = () => {
     if (name.trim() && slug.trim()) {
-      onSave({ 
+      onSave(portfolio.id, { 
         name: name.trim(), 
         slug: slug.trim(),
         description: description.trim() || undefined,
-        images: uploadedFiles 
       });
-      setName("");
-      setSlug("");
-      setDescription("");
-      setUploadedFiles([]);
-      onClose();
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Portfolio</DialogTitle>
+          <DialogTitle>Edit Portfolio</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -93,38 +94,6 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
               rows={3}
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Image URL *
-            </label>
-            <FileUpload onFileSelect={handleFileUpload} />
-          </div>
-
-          {uploadedFiles.length > 0 && (
-            <div className="space-y-2">
-              {uploadedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                      <span className="text-xs text-blue-600">IMG</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{file.name}</p>
-                      <p className="text-xs text-gray-500">{Math.round(file.size / 1024)}KB</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="text-red-500 hover:text-red-700"
-                    aria-label="Remove file"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
@@ -138,7 +107,7 @@ export const PortfolioModal = ({ isOpen, onClose, onSave }: PortfolioModalProps)
             onClick={handleSave}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Add New Portfolio
+            Save Changes
           </button>
         </DialogFooter>
       </DialogContent>
