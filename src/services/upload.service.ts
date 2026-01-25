@@ -1,41 +1,42 @@
-import axios from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+import api from "@/lib/api";
 
 export const uploadService = {
   // Upload single file
-  uploadSingle: (file: File) => {
+  uploadSingle: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
     
-    return axios.post(`${API_URL}/upload/single`, formData, {
+    const response = await api.post("/upload/single", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+    return response.data.data;
   },
 
   // Upload multiple files
-  uploadMultiple: (files: File[]) => {
+  uploadMultiple: async (files: File[]) => {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append("files", file);
     });
     
-    return axios.post(`${API_URL}/upload/multiple`, formData, {
+    const response = await api.post("/upload/multiple", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
+    return response.data.data;
   },
 
   // Get file details
-  getFile: (id: string) => {
-    return axios.get(`${API_URL}/upload/${id}`);
+  getFile: async (id: string) => {
+    const response = await api.get(`/upload/${id}`);
+    return response.data.data;
   },
 
   // Delete file
-  deleteFile: (id: string) => {
-    return axios.delete(`${API_URL}/upload/${id}`);
+  deleteFile: async (id: string) => {
+    await api.delete(`/upload/${id}`);
   },
 };

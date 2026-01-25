@@ -9,8 +9,7 @@ const HomePage = async () => {
   let homePageData = null;
 
   try {
-    const response = await homePageService.getCompleteHomePageData();
-    homePageData = response.data;
+    homePageData = await homePageService.getCompleteHomePageData();
   } catch (error) {
     console.error("Failed to fetch home page data:", error);
   }

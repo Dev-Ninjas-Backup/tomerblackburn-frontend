@@ -31,14 +31,13 @@ const MissionSection = ({ homePageData }: MissionSectionProps) => {
           {title}
         </motion.h2>
 
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-gray-700 text-lg mb-8 leading-relaxed"
-        >
-          {subTitle}
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: subTitle }}
+        />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

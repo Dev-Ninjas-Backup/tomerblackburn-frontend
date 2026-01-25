@@ -39,3 +39,37 @@ export interface HomePageData {
   services: ServicesData;
   subscribe: SubscribeData;
 }
+
+// Admin Dashboard Types
+export interface HomePage {
+  id: string;
+  title: string;
+  subTitle: string;
+  homeBackgroundImageId?: string;
+  homeBackgroundImage?: {
+    id: string;
+    url: string;
+  };
+  ourMissionTitle: string;
+  ourMissionSubTitle: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceStandsOut {
+  id: string;
+  title: string;
+  description: string;
+  imageId?: string;
+  image?: {
+    id: string;
+    url: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompleteHomePageData {
+  homePage: HomePage;
+  services: ServiceStandsOut[];
+}
