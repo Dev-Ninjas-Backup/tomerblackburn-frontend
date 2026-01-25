@@ -17,6 +17,7 @@ import {
   X,
   FileText,
   LucideIcon,
+  ExternalLink,
 } from "lucide-react";
 
 const menuItems = [
@@ -99,6 +100,18 @@ const LogoutButton = ({
 
   return (
     <div className="p-3 border-t border-gray-200">
+      <Link
+        href="/"
+        target="_blank"
+        className={`
+          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+          hover:bg-gray-100 w-full transition-all duration-200 mb-2
+          ${showHoverTranslate ? "hover:translate-x-1" : ""}
+        `}
+      >
+        <ExternalLink size={18} />
+        <span>View Site</span>
+      </Link>
       <button
         onClick={handleLogout}
         className={`
