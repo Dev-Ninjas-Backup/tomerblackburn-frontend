@@ -73,3 +73,18 @@ export interface CompleteHomePageData {
   homePage: HomePage;
   services: ServiceStandsOut[];
 }
+
+// About Us Types
+export interface AboutUs {
+  id: string;
+  title: string;
+  ownerInfo: string;
+  description: string;
+  imageId?: string;
+  image?: {
+    id: string;
+    url: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
