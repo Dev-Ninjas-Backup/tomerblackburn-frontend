@@ -41,7 +41,7 @@ export const DeleteConfirmModal = ({
         <DialogFooter className="gap-2 sm:gap-0">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 mr-2"
             disabled={isLoading}
           >
             Cancel

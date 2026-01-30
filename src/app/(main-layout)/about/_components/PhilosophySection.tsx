@@ -18,7 +18,7 @@ const PhilosophySection = ({ aboutUsData }: PhilosophySectionProps) => {
   const title = aboutUsData?.title || "Our Philosophy";
 
   return (
-    <section ref={ref} className="py-16 bg-white">
+    <section ref={ref} className="pt-16 md:py-16 bg-white">
       <div className="container mx-auto px-4">
         {/* Title with decorative lines */}
         <div className="flex items-center justify-center mb-16">

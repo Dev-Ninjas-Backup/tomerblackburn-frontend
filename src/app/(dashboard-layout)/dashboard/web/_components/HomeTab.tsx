@@ -70,7 +70,10 @@ export const HomeTab = () => {
             return {
               ...service,
               file: value,
-              image: { ...service.image, url: URL.createObjectURL(value) } as any,
+              image: {
+                ...service.image,
+                url: URL.createObjectURL(value),
+              } as any,
             };
           }
           return { ...service, [field]: value };
@@ -96,7 +99,8 @@ export const HomeTab = () => {
 
       // Upload hero image if changed
       if (heroBackgroundImage) {
-        const uploadedImage = await uploadService.uploadSingle(heroBackgroundImage);
+        const uploadedImage =
+          await uploadService.uploadSingle(heroBackgroundImage);
         homeBackgroundImageId = uploadedImage.id;
       }
 
@@ -147,7 +151,9 @@ export const HomeTab = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Home Page</h1>
-          <p className="text-gray-600 mt-1">Manage your homepage content and sections</p>
+          <p className="text-gray-600 mt-1">
+            Manage your homepage content and sections
+          </p>
         </div>
         <button
           onClick={handlePublish}
@@ -158,9 +164,9 @@ export const HomeTab = () => {
           }
           className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
         >
-          {(updateHomePage.isPending ||
-            createService.isPending ||
-            updateService.isPending) ? (
+          {updateHomePage.isPending ||
+          createService.isPending ||
+          updateService.isPending ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Publishing...
@@ -174,9 +180,13 @@ export const HomeTab = () => {
       <div className="space-y-6">
         {/* Hero Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Hero Section</h2>
-            <p className="text-sm text-gray-600 mt-0.5">Main banner content visible on homepage</p>
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Hero Section
+            </h2>
+            <p className="text-sm text-gray-600 mt-0.5">
+              Main banner content visible on homepage
+            </p>
           </div>
 
           <div className="p-6 space-y-5">
@@ -234,11 +244,25 @@ export const HomeTab = () => {
                   className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
                 >
                   <div className="text-center">
-                    <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-12 h-12 text-gray-400 mx-auto mb-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
-                    <p className="text-sm text-gray-600 font-medium">Click to upload background image</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Click to upload background image
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG up to 10MB
+                    </p>
                   </div>
                 </label>
               )}
@@ -261,9 +285,13 @@ export const HomeTab = () => {
 
         {/* Mission Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Mission Section</h2>
-            <p className="text-sm text-gray-600 mt-0.5">Your company's mission and values</p>
+          <div className="bg-linear-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Mission Section
+            </h2>
+            <p className="text-sm text-gray-600 mt-0.5">
+              Your company's mission and values
+            </p>
           </div>
 
           <div className="p-6 space-y-5">
@@ -295,10 +323,12 @@ export const HomeTab = () => {
 
         {/* Services Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Services</h2>
-              <p className="text-sm text-gray-600 mt-0.5">{services.length} service(s) configured</p>
+              <p className="text-sm text-gray-600 mt-0.5">
+                {services.length} service(s) configured
+              </p>
             </div>
             <button
               onClick={handleAddService}
@@ -315,8 +345,12 @@ export const HomeTab = () => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Plus size={24} className="text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-medium">No services added yet</p>
-                <p className="text-sm text-gray-500 mt-1">Click "Add Service" to create your first service</p>
+                <p className="text-gray-600 font-medium">
+                  No services added yet
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Click "Add Service" to create your first service
+                </p>
               </div>
             ) : (
               <div className="grid gap-4">
@@ -336,7 +370,9 @@ export const HomeTab = () => {
                       handleUpdateService(service.id, "file", file)
                     }
                     uploadedImage={service.image?.url}
-                    onDelete={() => handleDeleteService(service.id, service.isNew)}
+                    onDelete={() =>
+                      handleDeleteService(service.id, service.isNew)
+                    }
                   />
                 ))}
               </div>

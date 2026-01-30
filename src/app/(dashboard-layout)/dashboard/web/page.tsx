@@ -6,6 +6,7 @@ import { WebTabs } from "./_components/WebTabs";
 import { HomeTab } from "./_components/HomeTab";
 import { AboutTab } from "./_components/AboutTab";
 import { PortfolioTab } from "./_components/PortfolioTab";
+import EstimatorTab from "./_components/EstimatorTab";
 import { TermsTab } from "./_components/TermsTab";
 import { PrivacyTab } from "./_components/PrivacyTab";
 
@@ -20,6 +21,8 @@ const WebPage = () => {
         return <AboutTab />;
       case "Portfolio":
         return <PortfolioTab />;
+      case "Estimator":
+        return <EstimatorTab />;
       case "Terms of Service":
         return <TermsTab />;
       case "Privacy Policy":
@@ -36,14 +39,15 @@ const WebPage = () => {
       transition={{ duration: 0.5 }}
       className="p-4 md:p-6 bg-gray-50 min-h-screen"
     >
-      <div className=" mx-auto">
+      <div className="mx-auto">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white rounded-lg shadow-sm"
+          className="bg-white rounded-lg shadow-sm flex flex-col h-[calc(100vh-3rem)]"
         >
-          <div className="border-b border-gray-200">
+          {/* Fixed Header */}
+          <div className="border-b border-gray-200 sticky top-0 bg-white z-10 rounded-t-lg">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -55,11 +59,13 @@ const WebPage = () => {
             </motion.div>
           </div>
 
-          <div className="flex flex-col md:flex-row">
+          {/* Fixed Tabs and Scrollable Content */}
+          <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
+              className="md:sticky md:top-0 md:self-start bg-white z-10"
             >
               <WebTabs activeTab={activeTab} onTabChange={setActiveTab} />
             </motion.div>
@@ -68,7 +74,7 @@ const WebPage = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="flex-1 p-4 md:p-6"
+              className="flex-1 p-4 md:p-6 overflow-y-auto"
             >
               {renderTabContent()}
             </motion.div>
