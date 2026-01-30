@@ -8,7 +8,14 @@ interface WebTabsProps {
   onTabChange: (tab: string) => void;
 }
 
-const tabs = ["Home", "About Us", "Portfolio", "Terms of Service", "Privacy Policy"];
+const tabs = [
+  "Home",
+  "About Us",
+  "Portfolio",
+  "Estimator",
+  "Terms of Service",
+  "Privacy Policy",
+];
 
 export const WebTabs = ({ activeTab, onTabChange }: WebTabsProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -22,21 +29,24 @@ export const WebTabs = ({ activeTab, onTabChange }: WebTabsProps) => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-48 bg-gray-50 border-r border-gray-200">
+      <div className="hidden md:block w-48 bg-gray-50 border-r border-gray-200 h-screen sticky top-0">
         <div className="p-4">
           {tabs.map((tab) => (
             <button
@@ -59,20 +69,23 @@ export const WebTabs = ({ activeTab, onTabChange }: WebTabsProps) => {
       </div>
 
       {/* Mobile Dropdown */}
-      <div className="md:hidden w-full border-b border-gray-200 bg-white" ref={dropdownRef}>
+      <div
+        className="md:hidden w-full border-b border-gray-200 bg-white"
+        ref={dropdownRef}
+      >
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <span>{activeTab}</span>
-            <ChevronDown 
+            <ChevronDown
               className={`h-4 w-4 transition-transform duration-200 ${
                 isDropdownOpen ? "rotate-180" : ""
-              }`} 
+              }`}
             />
           </button>
-          
+
           {isDropdownOpen && (
             <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-10">
               {tabs.map((tab) => (

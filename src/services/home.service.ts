@@ -3,6 +3,7 @@ import {
   HomePage,
   ServiceStandsOut,
   CompleteHomePageData,
+  AboutUs,
 } from "@/types/home.types";
 
 // Home Page API Service
@@ -56,5 +57,18 @@ export const homePageService = {
   subscribeNewsletter: async (email: string): Promise<{ message: string }> => {
     const response = await api.post("/subscribe", { email });
     return response.data;
+  },
+};
+
+// About Us API Service
+export const aboutUsService = {
+  getAboutUs: async (): Promise<AboutUs> => {
+    const response = await api.get("/about-us");
+    return response.data.data;
+  },
+
+  updateAboutUs: async (payload: Partial<AboutUs>): Promise<AboutUs> => {
+    const response = await api.patch("/about-us", payload);
+    return response.data.data;
   },
 };

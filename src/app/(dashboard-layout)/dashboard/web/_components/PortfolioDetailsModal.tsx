@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { User, Calendar, Plus, Trash2, Upload } from "lucide-react";
+import { User, Calendar, Plus, Trash2, Upload, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import Image from "next/image";
 import { useAddPortfolioImage, useDeletePortfolioImage } from "@/hooks/usePortfolio";
 import { uploadService } from "@/services/upload.service";
@@ -40,10 +40,16 @@ interface PortfolioDetailsModalProps {
   portfolio: Portfolio | null;
 }
 
+interface UploadProgress {
+  name: string;
+  status: 'uploading' | 'success' | 'error';
+  progress: number;
+}
+
 export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioDetailsModalProps) => {
   const [isDeleteImageModalOpen, setIsDeleteImageModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const addImageMutation = useAddPortfolioImage();
@@ -59,30 +65,84 @@ export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioD
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    setIsUploading(true);
+    const fileArray = Array.from(files);
     
-    try {
-      const uploadResponse = await uploadService.uploadSingle(files[0]);
-      const fileId = uploadResponse.data.data.id;
+    // Initialize progress for all files
+    const initialProgress: UploadProgress[] = fileArray.map(file => ({
+      name: file.name,
+      status: 'uploading',
+      progress: 0,
+    }));
+    setUploadProgress(initialProgress);
 
-      await addImageMutation.mutateAsync({
-        categoryId: portfolio.id,
-        data: {
-          fileId,
-          displayOrder: portfolio.images?.length || 0,
-        },
-      });
-
-      showToast.success("Image added successfully");
+    // Upload files sequentially
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
       
+      try {
+        // Update progress: uploading file
+        setUploadProgress(prev => 
+          prev.map((item, idx) => 
+            idx === i ? { ...item, progress: 50 } : item
+          )
+        );
+
+        // Upload file
+        const uploadedFile = await uploadService.uploadSingle(file);
+        const fileId = uploadedFile.id;
+
+        // Update progress: adding to portfolio
+        setUploadProgress(prev => 
+          prev.map((item, idx) => 
+            idx === i ? { ...item, progress: 75 } : item
+          )
+        );
+
+        // Add to portfolio
+        await addImageMutation.mutateAsync({
+          categoryId: portfolio.id,
+          data: {
+            fileId,
+            displayOrder: (portfolio.images?.length || 0) + i,
+          },
+        });
+
+        // Mark as success
+        setUploadProgress(prev => 
+          prev.map((item, idx) => 
+            idx === i ? { ...item, status: 'success', progress: 100 } : item
+          )
+        );
+      } catch (error) {
+        console.error(`Failed to upload ${file.name}:`, error);
+        
+        // Mark as error
+        setUploadProgress(prev => 
+          prev.map((item, idx) => 
+            idx === i ? { ...item, status: 'error', progress: 0 } : item
+          )
+        );
+      }
+    }
+
+    // Clear progress after 2 seconds
+    setTimeout(() => {
+      setUploadProgress([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error) {
-      console.error("Failed to add image:", error);
-      showToast.error("Failed to add image", "Please try again later.");
-    } finally {
-      setIsUploading(false);
+    }, 2000);
+
+    // Show summary toast
+    const successCount = uploadProgress.filter(p => p.status === 'success').length;
+    const errorCount = uploadProgress.filter(p => p.status === 'error').length;
+    
+    if (errorCount === 0) {
+      showToast.success(`${fileArray.length} image(s) uploaded successfully`);
+    } else if (successCount > 0) {
+      showToast.warning(`${successCount} uploaded, ${errorCount} failed`);
+    } else {
+      showToast.error("Failed to upload images");
     }
   };
 
@@ -104,6 +164,8 @@ export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioD
       showToast.error("Failed to delete image", "Please try again later.");
     }
   };
+
+  const isUploading = uploadProgress.length > 0;
 
   return (
     <>
@@ -174,7 +236,7 @@ export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioD
                   disabled={isUploading}
                 >
                   <Plus size={16} />
-                  {isUploading ? "Uploading..." : "Add Image"}
+                  Add Images
                 </button>
               </div>
 
@@ -182,11 +244,49 @@ export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioD
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileSelect}
                 className="hidden"
-                aria-label="Upload image file"
-                title="Upload image file"
+                aria-label="Upload image files"
+                title="Upload image files"
               />
+
+              {/* Upload Progress */}
+              {uploadProgress.length > 0 && (
+                <div className="mb-4 space-y-2 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Uploading...</h4>
+                  {uploadProgress.map((item, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 truncate flex-1">{item.name}</span>
+                        <div className="flex items-center gap-2 ml-2">
+                          {item.status === 'uploading' && (
+                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          )}
+                          {item.status === 'success' && (
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          )}
+                          {item.status === 'error' && (
+                            <XCircle className="w-4 h-4 text-red-600" />
+                          )}
+                          <span className="text-xs text-gray-500 w-12 text-right">
+                            {item.progress}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            item.status === 'success' ? 'bg-green-600' :
+                            item.status === 'error' ? 'bg-red-600' : 'bg-blue-600'
+                          }`}
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {portfolio.images && portfolio.images.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -223,7 +323,7 @@ export const PortfolioDetailsModal = ({ isOpen, onClose, portfolio }: PortfolioD
                     onClick={handleAddImage}
                     className="mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium"
                   >
-                    Add your first image
+                    Add your first images
                   </button>
                 </div>
               )}

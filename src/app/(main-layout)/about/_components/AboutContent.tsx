@@ -33,12 +33,27 @@ const AboutContent = ({ aboutUsData }: AboutContentProps) => {
     <section ref={ref} className="pb-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-7xl mx-auto items-start">
-          {/* Left: Text Content - 2/3 width */}
+          {/* Image - Shows first on mobile, right on desktop */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+            transition={{ duration: 0.8 }}
+            className="lg:col-span-1 lg:order-2 relative h-[400px] lg:h-[600px] rounded-3xl overflow-hidden shadow-xl"
+          >
+            <ImageWithFallback
+              src={aboutUsData?.image?.url || placeholderImage}
+              alt="Owner photo"
+              fill
+              className="object-cover"
+            />
+          </motion.div>
+
+          {/* Text Content - Shows second on mobile, left on desktop */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-2 space-y-6"
+            className="lg:col-span-2 lg:order-1 space-y-6"
           >
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -47,14 +62,13 @@ const AboutContent = ({ aboutUsData }: AboutContentProps) => {
               <p className="text-gray-500 italic">{ownerInfo}</p>
             </div>
 
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-gray-600 leading-relaxed"
-            >
-              {description}
-            </motion.p>
+              dangerouslySetInnerHTML={{ __html: description }}
+            />
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -71,21 +85,6 @@ const AboutContent = ({ aboutUsData }: AboutContentProps) => {
               </Link>{" "}
               on your project!
             </motion.p>
-          </motion.div>
-
-          {/* Right: Image - 1/3 width */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
-            transition={{ duration: 0.8 }}
-            className="lg:col-span-1 relative h-[600px] rounded-3xl overflow-hidden shadow-xl"
-          >
-            <ImageWithFallback
-              src={aboutUsData?.image?.url || placeholderImage}
-              alt="Owner photo"
-              fill
-              className="object-cover"
-            />
           </motion.div>
         </div>
       </div>
