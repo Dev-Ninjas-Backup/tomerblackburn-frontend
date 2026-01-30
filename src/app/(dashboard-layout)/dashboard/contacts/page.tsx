@@ -1,79 +1,28 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { Bell } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { ContactsTable } from './_components/ContactsTable'
-import { ViewDetailsModal } from './_components/ViewDetailsModal'
-
-interface Contact {
-  id: number
-  name: string
-  email: string
-  phone: string
-  address: string
-  date: string
-  message?: string
-}
-
-const dummyContacts: Contact[] = [
-  {
-    id: 123,
-    name: 'John Doe',
-    email: 'john.doe@gmail.com',
-    phone: '+8801787939177',
-    address: '255 Dewan Bari Road-1230',
-    date: '12 Feb 2025',
-    message: 'I am interested in your bathroom renovation services. Please contact me.'
-  },
-  {
-    id: 124,
-    name: 'Jane Smith',
-    email: 'jane.smith@gmail.com',
-    phone: '+8801787939178',
-    address: '123 Main Street-4567',
-    date: '13 Feb 2025',
-    message: 'Looking for a quote on bathroom remodeling.'
-  },
-  {
-    id: 125,
-    name: 'Mike Johnson',
-    email: 'mike.j@gmail.com',
-    phone: '+8801787939179',
-    address: '456 Park Avenue-7890',
-    date: '14 Feb 2025',
-    message: 'Need consultation for bathroom design.'
-  },
-  {
-    id: 126,
-    name: 'Sarah Williams',
-    email: 'sarah.w@gmail.com',
-    phone: '+8801787939180',
-    address: '789 Oak Street-1234',
-    date: '15 Feb 2025',
-    message: 'Interested in modern bathroom fixtures.'
-  },
-  {
-    id: 127,
-    name: 'David Brown',
-    email: 'david.brown@gmail.com',
-    phone: '+8801787939181',
-    address: '321 Elm Road-5678',
-    date: '16 Feb 2025',
-    message: 'Want to schedule a bathroom inspection.'
-  },
-]
+import React, { useState } from "react";
+import { Bell, CheckCheck, Filter } from "lucide-react";
+import { motion } from "framer-motion";
+import { ContactsTable } from "./_components/ContactsTable";
+import { ViewDetailsModal } from "./_components/ViewDetailsModal";
+import { useContacts, useUnreadCount, useMarkAllAsRead } from "@/hooks/useContacts";
+import { ContactSubmission } from "@/types/contact.types";
+import { Button } from "@/components/ui/button";
 
 export default function ContactsPage() {
-  const [contacts, setContacts] = useState<Contact[]>(dummyContacts)
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
+  const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
 
-  const handleDelete = (id: number) => {
-    setContacts(contacts.filter(c => c.id !== id))
-  }
+  const isReadFilter = filter === "all" ? undefined : filter === "read";
+  const { data: contactsData, isLoading } = useContacts(isReadFilter);
+  const { data: unreadData } = useUnreadCount();
+  const markAllAsRead = useMarkAllAsRead();
+
+  const contacts = contactsData?.data || [];
+  const unreadCount = unreadData?.count || 0;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -81,18 +30,88 @@ export default function ContactsPage() {
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">All Contacts</h1>
-        <button className="p-2 hover:bg-gray-100 rounded-full" aria-label="Notifications">
-          <Bell size={24} className="text-gray-700" />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">All Contacts</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            {contacts.length} total contacts • {unreadCount} unread
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {unreadCount > 0 && (
+            <Button
+              onClick={() => markAllAsRead.mutate()}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <CheckCheck size={16} />
+              Mark All Read
+            </Button>
+          )}
+          <div className="relative">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full relative"
+              aria-label="Notifications"
+            >
+              <Bell size={24} className="text-gray-700" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 border-b">
+        <button
+          onClick={() => setFilter("all")}
+          className={`px-4 py-2 font-medium transition-colors ${
+            filter === "all"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter("unread")}
+          className={`px-4 py-2 font-medium transition-colors ${
+            filter === "unread"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Unread ({unreadCount})
+        </button>
+        <button
+          onClick={() => setFilter("read")}
+          className={`px-4 py-2 font-medium transition-colors ${
+            filter === "read"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Read
         </button>
       </div>
 
       {/* Table */}
-      <ContactsTable
-        contacts={contacts}
-        onViewDetails={setSelectedContact}
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-gray-600">Loading contacts...</p>
+          </div>
+        </div>
+      ) : (
+        <ContactsTable
+          contacts={contacts}
+          onViewDetails={setSelectedContact}
+        />
+      )}
 
       {/* View Details Modal */}
       <ViewDetailsModal
@@ -100,5 +119,5 @@ export default function ContactsPage() {
         onClose={() => setSelectedContact(null)}
       />
     </motion.div>
-  )
+  );
 }

@@ -1,18 +1,78 @@
-import axios from "axios";
-import { ContactFormData } from "@/types/contact.types";
+import api from "@/lib/api";
+import { ContactSubmission, ContactsResponse, UnreadCountResponse } from "@/types/contact.types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+export interface ContactFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  message: string;
+  projectStartDate: string;
+}
 
-// Contact Page API Service
-export const contactPageService = {
-  // Submit contact form
-  submitContactForm: async (data: ContactFormData): Promise<{ message: string }> => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/contact`, data);
-      return response.data;
-    } catch (error) {
-      console.error("Error submitting contact form:", error);
-      throw error;
-    }
+export const contactService = {
+  // Public - Submit contact form
+  submitContactForm: async (data: ContactFormData) => {
+    const response = await api.post<{ message: string; data: any }>(
+      "/contact-us",
+      {
+        ...data,
+        projectStartDate: new Date(data.projectStartDate).toISOString(),
+      }
+    );
+    return response.data;
+  },
+
+  // Dashboard - Get all contacts
+  getAllContacts: async (isRead?: boolean) => {
+    const params = isRead !== undefined ? { isRead: isRead.toString() } : {};
+    const response = await api.get<ContactsResponse>("/contact-us", { params });
+    return response.data;
+  },
+
+  // Dashboard - Get unread count
+  getUnreadCount: async () => {
+    const response = await api.get<UnreadCountResponse>("/contact-us/unread-count");
+    return response.data;
+  },
+
+  // Dashboard - Get single contact
+  getContactById: async (id: string) => {
+    const response = await api.get<{ message: string; data: ContactSubmission }>(
+      `/contact-us/${id}`
+    );
+    return response.data;
+  },
+
+  // Dashboard - Mark as read
+  markAsRead: async (id: string) => {
+    const response = await api.patch<{ message: string }>(
+      `/contact-us/${id}/mark-read`
+    );
+    return response.data;
+  },
+
+  // Dashboard - Mark as unread
+  markAsUnread: async (id: string) => {
+    const response = await api.patch<{ message: string }>(
+      `/contact-us/${id}/mark-unread`
+    );
+    return response.data;
+  },
+
+  // Dashboard - Mark all as read
+  markAllAsRead: async () => {
+    const response = await api.post<{ message: string }>("/contact-us/mark-all-read");
+    return response.data;
+  },
+
+  // Dashboard - Delete contact
+  deleteContact: async (id: string) => {
+    const response = await api.delete<{ message: string }>(`/contact-us/${id}`);
+    return response.data;
   },
 };

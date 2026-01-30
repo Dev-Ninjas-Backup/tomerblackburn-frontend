@@ -1,12 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { contactPageService } from "@/services/contact.service";
-import { ContactFormData } from "@/types/contact.types";
+import { contactService, ContactFormData } from "@/services/contact.service";
 import { toast } from "sonner";
 
 // Hook to submit contact form
 export const useSubmitContactForm = () => {
   return useMutation({
-    mutationFn: (data: ContactFormData) => contactPageService.submitContactForm(data),
+    mutationFn: (data: ContactFormData) => contactService.submitContactForm(data),
     onSuccess: () => {
       toast.success("Thank you! We'll get back to you soon.");
     },
