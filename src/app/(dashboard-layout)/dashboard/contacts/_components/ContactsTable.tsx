@@ -15,15 +15,30 @@ import { DeleteConfirmModal } from "./DeleteConfirmModal";
 interface ContactsTableProps {
   contacts: ContactSubmission[];
   onViewDetails: (contact: ContactSubmission) => void;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  page: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
 }
 
 export const ContactsTable = ({
   contacts,
   onViewDetails,
+  pagination,
+  page,
+  limit,
+  onPageChange,
+  onLimitChange,
 }: ContactsTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     contactId: string;
@@ -48,13 +63,6 @@ export const ContactsTable = ({
         .includes(searchQuery.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.phone.includes(searchQuery),
-  );
-
-  const totalPages = Math.ceil(filteredContacts.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedContacts = filteredContacts.slice(
-    startIndex,
-    startIndex + rowsPerPage,
   );
 
   const handleDeleteClick = (id: string, name: string) => {
@@ -118,7 +126,7 @@ export const ContactsTable = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {paginatedContacts.map((contact) => (
+              {filteredContacts.map((contact) => (
                 <tr
                   key={contact.id}
                   className={`hover:bg-gray-50 ${!contact.isRead ? "bg-blue-50" : ""}`}
@@ -192,66 +200,66 @@ export const ContactsTable = ({
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">Rows per page</span>
-            <select
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
-              aria-label="Rows per page"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
+        {pagination && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700">Rows per page</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  onLimitChange(Number(e.target.value));
+                  onPageChange(1);
+                }}
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                aria-label="Rows per page"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-700">
-              Page {currentPage} of {totalPages || 1}
-            </span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="First page"
-              >
-                «
-              </button>
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next page"
-              >
-                ›
-              </button>
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Last page"
-              >
-                »
-              </button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-700">
+                Page {pagination.page} of {pagination.totalPages || 1} ({pagination.total} total)
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => onPageChange(1)}
+                  disabled={!pagination.hasPreviousPage}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="First page"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => onPageChange(page - 1)}
+                  disabled={!pagination.hasPreviousPage}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Previous page"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={() => onPageChange(page + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+                <button
+                  onClick={() => onPageChange(pagination.totalPages)}
+                  disabled={!pagination.hasNextPage}
+                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Last page"
+                >
+                  »
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

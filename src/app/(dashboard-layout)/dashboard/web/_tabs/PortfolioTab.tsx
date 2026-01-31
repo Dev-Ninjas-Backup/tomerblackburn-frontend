@@ -1,11 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Search, Eye, Power, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
-import { PortfolioModal } from "./PortfolioModal";
-import { EditPortfolioModal } from "./EditPortfolioModal";
-import { PortfolioDetailsModal } from "./PortfolioDetailsModal";
-import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import {
+  Plus,
+  Search,
+  Eye,
+  Power,
+  Trash2,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { PortfolioModal } from "../_components/PortfolioModal";
+import { EditPortfolioModal } from "../_components/EditPortfolioModal";
+import { PortfolioDetailsModal } from "../_components/PortfolioDetailsModal";
+import { DeleteConfirmModal } from "../_components/DeleteConfirmModal";
 import {
   usePortfolios,
   useCreatePortfolio,
@@ -39,10 +48,14 @@ export const PortfolioTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(
+    null,
+  );
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [portfolioToDelete, setPortfolioToDelete] = useState<string | null>(null);
+  const [portfolioToDelete, setPortfolioToDelete] = useState<string | null>(
+    null,
+  );
 
   const { data: portfolios = [], isLoading } = usePortfolios(true);
   const createMutation = useCreatePortfolio();
@@ -50,12 +63,18 @@ export const PortfolioTab = () => {
   const deleteMutation = useDeletePortfolio();
   const toggleStatusMutation = useTogglePortfolioStatus();
 
-  const filteredPortfolios = portfolios.filter((portfolio: Portfolio) =>
-    portfolio.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    portfolio.slug.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPortfolios = portfolios.filter(
+    (portfolio: Portfolio) =>
+      portfolio.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      portfolio.slug.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleAddPortfolio = async (data: { name: string; slug: string; description?: string; images: File[] }) => {
+  const handleAddPortfolio = async (data: {
+    name: string;
+    slug: string;
+    description?: string;
+    images: File[];
+  }) => {
     try {
       await createMutation.mutateAsync({
         name: data.name,
@@ -63,7 +82,10 @@ export const PortfolioTab = () => {
         description: data.description,
       });
       setIsModalOpen(false);
-      showToast.success("Portfolio created successfully", `${data.name} has been added to your portfolio.`);
+      showToast.success(
+        "Portfolio created successfully",
+        `${data.name} has been added to your portfolio.`,
+      );
     } catch (error) {
       console.error("Failed to create portfolio:", error);
       showToast.error("Failed to create portfolio", "Please try again later.");
@@ -80,11 +102,17 @@ export const PortfolioTab = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdate = async (id: string, data: { name: string; slug: string; description?: string }) => {
+  const handleUpdate = async (
+    id: string,
+    data: { name: string; slug: string; description?: string },
+  ) => {
     try {
       await updateMutation.mutateAsync({ id, data });
       setIsEditModalOpen(false);
-      showToast.success("Portfolio updated successfully", `${data.name} has been updated.`);
+      showToast.success(
+        "Portfolio updated successfully",
+        `${data.name} has been updated.`,
+      );
     } catch (error) {
       console.error("Failed to update portfolio:", error);
       showToast.error("Failed to update portfolio", "Please try again later.");
@@ -98,7 +126,7 @@ export const PortfolioTab = () => {
 
   const confirmDelete = async () => {
     if (!portfolioToDelete) return;
-    
+
     try {
       await deleteMutation.mutateAsync(portfolioToDelete);
       showToast.success("Portfolio deleted successfully");
@@ -123,10 +151,12 @@ export const PortfolioTab = () => {
   return (
     <div className="w-full mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 space-y-4 md:space-y-0">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">Portfolio</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+          Portfolio
+        </h2>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="flex items-center space-x-2 px-4 py-2 bg-[#2D4A8F] text-white rounded-md hover:bg-[#3461c9]"
         >
           <Plus size={16} />
           <span>Add New Portfolio</span>
@@ -135,7 +165,10 @@ export const PortfolioTab = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 space-y-4 md:space-y-0">
         <div className="relative flex-1 md:max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={16}
+          />
           <input
             type="text"
             placeholder="Search by name and slug"
@@ -144,7 +177,9 @@ export const PortfolioTab = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <span className="text-sm text-gray-500">{filteredPortfolios.length} results</span>
+        <span className="text-sm text-gray-500">
+          {filteredPortfolios.length} results
+        </span>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -156,29 +191,54 @@ export const PortfolioTab = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Images</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Slug
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Images
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredPortfolios.map((portfolio: Portfolio) => (
                     <tr key={portfolio.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{portfolio.name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{portfolio.slug}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{portfolio.images?.length || 0}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {portfolio.name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {portfolio.slug}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {portfolio.images?.length || 0}
+                      </td>
                       <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          portfolio.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {portfolio.isActive ? 'Active' : 'Inactive'}
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            portfolio.isActive
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {portfolio.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
-                        {new Date(portfolio.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(portfolio.createdAt).toLocaleDateString(
+                          "en-GB",
+                          { day: "numeric", month: "short", year: "numeric" },
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         <div className="flex items-center gap-2">
@@ -201,8 +261,12 @@ export const PortfolioTab = () => {
                           <button
                             onClick={() => handleToggleStatus(portfolio.id)}
                             className="p-1.5 hover:bg-gray-100 text-gray-600 rounded"
-                            title={portfolio.isActive ? 'Deactivate' : 'Activate'}
-                            aria-label={portfolio.isActive ? 'Deactivate' : 'Activate'}
+                            title={
+                              portfolio.isActive ? "Deactivate" : "Activate"
+                            }
+                            aria-label={
+                              portfolio.isActive ? "Deactivate" : "Activate"
+                            }
                             disabled={toggleStatusMutation.isPending}
                           >
                             <Power size={16} />
@@ -227,7 +291,11 @@ export const PortfolioTab = () => {
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-700">Rows per page</span>
-                <select className="border border-gray-300 rounded px-2 py-1 text-sm" title="Rows per page" aria-label="Rows per page">
+                <select
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  title="Rows per page"
+                  aria-label="Rows per page"
+                >
                   <option>10</option>
                   <option>25</option>
                   <option>50</option>
@@ -235,10 +303,20 @@ export const PortfolioTab = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-700">Page 1 of 1</span>
-                <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Previous page" aria-label="Previous page">
+                <button
+                  className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
+                  disabled
+                  title="Previous page"
+                  aria-label="Previous page"
+                >
                   <ChevronLeft size={16} />
                 </button>
-                <button className="p-1 hover:bg-gray-100 rounded disabled:opacity-50" disabled title="Next page" aria-label="Next page">
+                <button
+                  className="p-1 hover:bg-gray-100 rounded disabled:opacity-50"
+                  disabled
+                  title="Next page"
+                  aria-label="Next page"
+                >
                   <ChevronRight size={16} />
                 </button>
               </div>

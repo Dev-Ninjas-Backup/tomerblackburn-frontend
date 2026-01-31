@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { WebTabs } from "./_components/WebTabs";
-import { HomeTab } from "./_components/HomeTab";
-import { AboutTab } from "./_components/AboutTab";
-import { PortfolioTab } from "./_components/PortfolioTab";
-import EstimatorTab from "./_components/EstimatorTab";
-import { TermsTab } from "./_components/TermsTab";
-import { PrivacyTab } from "./_components/PrivacyTab";
+import { HomeTab } from "./_tabs/HomeTab";
+import { AboutTab } from "./_tabs/AboutTab";
+import { PortfolioTab } from "./_tabs/PortfolioTab";
+import EstimatorTab from "./_tabs/EstimatorTab";
+import { TermsTab } from "./_tabs/TermsTab";
+import { PrivacyTab } from "./_tabs/PrivacyTab";
 
 const WebPage = () => {
   const [activeTab, setActiveTab] = useState("Home");

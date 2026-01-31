@@ -17,8 +17,15 @@ export interface ContactSubmission {
 
 export interface ContactsResponse {
   message: string;
-  count: number;
   data: ContactSubmission[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 export interface UnreadCountResponse {
