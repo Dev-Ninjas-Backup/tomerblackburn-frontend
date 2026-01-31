@@ -5,13 +5,18 @@ import { Bell, CheckCheck, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { ContactsTable } from "./_components/ContactsTable";
 import { ViewDetailsModal } from "./_components/ViewDetailsModal";
-import { useContacts, useUnreadCount, useMarkAllAsRead } from "@/hooks/useContacts";
+import {
+  useContacts,
+  useUnreadCount,
+  useMarkAllAsRead,
+} from "@/hooks/useContacts";
 import { ContactSubmission } from "@/types/contact.types";
 import { Button } from "@/components/ui/button";
 
 export default function ContactsPage() {
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
-  const [selectedContact, setSelectedContact] = useState<ContactSubmission | null>(null);
+  const [selectedContact, setSelectedContact] =
+    useState<ContactSubmission | null>(null);
 
   const isReadFilter = filter === "all" ? undefined : filter === "read";
   const { data: contactsData, isLoading } = useContacts(isReadFilter);
@@ -107,10 +112,7 @@ export default function ContactsPage() {
           </div>
         </div>
       ) : (
-        <ContactsTable
-          contacts={contacts}
-          onViewDetails={setSelectedContact}
-        />
+        <ContactsTable contacts={contacts} onViewDetails={setSelectedContact} />
       )}
 
       {/* View Details Modal */}

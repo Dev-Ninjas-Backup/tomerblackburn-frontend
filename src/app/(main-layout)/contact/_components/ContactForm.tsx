@@ -11,9 +11,11 @@ import { toast } from "sonner";
 
 interface ContactFormProps {
   onSubmit?: (data: any) => void;
+  onFormDataChange?: (data: any) => void;
+  onFormSubmit?: () => void;
 }
 
-const ContactForm = ({ onSubmit }: ContactFormProps) => {
+const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -35,7 +37,12 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const newFormData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(newFormData);
+    // Notify parent component of data changes
+    if (onFormDataChange) {
+      onFormDataChange(newFormData);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +53,14 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
       if (onSubmit) {
         await onSubmit(formData);
       } else {
+        // Submit to your backend
         await contactService.submitContactForm(formData);
+        
+        // Trigger BuilderTrend form submission
+        if (onFormSubmit) {
+          onFormSubmit();
+        }
+        
         toast.success("Message sent successfully!");
         // Reset form
         setFormData({
