@@ -6,19 +6,16 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { contactService } from "@/services/contact.service";
+import { toast } from "sonner";
 
 interface ContactFormProps {
   onSubmit?: (data: any) => void;
+  onFormDataChange?: (data: any) => void;
+  onFormSubmit?: () => void;
 }
 
-const ContactForm = ({ onSubmit }: ContactFormProps) => {
+const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -31,29 +28,59 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
     city: "",
     state: "",
     zipCode: "",
-    scopeOfWork: "",
+    message: "",
+    projectStartDate: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const newFormData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(newFormData);
+    // Notify parent component of data changes
+    if (onFormDataChange) {
+      onFormDataChange(newFormData);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (onSubmit) {
-      await onSubmit(formData);
-    } else {
-      // TODO: Integrate with API
-      console.log("Form submitted:", formData);
+    try {
+      if (onSubmit) {
+        await onSubmit(formData);
+      } else {
+        // Submit to your backend
+        await contactService.submitContactForm(formData);
+        
+        // Trigger BuilderTrend form submission
+        if (onFormSubmit) {
+          onFormSubmit();
+        }
+        
+        toast.success("Message sent successfully!");
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          address: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          message: "",
+          projectStartDate: "",
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
@@ -151,20 +178,15 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             City
           </label>
-          <Select
+          <Input
+            type="text"
+            name="city"
+            placeholder="Enter City"
             value={formData.city}
-            onValueChange={(value) => setFormData({ ...formData, city: value })}
-          >
-            <SelectTrigger className="w-full p-6">
-              <SelectValue placeholder="Choose City" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="chicago">Chicago</SelectItem>
-              <SelectItem value="lakeview">Lakeview</SelectItem>
-              <SelectItem value="lincoln-park">Lincoln Park</SelectItem>
-              <SelectItem value="wicker-park">Wicker Park</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={handleChange}
+            required
+            className="w-full p-6"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -173,10 +195,11 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
           <Input
             type="text"
             name="state"
-            placeholder="Auto-filled"
-            value="Illinois"
-            disabled
-            className="w-full p-6 bg-gray-50"
+            placeholder="State"
+            value={formData.state}
+            onChange={handleChange}
+            required
+            className="w-full p-6"
           />
         </div>
         <div>
@@ -195,15 +218,30 @@ const ContactForm = ({ onSubmit }: ContactFormProps) => {
         </div>
       </div>
 
-      {/* Scope of Work */}
+      {/* Project Start Date */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Scope of Work
+          Project Start Date
+        </label>
+        <Input
+          type="date"
+          name="projectStartDate"
+          value={formData.projectStartDate}
+          onChange={handleChange}
+          required
+          className="w-full p-6"
+        />
+      </div>
+
+      {/* Message */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Message
         </label>
         <Textarea
-          name="scopeOfWork"
-          placeholder="Write the purpose of your work..."
-          value={formData.scopeOfWork}
+          name="message"
+          placeholder="Tell us about your project..."
+          value={formData.message}
           onChange={handleChange}
           required
           rows={10}

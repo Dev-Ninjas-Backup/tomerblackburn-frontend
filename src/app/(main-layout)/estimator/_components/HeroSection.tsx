@@ -3,15 +3,27 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { EstimatorPage } from "@/types/estimator.types";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  data?: EstimatorPage | null;
+}
+
+const HeroSection = ({ data }: HeroSectionProps) => {
+  const backgroundImage =
+    data?.backgroundImage?.url || "/images/bathroom-hero.jpg";
+  const title = data?.title || "Estimate Your Project Remodel Cost";
+  const description =
+    data?.description ||
+    "Professional estimates in minutes, not days. Transparent pricing, no hidden fees.";
+
   return (
     <section className="relative h-[calc(100vh-120px)] bg-gray-100 flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/images/bathroom-hero.jpg')",
+          backgroundImage: `url('${backgroundImage}')`,
         }}
       >
         <div className="absolute inset-0 bg-black/05"></div>
@@ -32,7 +44,7 @@ const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-2xl md:text-3xl font-bold mb-6 leading-tight"
             >
-              Estimate Your Bathroom Remodel Cost
+              {title}
             </motion.h1>
 
             <motion.p
@@ -41,9 +53,7 @@ const HeroSection = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-lg mb-8 opacity-90"
             >
-              Professional estimates in minutes, not days.
-              <br />
-              Transparent pricing, no hidden fees.
+              {description}
             </motion.p>
 
             <motion.div

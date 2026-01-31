@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { estimatorPageService } from "@/services/estimator.service";
+import { estimatorPageDashboardService } from "@/services/estimator-dashboard.service";
 import {
   EstimatorPage,
   HowItWorksStep,
@@ -11,14 +11,14 @@ import { toast } from "sonner";
 export const useEstimatorPageData = () => {
   return useQuery({
     queryKey: ["estimatorPage"],
-    queryFn: estimatorPageService.getEstimatorPage,
+    queryFn: estimatorPageDashboardService.getEstimatorPage,
   });
 };
 
 export const useCompleteEstimatorPageData = () => {
   return useQuery({
     queryKey: ["completeEstimatorPage"],
-    queryFn: estimatorPageService.getCompleteData,
+    queryFn: estimatorPageDashboardService.getCompleteData,
   });
 };
 
@@ -27,7 +27,7 @@ export const useUpdateEstimatorPage = () => {
 
   return useMutation({
     mutationFn: (payload: Partial<EstimatorPage>) =>
-      estimatorPageService.updateEstimatorPage(payload),
+      estimatorPageDashboardService.updateEstimatorPage(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["estimatorPage"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -43,7 +43,7 @@ export const useUpdateEstimatorPage = () => {
 export const useHowItWorksSteps = () => {
   return useQuery({
     queryKey: ["howItWorksSteps"],
-    queryFn: estimatorPageService.getAllHowItWorksSteps,
+    queryFn: estimatorPageDashboardService.getAllHowItWorksSteps,
   });
 };
 
@@ -52,7 +52,7 @@ export const useCreateHowItWorksStep = () => {
 
   return useMutation({
     mutationFn: (payload: Partial<HowItWorksStep>) =>
-      estimatorPageService.createHowItWorksStep(payload),
+      estimatorPageDashboardService.createHowItWorksStep(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["howItWorksSteps"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -69,7 +69,7 @@ export const useUpdateHowItWorksStep = () => {
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<HowItWorksStep> }) =>
-      estimatorPageService.updateHowItWorksStep(id, payload),
+      estimatorPageDashboardService.updateHowItWorksStep(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["howItWorksSteps"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -85,7 +85,7 @@ export const useDeleteHowItWorksStep = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => estimatorPageService.deleteHowItWorksStep(id),
+    mutationFn: (id: string) => estimatorPageDashboardService.deleteHowItWorksStep(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["howItWorksSteps"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -101,7 +101,7 @@ export const useDeleteHowItWorksStep = () => {
 export const useWhyChooseUsFeatures = () => {
   return useQuery({
     queryKey: ["whyChooseUsFeatures"],
-    queryFn: estimatorPageService.getAllWhyChooseUsFeatures,
+    queryFn: estimatorPageDashboardService.getAllWhyChooseUsFeatures,
   });
 };
 
@@ -110,7 +110,7 @@ export const useCreateWhyChooseUsFeature = () => {
 
   return useMutation({
     mutationFn: (payload: Partial<WhyChooseUsFeature>) =>
-      estimatorPageService.createWhyChooseUsFeature(payload),
+      estimatorPageDashboardService.createWhyChooseUsFeature(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whyChooseUsFeatures"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -127,7 +127,7 @@ export const useUpdateWhyChooseUsFeature = () => {
 
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<WhyChooseUsFeature> }) =>
-      estimatorPageService.updateWhyChooseUsFeature(id, payload),
+      estimatorPageDashboardService.updateWhyChooseUsFeature(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whyChooseUsFeatures"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
@@ -143,7 +143,7 @@ export const useDeleteWhyChooseUsFeature = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => estimatorPageService.deleteWhyChooseUsFeature(id),
+    mutationFn: (id: string) => estimatorPageDashboardService.deleteWhyChooseUsFeature(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whyChooseUsFeatures"] });
       queryClient.invalidateQueries({ queryKey: ["completeEstimatorPage"] });
