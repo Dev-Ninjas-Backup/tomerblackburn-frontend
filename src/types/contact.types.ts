@@ -1,6 +1,5 @@
-// Contact Page Types
-
-export interface ContactFormData {
+export interface ContactSubmission {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -9,10 +8,20 @@ export interface ContactFormData {
   city: string;
   state: string;
   zipCode: string;
-  scopeOfWork: string;
+  message: string;
+  projectStartDate: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ContactPageData {
-  title: string;
-  mapEmbedUrl: string;
+export interface ContactsResponse {
+  message: string;
+  count: number;
+  data: ContactSubmission[];
+}
+
+export interface UnreadCountResponse {
+  message: string;
+  count: number;
 }

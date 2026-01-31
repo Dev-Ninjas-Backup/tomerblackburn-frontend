@@ -1,86 +1,198 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { X, User, Mail, MapPin, Calendar } from 'lucide-react'
-
-interface Contact {
-  id: number
-  name: string
-  email: string
-  phone: string
-  address: string
-  date: string
-  message?: string
-}
+import React from "react";
+import {
+  X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  MessageSquare,
+  Home,
+} from "lucide-react";
+import { ContactSubmission } from "@/types/contact.types";
+import { format } from "date-fns";
 
 interface ViewDetailsModalProps {
-  contact: Contact | null
-  onClose: () => void
+  contact: ContactSubmission | null;
+  onClose: () => void;
 }
 
-export const ViewDetailsModal = ({ contact, onClose }: ViewDetailsModalProps) => {
-  if (!contact) return null
+export const ViewDetailsModal = ({
+  contact,
+  onClose,
+}: ViewDetailsModalProps) => {
+  if (!contact) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-lg w-full">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Details</h2>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-xl max-w-2xl w-full shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-linear-to-r from-blue-50 to-indigo-50">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Contact Details
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Submitted on{" "}
+              {format(
+                new Date(contact.createdAt),
+                "MMMM dd, yyyy 'at' hh:mm a",
+              )}
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded"
+            className="p-2 hover:bg-white rounded-lg transition-colors"
             aria-label="Close modal"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={24} className="text-gray-500" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Name & Phone */}
-          <div className="flex items-start gap-3">
-            <User size={20} className="text-gray-500 mt-0.5" />
-            <div>
-              <p className="font-semibold text-gray-900">{contact.name}</p>
-              <p className="text-sm text-gray-600">{contact.phone}</p>
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+          {/* Personal Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">
+              Personal Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <User size={18} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Full Name</p>
+                  <p className="font-semibold text-gray-900">
+                    {contact.firstName} {contact.lastName}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Mail size={18} className="text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Email Address</p>
+                  <p className="font-semibold text-gray-900">{contact.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Phone size={18} className="text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Phone Number</p>
+                  <p className="font-semibold text-gray-900">{contact.phone}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <Calendar size={18} className="text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Project Start Date
+                  </p>
+                  <p className="font-semibold text-gray-900">
+                    {format(
+                      new Date(contact.projectStartDate),
+                      "MMMM dd, yyyy",
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Email */}
-          <div className="flex items-start gap-3">
-            <Mail size={20} className="text-gray-500 mt-0.5" />
-            <div>
-              <p className="font-semibold text-gray-900">Email</p>
-              <p className="text-sm text-gray-600">{contact.email}</p>
+          {/* Address Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">
+              Address Information
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Home size={18} className="text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Street Address</p>
+                  <p className="font-semibold text-gray-900">
+                    {contact.address}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-teal-100 rounded-lg">
+                  <MapPin size={18} className="text-teal-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">City</p>
+                  <p className="font-semibold text-gray-900">{contact.city}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <MapPin size={18} className="text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">State</p>
+                  <p className="font-semibold text-gray-900">{contact.state}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-pink-100 rounded-lg">
+                  <MapPin size={18} className="text-pink-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Zip Code</p>
+                  <p className="font-semibold text-gray-900">
+                    {contact.zipCode}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Address */}
-          <div className="flex items-start gap-3">
-            <MapPin size={20} className="text-gray-500 mt-0.5" />
-            <div>
-              <p className="font-semibold text-gray-900">Address</p>
-              <p className="text-sm text-gray-600">{contact.address}</p>
+          {/* Message */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <MessageSquare size={18} className="text-yellow-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase">
+                Message
+              </h3>
             </div>
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {contact.message}
+            </p>
           </div>
+        </div>
 
-          {/* Date */}
-          <div className="flex items-start gap-3">
-            <Calendar size={20} className="text-gray-500 mt-0.5" />
-            <div>
-              <p className="font-semibold text-gray-900">Date</p>
-              <p className="text-sm text-gray-600">{contact.date}</p>
-            </div>
-          </div>
-
-          {/* Scope of Work / Message */}
-          {contact.message && (
-            <div>
-              <p className="font-semibold text-gray-900 mb-2">Scope of Work</p>
-              <p className="text-sm text-gray-600 leading-relaxed">{contact.message}</p>
-            </div>
-          )}
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

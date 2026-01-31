@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import ContactForm from "./ContactForm";
+import { BuilderTrendEmbed } from "./BuilderTrendEmbed";
 
 interface ContactSectionProps {
   title?: string;
@@ -16,6 +17,62 @@ const ContactSection = ({
 }: ContactSectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [formData, setFormData] = useState<any>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const handleFormDataChange = (data: any) => {
+    setFormData(data);
+  };
+
+  const handleFormSubmit = () => {
+    if (formData) {
+      // Create a hidden iframe for BuilderTrend submission
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.name = "buildertrend-submit-frame";
+      document.body.appendChild(iframe);
+
+      // Create a hidden form that submits to BuilderTrend
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action =
+        "https://buildertrend.net/leads/contactforms/ContactFormFrame.aspx?builderID=61725";
+      form.target = "buildertrend-submit-frame"; // Submit to hidden iframe
+      form.style.display = "none";
+
+      // Add all form fields
+      const fields = {
+        builderID: "61725",
+        FirstName: formData.firstName,
+        LastName: formData.lastName,
+        Email: formData.email,
+        Phone: formData.phone,
+        Address: formData.address,
+        City: formData.city,
+        State: formData.state,
+        Zip: formData.zipCode,
+        ScopeOfWork: formData.message,
+        ProjectStartDate: formData.projectStartDate,
+      };
+
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value || "";
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+
+      // Cleanup after 3 seconds
+      setTimeout(() => {
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+      }, 3000);
+    }
+  };
 
   return (
     <section ref={ref} className="py-16 bg-white">
@@ -38,7 +95,10 @@ const ContactSection = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
           {/* Left: Contact Form */}
           <div>
-            <ContactForm />
+            <ContactForm
+              onFormDataChange={handleFormDataChange}
+              onFormSubmit={handleFormSubmit}
+            />
           </div>
 
           {/* Right: Map */}
@@ -61,6 +121,11 @@ const ContactSection = ({
             />
           </motion.div>
         </div>
+
+        {/* BuilderTrend Embedded Form - Hidden for reference only */}
+        {/* <div className="mt-16 max-w-7xl mx-auto">
+          <BuilderTrendEmbed iframeRef={iframeRef} />
+        </div> */}
       </div>
     </section>
   );

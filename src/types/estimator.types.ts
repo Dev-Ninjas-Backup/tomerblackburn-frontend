@@ -1,18 +1,17 @@
-// Estimator Page Types
-
 export interface EstimatorPage {
   id: string;
   title: string;
   description: string;
-  backgroundImageId?: string;
-  backgroundImage?: {
-    id: string;
-    url: string;
-  };
+  backgroundImageId: string | null;
   howItWorksTitle: string;
   whyChooseUsTitle: string;
   createdAt: string;
   updatedAt: string;
+  backgroundImage?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
 }
 
 export interface HowItWorksStep {
@@ -28,14 +27,15 @@ export interface WhyChooseUsFeature {
   id: string;
   title: string;
   description: string;
-  iconId?: string;
-  icon?: {
-    id: string;
-    url: string;
-  };
+  iconId: string | null;
   order: number;
   createdAt: string;
   updatedAt: string;
+  icon?: {
+    id: string;
+    url: string;
+    filename: string;
+  } | null;
 }
 
 export interface CompleteEstimatorPageData {
