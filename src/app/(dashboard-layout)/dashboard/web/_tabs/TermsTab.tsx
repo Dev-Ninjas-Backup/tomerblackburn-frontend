@@ -6,6 +6,7 @@ import { useTermsOfService, useSaveTermsOfService } from "@/hooks/useLegal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, FileCheck, Calendar, FileText, Save } from "lucide-react";
+import { TermsTabSkeleton } from "./_skeleton/TermsTabSkeleton";
 
 export const TermsTab = () => {
   const [title, setTitle] = useState("Terms of Service");
@@ -29,16 +30,7 @@ export const TermsTab = () => {
     saveTermsOfService.mutate({ title, effectiveDate, body });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-green-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading Terms of Service...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <TermsTabSkeleton />;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

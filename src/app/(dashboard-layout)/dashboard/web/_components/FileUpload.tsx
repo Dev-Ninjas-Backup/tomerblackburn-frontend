@@ -42,6 +42,7 @@ export const FileUpload = ({
         accept={accept}
         onChange={handleFileChange}
         className="hidden"
+        aria-label="Upload file"
       />
       <Upload className="mx-auto h-8 w-8 md:h-12 md:w-12 text-gray-400 mb-2 md:mb-4" />
       <p className="text-sm md:text-base text-gray-600 mb-1 md:mb-2">Choose a file or drag & drop it here</p>

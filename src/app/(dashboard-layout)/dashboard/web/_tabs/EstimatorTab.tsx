@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useEstimatorPage";
 import { uploadService } from "@/services/upload.service";
 import { HowItWorksStep, WhyChooseUsFeature } from "@/types/estimator.types";
+import { EstimatorTabSkeleton } from "./_skeleton/EstimatorTabSkeleton";
 
 export default function EstimatorTab() {
   const { data, isLoading } = useCompleteEstimatorPageData();
@@ -46,7 +47,7 @@ export default function EstimatorTab() {
   const updateFeature = useUpdateWhyChooseUsFeature();
   const deleteFeature = useDeleteWhyChooseUsFeature();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <EstimatorTabSkeleton />;
   if (!data?.page) return <div>No data</div>;
 
   const { page: estimatorPage, howItWorksSteps, whyChooseUsFeatures } = data;

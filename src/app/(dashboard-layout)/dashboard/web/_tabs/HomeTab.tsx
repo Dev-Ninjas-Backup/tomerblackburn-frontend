@@ -13,6 +13,7 @@ import {
 import { uploadService } from "@/services/upload.service";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { ServiceStandsOut } from "@/types/home.types";
+import { HomeTabSkeleton } from "./_skeleton/HomeTabSkeleton";
 
 export const HomeTab = () => {
   const { data, isLoading } = useCompleteHomePageData();
@@ -134,16 +135,7 @@ export const HomeTab = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading home page data...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <HomeTabSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto">
