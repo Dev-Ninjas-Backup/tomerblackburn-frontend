@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bell, CheckCheck, Filter } from "lucide-react";
+import { Bell, CheckCheck, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { ContactsTable } from "./_components/ContactsTable";
 import { ViewDetailsModal } from "./_components/ViewDetailsModal";
@@ -9,6 +9,7 @@ import {
   useContacts,
   useUnreadCount,
   useMarkAllAsRead,
+  useExportContacts,
 } from "@/hooks/useContacts";
 import { ContactSubmission } from "@/types/contact.types";
 import { Button } from "@/components/ui/button";
@@ -17,14 +18,22 @@ export default function ContactsPage() {
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   const [selectedContact, setSelectedContact] =
     useState<ContactSubmission | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const isReadFilter = filter === "all" ? undefined : filter === "read";
-  const { data: contactsData, isLoading } = useContacts(isReadFilter);
+  const { data: contactsData, isLoading } = useContacts(isReadFilter, page, limit);
   const { data: unreadData } = useUnreadCount();
   const markAllAsRead = useMarkAllAsRead();
+  const exportContacts = useExportContacts();
 
   const contacts = contactsData?.data || [];
+  const pagination = contactsData?.pagination;
   const unreadCount = unreadData?.count || 0;
+
+  const handleExport = () => {
+    exportContacts.mutate(isReadFilter);
+  };
 
   return (
     <motion.div
@@ -38,10 +47,20 @@ export default function ContactsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">All Contacts</h1>
           <p className="text-sm text-gray-600 mt-1">
-            {contacts.length} total contacts • {unreadCount} unread
+            {pagination?.total || 0} total contacts • {unreadCount} unread
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            disabled={exportContacts.isPending}
+          >
+            <Download size={16} />
+            {exportContacts.isPending ? "Exporting..." : "Export"}
+          </Button>
           {unreadCount > 0 && (
             <Button
               onClick={() => markAllAsRead.mutate()}
@@ -112,7 +131,15 @@ export default function ContactsPage() {
           </div>
         </div>
       ) : (
-        <ContactsTable contacts={contacts} onViewDetails={setSelectedContact} />
+        <ContactsTable 
+          contacts={contacts} 
+          onViewDetails={setSelectedContact}
+          pagination={pagination}
+          page={page}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       )}
 
       {/* View Details Modal */}

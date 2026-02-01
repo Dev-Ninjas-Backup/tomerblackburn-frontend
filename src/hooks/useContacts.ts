@@ -3,10 +3,10 @@ import { contactService } from "@/services/contact.service";
 import { toast } from "sonner";
 import { ContactSubmission } from "@/types/contact.types";
 
-export const useContacts = (isRead?: boolean) => {
+export const useContacts = (isRead?: boolean, page: number = 1, limit: number = 10) => {
   return useQuery({
-    queryKey: ["contacts", isRead],
-    queryFn: () => contactService.getAllContacts(isRead),
+    queryKey: ["contacts", isRead, page, limit],
+    queryFn: () => contactService.getAllContacts(isRead, page, limit),
   });
 };
 
@@ -85,6 +85,26 @@ export const useDeleteContact = () => {
     },
     onError: () => {
       toast.error("Failed to delete contact");
+    },
+  });
+};
+
+export const useExportContacts = () => {
+  return useMutation({
+    mutationFn: contactService.exportContacts,
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `contact-submissions-${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Contacts exported successfully");
+    },
+    onError: () => {
+      toast.error("Failed to export contacts");
     },
   });
 };

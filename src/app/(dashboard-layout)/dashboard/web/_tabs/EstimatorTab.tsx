@@ -14,6 +14,7 @@ import {
 } from "@/hooks/useEstimatorPage";
 import { uploadService } from "@/services/upload.service";
 import { HowItWorksStep, WhyChooseUsFeature } from "@/types/estimator.types";
+import { EstimatorTabSkeleton } from "./_skeleton/EstimatorTabSkeleton";
 
 export default function EstimatorTab() {
   const { data, isLoading } = useCompleteEstimatorPageData();
@@ -46,7 +47,7 @@ export default function EstimatorTab() {
   const updateFeature = useUpdateWhyChooseUsFeature();
   const deleteFeature = useDeleteWhyChooseUsFeature();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <EstimatorTabSkeleton />;
   if (!data?.page) return <div>No data</div>;
 
   const { page: estimatorPage, howItWorksSteps, whyChooseUsFeatures } = data;
@@ -283,7 +284,7 @@ export default function EstimatorTab() {
           <button
             onClick={handleMainPageUpdate}
             disabled={isUploadingBg || updateMainPage.isPending}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+            className="px-6 py-2.5 bg-[#2D4A8F] text-white rounded-lg hover:bg-[#3461C9] disabled:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
           >
             {isUploadingBg || updateMainPage.isPending
               ? "Updating..."
@@ -394,7 +395,7 @@ export default function EstimatorTab() {
               <button
                 onClick={handleStepSubmit}
                 disabled={createStep.isPending || updateStep.isPending}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors shadow-sm"
+                className="px-6 py-2.5 bg-[#2d4a8f] text-white rounded-lg hover:bg-[#3461c9] disabled:bg-gray-400 transition-colors shadow-sm"
               >
                 {editingStep ? "Update Step" : "Add Step"}
               </button>
@@ -572,7 +573,7 @@ export default function EstimatorTab() {
                   createFeature.isPending ||
                   updateFeature.isPending
                 }
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors shadow-sm"
+                className="px-6 py-2.5 bg-[#2d4a8f] text-white rounded-lg hover:bg-[#3461c9] disabled:bg-gray-400 transition-colors shadow-sm"
               >
                 {editingFeature ? "Update Feature" : "Add Feature"}
               </button>
