@@ -28,8 +28,11 @@ export const contactService = {
   },
 
   // Dashboard - Get all contacts
-  getAllContacts: async (isRead?: boolean) => {
-    const params = isRead !== undefined ? { isRead: isRead.toString() } : {};
+  getAllContacts: async (isRead?: boolean, page: number = 1, limit: number = 10) => {
+    const params: any = { page, limit };
+    if (isRead !== undefined) {
+      params.isRead = isRead.toString();
+    }
     const response = await api.get<ContactsResponse>("/contact-us", { params });
     return response.data;
   },
@@ -73,6 +76,16 @@ export const contactService = {
   // Dashboard - Delete contact
   deleteContact: async (id: string) => {
     const response = await api.delete<{ message: string }>(`/contact-us/${id}`);
+    return response.data;
+  },
+
+  // Dashboard - Export contacts to Excel
+  exportContacts: async (isRead?: boolean) => {
+    const params = isRead !== undefined ? { isRead: isRead.toString() } : {};
+    const response = await api.get("/contact-us/export", {
+      params,
+      responseType: "blob",
+    });
     return response.data;
   },
 };

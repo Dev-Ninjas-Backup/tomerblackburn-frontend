@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RichTextEditor } from "./RichTextEditor";
-import { ServiceSection } from "./ServiceSection";
+import { RichTextEditor } from "../_components/RichTextEditor";
+import { ServiceSection } from "../_components/ServiceSection";
 import {
   useCompleteHomePageData,
   useUpdateHomePage,
@@ -13,6 +13,7 @@ import {
 import { uploadService } from "@/services/upload.service";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { ServiceStandsOut } from "@/types/home.types";
+import { HomeTabSkeleton } from "./_skeleton/HomeTabSkeleton";
 
 export const HomeTab = () => {
   const { data, isLoading } = useCompleteHomePageData();
@@ -134,16 +135,7 @@ export const HomeTab = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading home page data...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <HomeTabSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -162,7 +154,7 @@ export const HomeTab = () => {
             createService.isPending ||
             updateService.isPending
           }
-          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+          className="px-6 py-2.5 bg-[#2D4A8F] text-white font-medium rounded-lg hover:bg-[#3461c9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm border"
         >
           {updateHomePage.isPending ||
           createService.isPending ||
@@ -232,7 +224,7 @@ export const HomeTab = () => {
                   <div className="absolute top-4 right-4">
                     <label
                       htmlFor="hero-background-image"
-                      className="cursor-pointer px-4 py-2 bg-white text-gray-900 rounded-lg font-medium shadow-md hover:bg-gray-100 transition-all inline-block"
+                      className="cursor-pointer px-4 py-2 bg-white text-gray-900 rounded-lg font-medium shadow-md hover:bg-gray-100 transition-all inline-block border-2 border-gray-300"
                     >
                       Change Image
                     </label>
@@ -332,7 +324,7 @@ export const HomeTab = () => {
             </div>
             <button
               onClick={handleAddService}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-[#2D4A8F] text-white rounded-lg hover:bg-[#3461c9] transition-colors shadow-sm"
             >
               <Plus size={18} />
               Add Service

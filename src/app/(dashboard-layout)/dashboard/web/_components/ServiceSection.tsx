@@ -83,10 +83,10 @@ export const ServiceSection = ({
                 />
                 <button
                   onClick={handleChangeImage}
-                  className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  className="w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
                   type="button"
                 >
-                  <Pencil size={12} />
+                  <Pencil size={14} />
                   Change Image
                 </button>
               </div>

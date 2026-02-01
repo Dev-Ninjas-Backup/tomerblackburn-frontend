@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RichTextEditor } from "./RichTextEditor";
+import { RichTextEditor } from "../_components/RichTextEditor";
 import { useAboutUsData, useUpdateAboutUs } from "@/hooks/useAboutUs";
 import { uploadService } from "@/services/upload.service";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { AboutTabSkeleton } from "./_skeleton/AboutTabSkeleton";
 
 export const AboutTab = () => {
   const { data, isLoading } = useAboutUsData();
@@ -53,13 +54,7 @@ export const AboutTab = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
+  if (isLoading) return <AboutTabSkeleton />;
 
   return (
     <div className="w-full mx-auto">
@@ -109,7 +104,10 @@ export const AboutTab = () => {
 
       {/* Image Upload */}
       <div className="mb-6">
-        <label htmlFor="about-image" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="about-image"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Owner / Team Image
         </label>
         {imageUrl && (
@@ -140,7 +138,7 @@ export const AboutTab = () => {
         <button
           onClick={handlePublish}
           disabled={updateAboutUs.isPending}
-          className="w-full md:w-auto px-6 md:px-8 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full md:w-auto px-6 md:px-8 py-3 bg-[#2D4A8F] text-white font-medium rounded-md hover:bg-[#3461c9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {updateAboutUs.isPending && (
             <Loader2 className="w-5 h-5 animate-spin" />
