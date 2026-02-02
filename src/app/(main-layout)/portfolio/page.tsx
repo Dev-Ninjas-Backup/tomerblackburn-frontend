@@ -2,6 +2,8 @@ import React from "react";
 import ProjectSection from "./_components/ProjectSection";
 import { portfolioService } from "@/services/portfolio.service";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export const metadata = {
   title: "Portfolio - BBurn Builders",
   description: "View our completed projects and see the quality of our work.",
