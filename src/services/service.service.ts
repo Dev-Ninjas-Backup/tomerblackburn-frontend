@@ -18,6 +18,11 @@ export const serviceService = {
     return axios.get<ApiResponse<Service[]>>(`${API_URL}/services/active`);
   },
 
+  getByCategory: async (categoryId: string) => {
+    const params = { serviceCategoryId: categoryId };
+    return axios.get<ApiResponse<Service[]>>(`${API_URL}/services`, { params });
+  },
+
   getById: async (id: string) => {
     return axios.get<ApiResponse<Service>>(`${API_URL}/services/${id}`);
   },

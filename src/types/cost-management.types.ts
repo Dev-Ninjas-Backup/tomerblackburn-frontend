@@ -46,6 +46,11 @@ export interface CostCode {
   createdAt: string;
   updatedAt: string;
   category?: CostCodeCategory;
+  service?: {
+    id: string;
+    name: string;
+    serviceCategoryId: string;
+  };
   options?: CostCodeOption[];
 }
 
@@ -72,11 +77,11 @@ export interface UpdateCostCodeDto extends Partial<CreateCostCodeDto> {}
 export interface CostCodeOption {
   id: string;
   costCodeId: string;
-  name: string;
+  optionName: string;
+  optionValue?: string;
   priceModifier: number;
-  tierLevel?: string;
+  isDefault: boolean;
   displayOrder: number;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
   costCode?: CostCode;
@@ -84,11 +89,11 @@ export interface CostCodeOption {
 
 export interface CreateCostCodeOptionDto {
   costCodeId: string;
-  name: string;
-  priceModifier: number;
-  tierLevel?: string;
+  optionName: string;
+  optionValue?: string;
+  priceModifier?: number;
+  isDefault?: boolean;
   displayOrder?: number;
-  isActive?: boolean;
 }
 
 export interface UpdateCostCodeOptionDto extends Partial<CreateCostCodeOptionDto> {}

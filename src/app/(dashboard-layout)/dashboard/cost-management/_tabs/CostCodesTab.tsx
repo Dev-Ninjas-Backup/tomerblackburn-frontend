@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2, Settings } from 'lucide-react';
 import { useCostCodes, useDeleteCostCode, useCostCodeCategories } from '@/hooks/useCostManagement';
+import { useServices } from '@/hooks/useProjectManagement';
 import CostCodeModal from '../_components/CostCodeModal';
 import { QuestionType } from '@/types/cost-management.types';
 
@@ -19,8 +20,13 @@ const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
 
 const CostCodesTab = () => {
   const { data: categories } = useCostCodeCategories();
+  const { data: services } = useServices();
   const [filterCategory, setFilterCategory] = useState<string>('');
-  const { data: costCodes, isLoading } = useCostCodes({ categoryId: filterCategory || undefined });
+  const [filterService, setFilterService] = useState<string>('');
+  const { data: costCodes, isLoading } = useCostCodes({ 
+    categoryId: filterCategory || undefined,
+    serviceId: filterService || undefined 
+  });
   const deleteMutation = useDeleteCostCode();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -65,6 +71,18 @@ const CostCodesTab = () => {
               <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
+          <select
+            value={filterService}
+            onChange={(e) => setFilterService(e.target.value)}
+            className="border rounded px-3 py-2 text-sm"
+            title="Filter by service"
+            aria-label="Filter by service"
+          >
+            <option value="">All Services</option>
+            {services?.map((svc) => (
+              <option key={svc.id} value={svc.id}>{svc.name}</option>
+            ))}
+          </select>
         </div>
         <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
           <Plus size={18} className="mr-2" />
@@ -78,6 +96,7 @@ const CostCodesTab = () => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Question Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Base Price</th>
@@ -92,7 +111,10 @@ const CostCodesTab = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.code}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{item.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {categories?.find((c) => c.id === item.categoryId)?.name || '-'}
+                  {item.service?.name || '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {item.category?.name || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 py-1 text-xs rounded-full ${QUESTION_TYPE_COLORS[item.questionType]}`}>
