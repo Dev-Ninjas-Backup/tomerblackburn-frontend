@@ -1,0 +1,101 @@
+// Cost Code Category
+export interface CostCodeCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  stepNumber: number;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  costCodes?: CostCode[];
+}
+
+export interface CreateCostCodeCategoryDto {
+  name: string;
+  slug: string;
+  description?: string;
+  stepNumber?: number;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateCostCodeCategoryDto extends Partial<CreateCostCodeCategoryDto> {}
+
+// Cost Code
+export type QuestionType = 'WHITE' | 'BLUE' | 'GREEN' | 'ORANGE' | 'YELLOW' | 'RED' | 'PURPLE';
+export type UnitType = 'FIXED' | 'PER_SQFT' | 'PER_EACH' | 'PER_LOT' | 'PER_SET' | 'PER_UPGRADE';
+
+export interface CostCode {
+  id: string;
+  categoryId: string;
+  serviceId?: string;
+  code: string;
+  name: string;
+  description?: string;
+  basePrice: number;
+  unitType: UnitType;
+  questionType: QuestionType;
+  step: number;
+  displayOrder: number;
+  isIncludedInBase: boolean;
+  requiresQuantity: boolean;
+  isOptional: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category?: CostCodeCategory;
+  options?: CostCodeOption[];
+}
+
+export interface CreateCostCodeDto {
+  categoryId: string;
+  serviceId?: string;
+  code: string;
+  name: string;
+  description?: string;
+  basePrice: number;
+  unitType?: UnitType;
+  questionType?: QuestionType;
+  step?: number;
+  displayOrder?: number;
+  isIncludedInBase?: boolean;
+  requiresQuantity?: boolean;
+  isOptional?: boolean;
+  isActive?: boolean;
+}
+
+export interface UpdateCostCodeDto extends Partial<CreateCostCodeDto> {}
+
+// Cost Code Option
+export interface CostCodeOption {
+  id: string;
+  costCodeId: string;
+  name: string;
+  priceModifier: number;
+  tierLevel?: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  costCode?: CostCode;
+}
+
+export interface CreateCostCodeOptionDto {
+  costCodeId: string;
+  name: string;
+  priceModifier: number;
+  tierLevel?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export interface UpdateCostCodeOptionDto extends Partial<CreateCostCodeOptionDto> {}
+
+// API Response
+export interface ApiResponse<T> {
+  message: string;
+  data: T;
+  count?: number;
+}
