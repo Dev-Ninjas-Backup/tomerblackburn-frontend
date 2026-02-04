@@ -3,12 +3,12 @@ import { submissionService } from '@/services/submission.service';
 import { SubmissionStatus } from '@/types/submission.types';
 import { toast } from 'sonner';
 
-export const useSubmissions = (status?: SubmissionStatus) => {
+export const useSubmissions = (status?: SubmissionStatus, page: number = 1, limit: number = 10) => {
   return useQuery({
-    queryKey: ['submissions', status],
+    queryKey: ['submissions', status, page, limit],
     queryFn: async () => {
-      const response = await submissionService.getAll(status);
-      return response.data.data;
+      const response = await submissionService.getAll(status, page, limit);
+      return response.data;
     },
   });
 };

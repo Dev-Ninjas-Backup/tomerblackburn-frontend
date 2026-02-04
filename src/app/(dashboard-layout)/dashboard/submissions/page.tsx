@@ -10,18 +10,22 @@ import SubmissionDetailModal from './_components/SubmissionDetailModal';
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
-  REVIEWED: 'bg-blue-100 text-blue-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  COMPLETED: 'bg-purple-100 text-purple-800',
+  PROCESSING: 'bg-blue-100 text-blue-800',
+  COMPLETED: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-red-100 text-red-800',
 };
 
 const SubmissionsPage = () => {
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | ''>('');
-  const { data: submissions, isLoading } = useSubmissions(filterStatus || undefined);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const { data: response, isLoading } = useSubmissions(filterStatus || undefined, page, limit);
   const deleteMutation = useDeleteSubmission();
   const updateStatusMutation = useUpdateSubmissionStatus();
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
+
+  const submissions = response?.data;
+  const pagination = response?.pagination;
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this submission?')) {
@@ -63,14 +67,13 @@ const SubmissionsPage = () => {
             >
               <option value="">All Status</option>
               <option value="PENDING">Pending</option>
-              <option value="REVIEWED">Reviewed</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="PROCESSING">Processing</option>
               <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
           <div className="text-sm text-gray-600">
-            Total: {submissions?.length || 0} submissions
+            Total: {pagination?.total || 0} submissions
           </div>
         </div>
 
@@ -119,10 +122,9 @@ const SubmissionsPage = () => {
                         aria-label="Change status"
                       >
                         <option value="PENDING">Pending</option>
-                        <option value="REVIEWED">Reviewed</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="REJECTED">Rejected</option>
+                        <option value="PROCESSING">Processing</option>
                         <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -164,6 +166,32 @@ const SubmissionsPage = () => {
             </tbody>
           </table>
         </div>
+
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-4">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={!pagination.hasPreviousPage}
+              className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Previous page"
+              aria-label="Previous page"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={!pagination.hasNextPage}
+              className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Next page"
+              aria-label="Next page"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedSubmission && (

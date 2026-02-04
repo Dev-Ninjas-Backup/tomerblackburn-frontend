@@ -1,4 +1,4 @@
-export type SubmissionStatus = 'PENDING' | 'REVIEWED' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
+export type SubmissionStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
 
 export interface SubmissionItem {
   id: string;
@@ -55,8 +55,8 @@ export interface Submission {
 export interface DashboardStats {
   totalSubmissions: number;
   pendingSubmissions: number;
-  reviewedSubmissions: number;
-  approvedSubmissions: number;
+  processingSubmissions: number;
+  completedSubmissions: number;
   totalRevenue: number;
   averageProjectValue: number;
 }
@@ -65,4 +65,12 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
   count?: number;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
