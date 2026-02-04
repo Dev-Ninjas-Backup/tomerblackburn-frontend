@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCreateCostCode, useUpdateCostCode } from '@/hooks/useCostManagement';
+import { useProjectTypes, useServiceCategories, useServiceCategoriesByProjectType, useServicesByCategory } from '@/hooks/useProjectManagement';
 import { CreateCostCodeDto, CostCodeCategory, QuestionType, UnitType } from '@/types/cost-management.types';
 
 interface CostCodeModalProps {
@@ -17,6 +18,13 @@ interface CostCodeModalProps {
 const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModalProps) => {
   const createMutation = useCreateCostCode();
   const updateMutation = useUpdateCostCode();
+  const { data: projectTypes } = useProjectTypes(true);
+  const { data: allServiceCategories } = useServiceCategories(true);
+  const [selectedProjectType, setSelectedProjectType] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const { data: serviceCategories } = useServiceCategoriesByProjectType(selectedProjectType);
+  const { data: services } = useServicesByCategory(selectedCategory);
+  
   const [formData, setFormData] = useState<CreateCostCodeDto>({
     categoryId: '',
     code: '',
@@ -34,9 +42,17 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
   });
 
   useEffect(() => {
-    if (mode === 'edit' && data) {
+    if (mode === 'edit' && data && data.service?.serviceCategoryId && allServiceCategories) {
+      // Find service category and get projectTypeId
+      const matchedCategory = allServiceCategories.find(sc => sc.id === data.service.serviceCategoryId);
+      if (matchedCategory?.projectTypeId) {
+        setSelectedProjectType(matchedCategory.projectTypeId);
+        setSelectedCategory(data.service.serviceCategoryId);
+      }
+      
       setFormData({
         categoryId: data.categoryId,
+        serviceId: data.serviceId || '',
         code: data.code,
         name: data.name,
         description: data.description || '',
@@ -50,9 +66,10 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         isOptional: data.isOptional,
         isActive: data.isActive,
       });
-    } else {
+    } else if (mode === 'create') {
       setFormData({
         categoryId: '',
+        serviceId: '',
         code: '',
         name: '',
         description: '',
@@ -66,15 +83,23 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         isOptional: false,
         isActive: true,
       });
+      setSelectedProjectType('');
+      setSelectedCategory('');
     }
-  }, [mode, data]);
+  }, [mode, data, allServiceCategories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.serviceId) {
+      alert('Please select a service');
+      return;
+    }
+    const submitData = { ...formData };
+    if (!submitData.serviceId) delete submitData.serviceId;
     if (mode === 'create') {
-      await createMutation.mutateAsync(formData);
+      await createMutation.mutateAsync(submitData);
     } else {
-      await updateMutation.mutateAsync({ id: data.id, data: formData });
+      await updateMutation.mutateAsync({ id: data.id, data: submitData });
     }
     onClose();
   };
@@ -82,7 +107,7 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 overflow-y-auto">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-2xl p-6 my-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">{mode === 'create' ? 'Create' : 'Edit'} Cost Code</h2>
@@ -93,6 +118,66 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Project Type *</label>
+              <select
+                value={selectedProjectType}
+                onChange={(e) => {
+                  setSelectedProjectType(e.target.value);
+                  setSelectedCategory('');
+                  setFormData({ ...formData, serviceId: '' });
+                }}
+                className="w-full border rounded px-3 py-2"
+                required
+                title="Select project type"
+                aria-label="Select project type"
+              >
+                <option value="">Select Project Type</option>
+                {projectTypes?.map((pt) => (
+                  <option key={pt.id} value={pt.id}>{pt.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Service Category *</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setFormData({ ...formData, serviceId: '' });
+                }}
+                className="w-full border rounded px-3 py-2"
+                required
+                disabled={!selectedProjectType}
+                title="Select service category"
+                aria-label="Select service category"
+              >
+                <option value="">Select Category</option>
+                {serviceCategories?.map((sc) => (
+                  <option key={sc.id} value={sc.id}>{sc.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Service *</label>
+              <select
+                value={formData.serviceId}
+                onChange={(e) => setFormData({ ...formData, serviceId: e.target.value })}
+                className="w-full border rounded px-3 py-2"
+                required
+                disabled={!selectedCategory}
+                title="Select service"
+                aria-label="Select service"
+              >
+                <option value="">Select Service</option>
+                {services?.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Category *</label>
               <select
@@ -155,6 +240,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
                 min="0"
                 step="0.01"
                 required
+                placeholder="0.00"
+                title="Base price"
               />
             </div>
 
@@ -182,6 +269,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
                 value={formData.questionType}
                 onChange={(e) => setFormData({ ...formData, questionType: e.target.value as QuestionType })}
                 className="w-full border rounded px-3 py-2"
+                title="Select question type"
+                aria-label="Select question type"
               >
                 <option value="WHITE">WHITE (Fixed/Included)</option>
                 <option value="BLUE">BLUE (Toggle)</option>

@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { X, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useCreateService, useUpdateService, useProjectTypes, useServiceCategoriesByProjectType } from '@/hooks/useProjectManagement';
-import { CreateServiceDto } from '@/types/project-management.types';
+import React, { useEffect, useState } from "react";
+import { X, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  useCreateService,
+  useUpdateService,
+  useProjectTypes,
+  useServiceCategoriesByProjectType,
+} from "@/hooks/useProjectManagement";
+import { CreateServiceDto } from "@/types/project-management.types";
 
 interface ServiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   data?: any;
 }
 
@@ -17,30 +22,35 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
   const createMutation = useCreateService();
   const updateMutation = useUpdateService();
   const { data: projectTypes } = useProjectTypes();
-  const [selectedProjectType, setSelectedProjectType] = useState('');
-  const { data: categories } = useServiceCategoriesByProjectType(selectedProjectType);
+  const [selectedProjectType, setSelectedProjectType] = useState("");
+  const { data: categories } =
+    useServiceCategoriesByProjectType(selectedProjectType);
   const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  
+  const [imagePreview, setImagePreview] = useState<string>("");
+
   const [formData, setFormData] = useState<CreateServiceDto>({
-    serviceCategoryId: '',
-    code: '',
-    name: '',
-    shortDescription: '',
-    fullDescription: '',
+    serviceCategoryId: "",
+    code: "",
+    name: "",
+    shortDescription: "",
+    fullDescription: "",
     basePrice: 0,
     displayOrder: 0,
     isActive: true,
   });
 
   useEffect(() => {
-    if (mode === 'edit' && data) {
+    if (mode === "edit" && data) {
+      // Set project type from serviceCategory relation
+      if (data.serviceCategory?.projectTypeId) {
+        setSelectedProjectType(data.serviceCategory.projectTypeId);
+      }
       setFormData({
         serviceCategoryId: data.serviceCategoryId,
         code: data.code,
         name: data.name,
-        shortDescription: data.shortDescription || '',
-        fullDescription: data.fullDescription || '',
+        shortDescription: data.shortDescription || "",
+        fullDescription: data.fullDescription || "",
         basePrice: data.basePrice,
         displayOrder: data.displayOrder,
         isActive: data.isActive,
@@ -49,8 +59,18 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
         setImagePreview(data.imageFile.url);
       }
     } else {
-      setFormData({ serviceCategoryId: '', code: '', name: '', shortDescription: '', fullDescription: '', basePrice: 0, displayOrder: 0, isActive: true });
-      setImagePreview('');
+      setSelectedProjectType("");
+      setFormData({
+        serviceCategoryId: "",
+        code: "",
+        name: "",
+        shortDescription: "",
+        fullDescription: "",
+        basePrice: 0,
+        displayOrder: 0,
+        isActive: true,
+      });
+      setImagePreview("");
     }
     setImage(null);
   }, [mode, data]);
@@ -65,10 +85,17 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'create') {
-      await createMutation.mutateAsync({ data: formData, image: image || undefined });
+    if (mode === "create") {
+      await createMutation.mutateAsync({
+        data: formData,
+        image: image || undefined,
+      });
     } else {
-      await updateMutation.mutateAsync({ id: data.id, data: formData, image: image || undefined });
+      await updateMutation.mutateAsync({
+        id: data.id,
+        data: formData,
+        image: image || undefined,
+      });
     }
     onClose();
   };
@@ -76,11 +103,18 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 overflow-y-auto">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 overflow-y-auto">
       <div className="bg-white rounded-lg w-full max-w-2xl p-6 my-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">{mode === 'create' ? 'Create' : 'Edit'} Service</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h2 className="text-xl font-semibold">
+            {mode === "create" ? "Create" : "Edit"} Service
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+            title="Close modal"
+            aria-label="Close modal"
+          >
             <X size={20} />
           </button>
         </div>
@@ -88,35 +122,52 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Project Type *</label>
+              <label className="block text-sm font-medium mb-1">
+                Project Type *
+              </label>
               <select
                 value={selectedProjectType}
                 onChange={(e) => {
                   setSelectedProjectType(e.target.value);
-                  setFormData({ ...formData, serviceCategoryId: '' });
+                  setFormData({ ...formData, serviceCategoryId: "" });
                 }}
                 className="w-full border rounded px-3 py-2"
                 required
+                title="Select project type"
+                aria-label="Select project type"
               >
                 <option value="">Select Project Type</option>
                 {projectTypes?.map((pt) => (
-                  <option key={pt.id} value={pt.id}>{pt.name}</option>
+                  <option key={pt.id} value={pt.id}>
+                    {pt.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Service Category *</label>
+              <label className="block text-sm font-medium mb-1">
+                Service Category *
+              </label>
               <select
                 value={formData.serviceCategoryId}
-                onChange={(e) => setFormData({ ...formData, serviceCategoryId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    serviceCategoryId: e.target.value,
+                  })
+                }
                 className="w-full border rounded px-3 py-2"
                 required
                 disabled={!selectedProjectType}
+                title="Select service category"
+                aria-label="Select service category"
               >
                 <option value="">Select Category</option>
                 {categories?.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -126,7 +177,9 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
               <input
                 type="text"
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, code: e.target.value })
+                }
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., FP"
                 required
@@ -138,7 +191,9 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., Four Piece"
                 required
@@ -146,48 +201,75 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Base Price *</label>
+              <label className="block text-sm font-medium mb-1">
+                Base Price *
+              </label>
               <input
                 type="number"
                 value={formData.basePrice}
-                onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    basePrice: parseFloat(e.target.value),
+                  })
+                }
                 className="w-full border rounded px-3 py-2"
                 min="0"
                 step="0.01"
                 required
+                placeholder="0.00"
+                title="Base price"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Display Order</label>
+              <label className="block text-sm font-medium mb-1">
+                Display Order
+              </label>
               <input
                 type="number"
                 value={formData.displayOrder}
-                onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    displayOrder: parseInt(e.target.value),
+                  })
+                }
                 className="w-full border rounded px-3 py-2"
                 min="0"
+                placeholder="0"
+                title="Display order"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Short Description</label>
+              <label className="block text-sm font-medium mb-1">
+                Short Description
+              </label>
               <input
                 type="text"
                 value={formData.shortDescription}
-                onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, shortDescription: e.target.value })
+                }
                 className="w-full border rounded px-3 py-2"
                 placeholder="Brief description"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="block text-sm font-medium mb-1">Full Description</label>
+              <label className="block text-sm font-medium mb-1">
+                Full Description
+              </label>
               <textarea
                 value={formData.fullDescription}
-                onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullDescription: e.target.value })
+                }
                 className="w-full border rounded px-3 py-2"
                 placeholder="Detailed description..."
                 rows={3}
+                title="Full description"
               />
             </div>
 
@@ -195,12 +277,23 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
               <label className="block text-sm font-medium mb-1">Image</label>
               <div className="flex items-center gap-4">
                 {imagePreview && (
-                  <img src={imagePreview} alt="Preview" className="w-20 h-20 object-cover rounded" />
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-20 h-20 object-cover rounded"
+                  />
                 )}
                 <label className="cursor-pointer border rounded px-4 py-2 hover:bg-gray-50 flex items-center gap-2">
                   <Upload size={16} />
                   <span className="text-sm">Choose Image</span>
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    title="Upload image"
+                    aria-label="Upload image"
+                  />
                 </label>
               </div>
             </div>
@@ -209,8 +302,12 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
               <input
                 type="checkbox"
                 checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, isActive: e.target.checked })
+                }
                 className="mr-2"
+                title="Active status"
+                aria-label="Active status"
               />
               <label className="text-sm font-medium">Active</label>
             </div>
@@ -221,7 +318,7 @@ const ServiceModal = ({ isOpen, onClose, mode, data }: ServiceModalProps) => {
               Cancel
             </Button>
             <Button type="submit" className="bg-[#2d4a8f] hover:bg-[#243a73]">
-              {mode === 'create' ? 'Create' : 'Update'}
+              {mode === "create" ? "Create" : "Update"}
             </Button>
           </div>
         </form>

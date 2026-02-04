@@ -18,12 +18,24 @@ import {
   FileText,
   LucideIcon,
   ExternalLink,
+  FolderKanban,
+  Calculator,
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Bath, label: "Bathroom Types", href: "/dashboard/bathroom-types" },
-  { icon: DollarSign, label: "Cost Codes", href: "/dashboard/cost-codes" },
+  {
+    icon: FolderKanban,
+    label: "Project Types",
+    href: "/dashboard/project-management",
+  },
+  {
+    icon: Calculator,
+    label: "Cost Codes",
+    href: "/dashboard/cost-management",
+  },
+  // { icon: Bath, label: "Bathroom Types", href: "/dashboard/bathroom-types" },
+  // { icon: DollarSign, label: "Cost Codes", href: "/dashboard/cost-codes" },
   { icon: FileText, label: "Submissions", href: "/dashboard/submissions" },
   { icon: Globe, label: "Web", href: "/dashboard/web" },
   { icon: Users, label: "All Contacts", href: "/dashboard/contacts" },
