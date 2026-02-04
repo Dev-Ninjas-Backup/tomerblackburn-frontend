@@ -60,7 +60,7 @@ export const useDeleteCostCodeCategory = () => {
 };
 
 // Cost Codes
-export const useCostCodes = (filters?: { categoryId?: string; questionType?: string }) => {
+export const useCostCodes = (filters?: { categoryId?: string; serviceId?: string; questionType?: string }) => {
   return useQuery({
     queryKey: ['cost-codes', filters],
     queryFn: async () => {
@@ -177,6 +177,50 @@ export const useDeleteCostCodeOption = () => {
     },
     onError: () => {
       toast.error('Failed to delete cost code option');
+    },
+  });
+};
+
+export const useSetDefaultCostCodeOption = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => costCodeOptionService.setAsDefault(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cost-code-options'] });
+      toast.success('Default option set successfully');
+    },
+    onError: () => {
+      toast.error('Failed to set default option');
+    },
+  });
+};
+
+export const useBulkCreateCostCodeOptions = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ costCodeId, options }: { costCodeId: string; options: Omit<CreateCostCodeOptionDto, 'costCodeId'>[] }) =>
+      costCodeOptionService.bulkCreate(costCodeId, options),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cost-code-options'] });
+      toast.success('Options created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create options');
+    },
+  });
+};
+
+export const useReorderCostCodeOptions = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ costCodeId, optionIds }: { costCodeId: string; optionIds: string[] }) =>
+      costCodeOptionService.reorder(costCodeId, optionIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cost-code-options'] });
+      toast.success('Options reordered successfully');
+    },
+    onError: () => {
+      toast.error('Failed to reorder options');
     },
   });
 };

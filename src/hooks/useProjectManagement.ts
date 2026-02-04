@@ -136,6 +136,18 @@ export const useServices = (isActive?: boolean) => {
   });
 };
 
+export const useServicesByCategory = (categoryId?: string) => {
+  return useQuery({
+    queryKey: ['services', 'category', categoryId],
+    queryFn: async () => {
+      if (!categoryId) return [];
+      const response = await serviceService.getByCategory(categoryId);
+      return response.data.data;
+    },
+    enabled: !!categoryId,
+  });
+};
+
 export const useCreateService = () => {
   const queryClient = useQueryClient();
   return useMutation({
