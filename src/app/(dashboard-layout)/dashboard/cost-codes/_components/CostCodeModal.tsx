@@ -139,13 +139,13 @@ export const CostCodeModal = ({ isOpen, onClose, mode }: CostCodeModalProps) => 
                 <SelectValue placeholder="Select Question Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="WHITE">WHITE (Base/Included)</SelectItem>
-                <SelectItem value="BLUE">BLUE (Yes/No Toggle)</SelectItem>
-                <SelectItem value="GREEN">GREEN (Data Input)</SelectItem>
-                <SelectItem value="ORANGE">ORANGE (Dropdown Options)</SelectItem>
-                <SelectItem value="YELLOW">YELLOW (Data Input)</SelectItem>
-                <SelectItem value="RED">RED (Data Input)</SelectItem>
-                <SelectItem value="PURPLE">PURPLE (Data Input)</SelectItem>
+                <SelectItem value="WHITE">WHITE - Assumed scope (cannot be changed)</SelectItem>
+                <SelectItem value="BLUE">BLUE - Yes/No Toggle (default: No)</SelectItem>
+                <SelectItem value="GREEN">GREEN - Data Input (numbers only)</SelectItem>
+                <SelectItem value="ORANGE">ORANGE - Dropdown list (preset options)</SelectItem>
+                <SelectItem value="PURPLE">PURPLE - Uses data from previous questions</SelectItem>
+                <SelectItem value="YELLOW">YELLOW - Conditional Yes/No (appears after previous Yes)</SelectItem>
+                <SelectItem value="RED">RED - Inactive/Hidden (placeholder)</SelectItem>
               </SelectContent>
             </Select>
           </div>

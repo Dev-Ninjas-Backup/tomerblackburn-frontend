@@ -9,6 +9,17 @@ import {
 } from "@/hooks/useCostManagement";
 import { CreateCostCodeCategoryDto } from "@/types/cost-management.types";
 
+// Utility function to generate slug from name
+const generateSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+};
+
 interface CostCodeCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,6 +43,7 @@ const CostCodeCategoryModal = ({
     displayOrder: 0,
     isActive: true,
   });
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
     if (mode === "edit" && data) {
@@ -43,6 +55,7 @@ const CostCodeCategoryModal = ({
         displayOrder: data.displayOrder,
         isActive: data.isActive,
       });
+      setIsSlugManuallyEdited(true); // In edit mode, consider slug as manually set
     } else {
       setFormData({
         name: "",
@@ -52,8 +65,24 @@ const CostCodeCategoryModal = ({
         displayOrder: 0,
         isActive: true,
       });
+      setIsSlugManuallyEdited(false);
     }
   }, [mode, data]);
+
+  // Auto-generate slug when name changes (only if slug hasn't been manually edited)
+  const handleNameChange = (name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      name,
+      slug: !isSlugManuallyEdited ? generateSlug(name) : prev.slug
+    }));
+  };
+
+  // Handle manual slug editing
+  const handleSlugChange = (slug: string) => {
+    setFormData(prev => ({ ...prev, slug }));
+    setIsSlugManuallyEdited(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +120,7 @@ const CostCodeCategoryModal = ({
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => handleNameChange(e.target.value)}
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., Demolition"
                 required
@@ -101,13 +128,16 @@ const CostCodeCategoryModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Slug *</label>
+              <label className="block text-sm font-medium mb-1">
+                Slug * 
+                <span className="text-xs text-gray-500 ml-1">
+                  (Auto-generated from name, but you can edit it)
+                </span>
+              </label>
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) =>
-                  setFormData({ ...formData, slug: e.target.value })
-                }
+                onChange={(e) => handleSlugChange(e.target.value)}
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., demolition"
                 required

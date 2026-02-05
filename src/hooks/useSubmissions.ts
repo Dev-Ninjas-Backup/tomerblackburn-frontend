@@ -78,3 +78,15 @@ export const useRegeneratePdf = () => {
     },
   });
 };
+
+export const useExportSubmissions = () => {
+  return useMutation({
+    mutationFn: (status?: SubmissionStatus) => submissionService.exportToExcel(status),
+    onSuccess: () => {
+      toast.success('Excel file downloaded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to export submissions');
+    },
+  });
+};
