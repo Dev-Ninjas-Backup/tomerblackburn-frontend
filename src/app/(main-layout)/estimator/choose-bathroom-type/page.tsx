@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import type { BathroomType } from "@/types/estimator";
 
+// Note: This is a client component, so revalidate doesn't apply here
+// ISR only works with server components
+
 const bathroomTypes = [
   {
     id: "TP" as BathroomType,
