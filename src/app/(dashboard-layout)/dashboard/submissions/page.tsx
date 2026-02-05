@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/dashboard/Navbar';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2, FileText, Download } from 'lucide-react';
-import { useSubmissions, useDeleteSubmission, useUpdateSubmissionStatus } from '@/hooks/useSubmissions';
+import { Eye, Trash2, FileText, Download, FileSpreadsheet } from 'lucide-react';
+import { useSubmissions, useDeleteSubmission, useUpdateSubmissionStatus, useExportSubmissions } from '@/hooks/useSubmissions';
 import { SubmissionStatus } from '@/types/submission.types';
 import SubmissionDetailModal from './_components/SubmissionDetailModal';
 
@@ -22,6 +22,7 @@ const SubmissionsPage = () => {
   const { data: response, isLoading } = useSubmissions(filterStatus || undefined, page, limit);
   const deleteMutation = useDeleteSubmission();
   const updateStatusMutation = useUpdateSubmissionStatus();
+  const exportMutation = useExportSubmissions();
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
 
   const submissions = response?.data;
@@ -39,6 +40,10 @@ const SubmissionsPage = () => {
 
   const handleViewDetails = (id: string) => {
     setSelectedSubmission(id);
+  };
+
+  const handleExport = () => {
+    exportMutation.mutate(filterStatus || undefined);
   };
 
   if (isLoading) {
@@ -72,8 +77,19 @@ const SubmissionsPage = () => {
               <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
-          <div className="text-sm text-gray-600">
-            Total: {pagination?.total || 0} submissions
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleExport}
+              variant="outline"
+              disabled={exportMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <FileSpreadsheet size={18} />
+              Export to Excel
+            </Button>
+            <div className="text-sm text-gray-600">
+              Total: {pagination?.total || 0} submissions
+            </div>
           </div>
         </div>
 
@@ -128,7 +144,7 @@ const SubmissionsPage = () => {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(submission.createdAt).toLocaleDateString()}
+                      {submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
@@ -139,9 +155,9 @@ const SubmissionsPage = () => {
                       >
                         <Eye size={16} />
                       </button>
-                      {submission.pdfFile && (
+                      {submission.pdfUrl && (
                         <a
-                          href={submission.pdfFile.url}
+                          href={submission.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-green-600 hover:text-green-900 mr-3"

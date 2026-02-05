@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/dashboard/Navbar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ProjectTypesTab from './_tabs/ProjectTypesTab';
-import ServiceCategoriesTab from './_tabs/ServiceCategoriesTab';
-import ServicesTab from './_tabs/ServicesTab';
+import React, { useState } from "react";
+import { Navbar } from "@/components/dashboard/Navbar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProjectTypesTab from "./_tabs/ProjectTypesTab";
+import ServiceCategoriesTab from "./_tabs/ServiceCategoriesTab";
+import ServicesTab from "./_tabs/ServicesTab";
 
 const ProjectManagementPage = () => {
-  const [activeTab, setActiveTab] = useState('project-types');
+  const [activeTab, setActiveTab] = useState("project-types");
 
   return (
     <div>
-      <Navbar title="Project Management" />
-      
+      <Navbar title="Project Types Management" />
+
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">

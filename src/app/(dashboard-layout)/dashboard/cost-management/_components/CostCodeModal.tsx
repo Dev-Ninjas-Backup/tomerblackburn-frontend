@@ -272,13 +272,13 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
                 title="Select question type"
                 aria-label="Select question type"
               >
-                <option value="WHITE">WHITE (Fixed/Included)</option>
-                <option value="BLUE">BLUE (Toggle)</option>
-                <option value="GREEN">GREEN (Dropdown)</option>
-                <option value="ORANGE">ORANGE (Tiers)</option>
-                <option value="YELLOW">YELLOW (User Input)</option>
-                <option value="RED">RED (User Input Variant)</option>
-                <option value="PURPLE">PURPLE (User Input Variant)</option>
+                <option value="WHITE">WHITE - Assumed scope (cannot be changed)</option>
+                <option value="BLUE">BLUE - Yes/No Toggle (default: No)</option>
+                <option value="GREEN">GREEN - Data Input (numbers only)</option>
+                <option value="ORANGE">ORANGE - Dropdown list (preset options)</option>
+                <option value="PURPLE">PURPLE - Uses data from previous questions</option>
+                <option value="YELLOW">YELLOW - Conditional Yes/No (appears after previous Yes)</option>
+                <option value="RED">RED - Inactive/Hidden (placeholder)</option>
               </select>
             </div>
 

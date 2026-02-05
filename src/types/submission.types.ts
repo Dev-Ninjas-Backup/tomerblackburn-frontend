@@ -7,13 +7,18 @@ export interface SubmissionItem {
   selectedOptionId?: string;
   quantity: number;
   unitPrice: number;
+  totalPrice: number;
   isEnabled: boolean;
   userInputValue?: string;
   notes?: string;
+  itemName?: string;
+  itemDescription?: string;
+  selectedOptionName?: string;
   costCode?: {
     id: string;
     code: string;
     name: string;
+    description?: string;
   };
   selectedOption?: {
     id: string;
@@ -36,15 +41,17 @@ export interface Submission {
   status: SubmissionStatus;
   projectNotes?: string;
   additionalDetails?: string;
-  pdfFileId?: string;
-  createdAt: string;
+  pdfUrl?: string;
+  submittedAt: string;
   updatedAt: string;
+  reviewedAt?: string;
+  completedAt?: string;
   service?: {
     id: string;
     name: string;
     code: string;
   };
-  items?: SubmissionItem[];
+  submissionItems?: SubmissionItem[];
   pdfFile?: {
     id: string;
     url: string;
