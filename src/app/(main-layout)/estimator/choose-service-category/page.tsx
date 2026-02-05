@@ -3,31 +3,41 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import { useProjectTypes } from "@/hooks/useProjectManagement";
+import { useServiceCategoriesByProjectType } from "@/hooks/useProjectManagement";
 
-export default function ChooseProjectTypePage() {
+export default function ChooseServiceCategoryPage() {
   const router = useRouter();
-  const { projectTypeId, setProjectTypeId, resetEstimator } = useEstimatorStore();
-  const { data: projectTypes, isLoading } = useProjectTypes(true); // Only active
-  const [selected, setSelected] = useState<string | null>(projectTypeId);
+  const { 
+    projectTypeId, 
+    serviceCategoryId, 
+    setServiceCategoryId 
+  } = useEstimatorStore();
+  
+  const { data: serviceCategories, isLoading } = useServiceCategoriesByProjectType(projectTypeId || undefined);
+  const [selected, setSelected] = useState<string | null>(serviceCategoryId);
 
   useEffect(() => {
-    // Reset estimator when component mounts
-    resetEstimator();
-  }, [resetEstimator]);
+    if (!projectTypeId) {
+      router.push("/estimator/choose-bathroom-type");
+      return;
+    }
+  }, [projectTypeId, router]);
 
-  const handleSelect = (typeId: string) => {
-    setSelected(typeId);
+  const handleSelect = (categoryId: string) => {
+    setSelected(categoryId);
   };
 
   const handleContinue = () => {
     if (selected) {
-      setProjectTypeId(selected);
-      router.push("/estimator/choose-service-category");
+      setServiceCategoryId(selected);
+      router.push("/estimator/choose-service");
     }
+  };
+
+  const handleBack = () => {
+    router.push("/estimator/choose-bathroom-type");
   };
 
   if (isLoading) {
@@ -35,7 +45,7 @@ export default function ChooseProjectTypePage() {
       <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading project types...</p>
+          <p className="text-gray-600">Loading service categories...</p>
         </div>
       </div>
     );
@@ -51,39 +61,38 @@ export default function ChooseProjectTypePage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
-            Choose Your Project Type
+            Choose Service Category
           </h1>
           <p className="text-gray-600 text-lg">
-            Select the type of project you're planning to get started
+            Select the specific category for your project
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {projectTypes?.map((type, index) => (
+          {serviceCategories?.map((category, index) => (
             <motion.div
-              key={type.id}
+              key={category.id}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
-              onClick={() => handleSelect(type.id)}
+              onClick={() => handleSelect(category.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
                 bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300
                 ${
-                  selected === type.id
+                  selected === category.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
                     : "hover:shadow-lg hover:scale-102"
                 }
               `}
             >
-              <div className="relative h-48 bg-gradient-to-br from-[#283878] to-[#1f2d5c]">
-                {/* Placeholder for project type image */}
+              <div className="relative h-48 bg-gradient-to-br from-blue-500 to-blue-700">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-white text-6xl font-bold opacity-20">
-                    {type.name.charAt(0)}
+                    {category.name.charAt(0)}
                   </div>
                 </div>
-                {selected === type.id && (
+                {selected === category.id && (
                   <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2">
                     <svg
                       className="w-6 h-6"
@@ -101,10 +110,10 @@ export default function ChooseProjectTypePage() {
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {type.name}
+                  {category.name}
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  {type.description || `Complete ${type.name.toLowerCase()} services`}
+                  {category.description || `${category.name} services and options`}
                 </p>
               </div>
             </motion.div>
@@ -115,8 +124,16 @@ export default function ChooseProjectTypePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex justify-center"
+          className="flex justify-between"
         >
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            className="px-8 py-6 text-lg rounded-full"
+          >
+            ← Back
+          </Button>
+          
           <Button
             onClick={handleContinue}
             disabled={!selected}

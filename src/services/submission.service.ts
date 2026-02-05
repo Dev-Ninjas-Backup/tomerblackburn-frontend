@@ -4,6 +4,10 @@ import { Submission, SubmissionStatus, DashboardStats, ApiResponse } from '@/typ
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const submissionService = {
+  create: async (data: any) => {
+    return axios.post<ApiResponse<Submission>>(`${API_URL}/submissions`, data);
+  },
+
   getAll: async (status?: SubmissionStatus, page: number = 1, limit: number = 10) => {
     const params: any = { page, limit };
     if (status) params.status = status;

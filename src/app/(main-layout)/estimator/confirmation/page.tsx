@@ -9,13 +9,13 @@ import { CheckCircle } from "lucide-react";
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { bathroomType, totalPrice, resetEstimator } = useEstimatorStore();
+  const { serviceId, totalPrice, resetEstimator } = useEstimatorStore();
 
   useEffect(() => {
-    if (!bathroomType) {
-      router.push("/estimator/choose-bathroom-type");
+    if (!serviceId) {
+      router.push("/estimator/choose-service");
     }
-  }, [bathroomType, router]);
+  }, [serviceId, router]);
 
   const estimateNumber = `EST-${new Date().getFullYear()}-${Math.floor(
     Math.random() * 1000
@@ -25,7 +25,7 @@ export default function ConfirmationPage() {
 
   const handleStartNew = () => {
     resetEstimator();
-    router.push("/estimator/choose-bathroom-type");
+    router.push("/estimator/choose-service");
   };
 
   const handleBackHome = () => {
