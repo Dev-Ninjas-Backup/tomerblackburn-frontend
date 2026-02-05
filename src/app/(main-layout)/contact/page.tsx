@@ -1,6 +1,8 @@
 import React from "react";
 import ContactSection from "./_components/ContactSection";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export const metadata = {
   title: "Contact Us - BBurn Builders",
   description: "Get in touch with BBurn Builders for your construction and remodeling needs.",

@@ -3,6 +3,8 @@ import PhilosophySection from "./_components/PhilosophySection";
 import AboutContent from "./_components/AboutContent";
 import { aboutService } from "@/services/about.service";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export const metadata = {
   title: "About Us - BBurn Builders",
   description:

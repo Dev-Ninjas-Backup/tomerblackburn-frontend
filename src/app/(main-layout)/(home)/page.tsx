@@ -5,6 +5,8 @@ import ServicesSection from "./_components/ServicesSection";
 
 import { homePageService } from "@/services/home.service";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 const HomePage = async () => {
   let homePageData = null;
 

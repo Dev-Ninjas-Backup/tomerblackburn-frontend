@@ -4,6 +4,8 @@ import BathroomTypesSection from "./_components/BathroomTypesSection";
 import WhyChooseUsSection from "./_components/WhyChooseUsSection";
 import { estimatorPageService } from "@/services/estimator.service";
 
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export default async function EstimatorPage() {
   let estimatorData = null;
 
