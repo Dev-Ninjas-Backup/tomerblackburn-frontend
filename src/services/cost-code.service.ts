@@ -11,9 +11,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const costCodeService = {
   getAll: async (filters?: {
     categoryId?: string;
+    serviceId?: string;
     questionType?: string;
     unitType?: string;
     isActive?: boolean;
+    isIncludedInBase?: boolean;
+    includeOptions?: boolean;
+    includeCategory?: boolean;
+    includeServiceRelation?: boolean;
   }) => {
     return axios.get<ApiResponse<CostCode[]>>(`${API_URL}/cost-codes`, { params: filters });
   },

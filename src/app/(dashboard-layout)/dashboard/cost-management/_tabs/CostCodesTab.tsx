@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Settings } from 'lucide-react';
+import { Plus, Pencil, Trash2, Filter, X } from 'lucide-react';
 import { useCostCodes, useDeleteCostCode, useCostCodeCategories } from '@/hooks/useCostManagement';
 import { useServices } from '@/hooks/useProjectManagement';
 import CostCodeModal from '../_components/CostCodeModal';
-import { QuestionType } from '@/types/cost-management.types';
+import { QuestionType, UnitType } from '@/types/cost-management.types';
 
 const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
   WHITE: 'bg-gray-100 text-gray-800',
@@ -18,19 +18,39 @@ const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
   PURPLE: 'bg-purple-100 text-purple-800',
 };
 
+interface CostCodeFilters {
+  categoryId?: string;
+  serviceId?: string;
+  questionType?: QuestionType;
+  unitType?: UnitType;
+  isActive?: boolean;
+  isIncludedInBase?: boolean;
+}
+
 const CostCodesTab = () => {
   const { data: categories } = useCostCodeCategories();
   const { data: services } = useServices();
-  const [filterCategory, setFilterCategory] = useState<string>('');
-  const [filterService, setFilterService] = useState<string>('');
-  const { data: costCodes, isLoading } = useCostCodes({ 
-    categoryId: filterCategory || undefined,
-    serviceId: filterService || undefined 
-  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<CostCodeFilters>({});
+  
+  const { data: costCodes, isLoading } = useCostCodes(filters);
   const deleteMutation = useDeleteCostCode();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
+
+  const handleFilterChange = (key: keyof CostCodeFilters, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value === '' ? undefined : value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+  };
+
+  const activeFilterCount = Object.values(filters).filter(v => v !== undefined).length;
 
   const handleCreate = () => {
     setModalMode('create');
@@ -59,36 +79,137 @@ const CostCodesTab = () => {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Cost Codes</h2>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="border rounded px-3 py-2 text-sm"
-            title="Filter by category"
-            aria-label="Filter by category"
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
           >
-            <option value="">All Categories</option>
-            {categories?.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-          <select
-            value={filterService}
-            onChange={(e) => setFilterService(e.target.value)}
-            className="border rounded px-3 py-2 text-sm"
-            title="Filter by service"
-            aria-label="Filter by service"
-          >
-            <option value="">All Services</option>
-            {services?.map((svc) => (
-              <option key={svc.id} value={svc.id}>{svc.name}</option>
-            ))}
-          </select>
+            <Filter size={16} />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+          {activeFilterCount > 0 && (
+            <Button variant="ghost" onClick={clearFilters} className="text-gray-500">
+              <X size={16} className="mr-1" />
+              Clear
+            </Button>
+          )}
         </div>
         <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
           <Plus size={18} className="mr-2" />
           Add Cost Code
         </Button>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
+              value={filters.categoryId || ''}
+              onChange={(e) => handleFilterChange('categoryId', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by category"
+              title="Filter by category"
+            >
+              <option value="">All Categories</option>
+              {categories?.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Service</label>
+            <select
+              value={filters.serviceId || ''}
+              onChange={(e) => handleFilterChange('serviceId', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by service"
+              title="Filter by service"
+            >
+              <option value="">All Services</option>
+              {services?.map((svc) => (
+                <option key={svc.id} value={svc.id}>{svc.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Question Type</label>
+            <select
+              value={filters.questionType || ''}
+              onChange={(e) => handleFilterChange('questionType', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by question type"
+              title="Filter by question type"
+            >
+              <option value="">All Types</option>
+              <option value="WHITE">WHITE</option>
+              <option value="BLUE">BLUE</option>
+              <option value="GREEN">GREEN</option>
+              <option value="ORANGE">ORANGE</option>
+              <option value="PURPLE">PURPLE</option>
+              <option value="YELLOW">YELLOW</option>
+              <option value="RED">RED</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Unit Type</label>
+            <select
+              value={filters.unitType || ''}
+              onChange={(e) => handleFilterChange('unitType', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by unit type"
+              title="Filter by unit type"
+            >
+              <option value="">All Units</option>
+              <option value="FIXED">Fixed</option>
+              <option value="PER_SQFT">Per Sq Ft</option>
+              <option value="PER_EACH">Per Each</option>
+              <option value="PER_LOT">Per Lot</option>
+              <option value="PER_SET">Per Set</option>
+              <option value="PER_UPGRADE">Per Upgrade</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select
+              value={filters.isActive === undefined ? '' : filters.isActive.toString()}
+              onChange={(e) => handleFilterChange('isActive', e.target.value === '' ? undefined : e.target.value === 'true')}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by status"
+              title="Filter by status"
+            >
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Base Price</label>
+            <select
+              value={filters.isIncludedInBase === undefined ? '' : filters.isIncludedInBase.toString()}
+              onChange={(e) => handleFilterChange('isIncludedInBase', e.target.value === '' ? undefined : e.target.value === 'true')}
+              className="w-full border rounded px-3 py-2 text-sm"
+              aria-label="Filter by base price inclusion"
+              title="Filter by base price inclusion"
+            >
+              <option value="">All</option>
+              <option value="true">Included in Base</option>
+              <option value="false">Not in Base</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">

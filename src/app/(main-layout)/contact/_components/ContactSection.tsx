@@ -13,7 +13,7 @@ interface ContactSectionProps {
 
 const ContactSection = ({
   title = "Get in Touch",
-  mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2968.8!2d-87.6298!3d41.8781!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDHCsDUyJzQxLjIiTiA4N8KwMzcnNDcuMyJX!5e0!3m2!1sen!2sus!4v1234567890",
+  mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2970.1234567890!2d-87.6431!3d41.9308!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880fd3b1234567890%3A0x1234567890abcdef!2s330%20W%20Diversey%20Pkwy%20%232604%2C%20Chicago%2C%20IL%2060657%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus",
 }: ContactSectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -114,7 +114,6 @@ const ContactSection = ({
               height="100%"
               style={{ border: 0 }}
               allowFullScreen
-              loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               title="Office Location"
               className="w-full h-full"

@@ -60,7 +60,17 @@ export const useDeleteCostCodeCategory = () => {
 };
 
 // Cost Codes
-export const useCostCodes = (filters?: { categoryId?: string; serviceId?: string; questionType?: string }) => {
+export const useCostCodes = (filters?: { 
+  categoryId?: string; 
+  serviceId?: string; 
+  questionType?: string;
+  unitType?: string;
+  isActive?: boolean;
+  isIncludedInBase?: boolean;
+  includeOptions?: boolean;
+  includeCategory?: boolean;
+  includeServiceRelation?: boolean;
+}) => {
   return useQuery({
     queryKey: ['cost-codes', filters],
     queryFn: async () => {

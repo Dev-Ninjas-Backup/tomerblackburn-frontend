@@ -33,4 +33,26 @@ export const submissionService = {
   regeneratePdf: async (id: string) => {
     return axios.post<ApiResponse<Submission>>(`${API_URL}/submissions/${id}/regenerate-pdf`);
   },
+
+  exportToExcel: async (status?: SubmissionStatus) => {
+    const params: any = {};
+    if (status) params.status = status;
+    const response = await axios.get(`${API_URL}/submissions/export`, {
+      params,
+      responseType: 'blob',
+    });
+    
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `submissions-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
 };
