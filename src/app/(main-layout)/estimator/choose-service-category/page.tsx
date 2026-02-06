@@ -66,7 +66,7 @@ export default function ChooseServiceCategoryPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 justify-items-center">
           {serviceCategories?.map((category, index) => (
             <motion.div
               key={category.id}
@@ -84,14 +84,22 @@ export default function ChooseServiceCategoryPage() {
                 }
               `}
             >
-              <div className="relative h-48 bg-linear-to-br from-blue-500 to-blue-700">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white text-6xl font-bold opacity-20">
-                    {category.name.charAt(0)}
+              <div className="relative h-64 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
+                {category.image?.url ? (
+                  <img
+                    src={category.image.url}
+                    alt={category.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-6xl font-bold opacity-20">
+                      {category.name.charAt(0)}
+                    </div>
                   </div>
-                </div>
+                )}
                 {selected === category.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2">
+                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
                     <svg
                       className="w-6 h-6"
                       fill="currentColor"

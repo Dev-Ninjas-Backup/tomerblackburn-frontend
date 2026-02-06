@@ -59,7 +59,7 @@ export default function ChooseProjectTypePage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
           {projectTypes?.map((type, index) => (
             <motion.div
               key={type.id}
@@ -77,15 +77,23 @@ export default function ChooseProjectTypePage() {
                 }
               `}
             >
-              <div className="relative h-48 bg-linear-to-br from-[#283878] to-[#1f2d5c]">
-                {/* Placeholder for project type image */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white text-6xl font-bold opacity-20">
-                    {type.name.charAt(0)}
+              <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
+                {/* Project type image */}
+                {type.image?.url ? (
+                  <img
+                    src={type.image.url}
+                    alt={type.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-6xl font-bold opacity-20">
+                      {type.name.charAt(0)}
+                    </div>
                   </div>
-                </div>
+                )}
                 {selected === type.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2">
+                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
                     <svg
                       className="w-6 h-6"
                       fill="currentColor"

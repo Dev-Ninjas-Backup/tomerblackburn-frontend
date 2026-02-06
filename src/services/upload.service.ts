@@ -48,6 +48,12 @@ export const uploadService = {
     return response.data.data;
   },
 
+  // Get file URL
+  getFileUrl: async (id: string) => {
+    const file = await uploadService.getFile(id);
+    return { url: file.url || file.path };
+  },
+
   // Delete file
   deleteFile: async (id: string) => {
     await api.delete(`/upload/${id}`);
