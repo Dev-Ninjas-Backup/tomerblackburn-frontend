@@ -10,13 +10,11 @@ import { Service } from "@/types/project-management.types";
 
 export default function ChooseServicePage() {
   const router = useRouter();
-  const { 
-    serviceCategoryId, 
-    serviceId, 
-    setServiceId 
-  } = useEstimatorStore();
-  
-  const { data: services, isLoading } = useServicesByCategory(serviceCategoryId || undefined);
+  const { serviceCategoryId, serviceId, setServiceId } = useEstimatorStore();
+
+  const { data: services, isLoading } = useServicesByCategory(
+    serviceCategoryId || undefined,
+  );
   const [selected, setSelected] = useState<string | null>(serviceId);
 
   useEffect(() => {
@@ -32,7 +30,7 @@ export default function ChooseServicePage() {
 
   const handleContinue = () => {
     if (selected) {
-      const selectedService = services?.find(s => s.id === selected);
+      const selectedService = services?.find((s) => s.id === selected);
       if (selectedService) {
         setServiceId(selected, selectedService.basePrice || 0);
         router.push("/estimator/step-1");
@@ -82,7 +80,7 @@ export default function ChooseServicePage() {
               onClick={() => handleSelect(service)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300
+                bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === service.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
@@ -90,14 +88,25 @@ export default function ChooseServicePage() {
                 }
               `}
             >
-              <div className="relative h-40 bg-gradient-to-br from-green-500 to-green-700">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white text-4xl font-bold opacity-20">
-                    {service.name.split(' ').map(word => word.charAt(0)).join('')}
+              <div className="relative h-48 overflow-hidden">
+                {service.imageFile?.url ? (
+                  <img
+                    src={service.imageFile.url}
+                    alt={service.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-linear-to-br from-green-500 to-green-700 flex items-center justify-center">
+                    <div className="text-white text-4xl font-bold opacity-20">
+                      {service.name
+                        .split(" ")
+                        .map((word) => word.charAt(0))
+                        .join("")}
+                    </div>
                   </div>
-                </div>
+                )}
                 {selected === service.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2">
+                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
                     <svg
                       className="w-6 h-6"
                       fill="currentColor"
@@ -112,18 +121,15 @@ export default function ChooseServicePage() {
                   </div>
                 )}
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
+              <div className="p-5">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">
                   {service.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-2">
-                  {service.shortDescription || service.fullDescription || `${service.name} renovation`}
+                <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                  {service.fullDescription ||
+                    service.shortDescription ||
+                    `Professional ${service.name.toLowerCase()} renovation services tailored to your needs.`}
                 </p>
-                {service.basePrice && (
-                  <p className="text-[#283878] font-semibold">
-                    Starting at ${service.basePrice.toLocaleString()}
-                  </p>
-                )}
               </div>
             </motion.div>
           ))}
@@ -142,7 +148,7 @@ export default function ChooseServicePage() {
           >
             ← Back
           </Button>
-          
+
           <Button
             onClick={handleContinue}
             disabled={!selected}

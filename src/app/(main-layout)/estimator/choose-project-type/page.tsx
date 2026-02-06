@@ -10,7 +10,8 @@ import { useProjectTypes } from "@/hooks/useProjectManagement";
 
 export default function ChooseProjectTypePage() {
   const router = useRouter();
-  const { projectTypeId, setProjectTypeId, resetEstimator } = useEstimatorStore();
+  const { projectTypeId, setProjectTypeId, resetEstimator } =
+    useEstimatorStore();
   const { data: projectTypes, isLoading } = useProjectTypes(true); // Only active
   const [selected, setSelected] = useState<string | null>(projectTypeId);
 
@@ -68,7 +69,7 @@ export default function ChooseProjectTypePage() {
               onClick={() => handleSelect(type.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300
+                bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === type.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
@@ -76,7 +77,7 @@ export default function ChooseProjectTypePage() {
                 }
               `}
             >
-              <div className="relative h-48 bg-gradient-to-br from-[#283878] to-[#1f2d5c]">
+              <div className="relative h-48 bg-linear-to-br from-[#283878] to-[#1f2d5c]">
                 {/* Placeholder for project type image */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-white text-6xl font-bold opacity-20">
@@ -104,7 +105,8 @@ export default function ChooseProjectTypePage() {
                   {type.name}
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  {type.description || `Complete ${type.name.toLowerCase()} services`}
+                  {type.description ||
+                    `Complete ${type.name.toLowerCase()} services`}
                 </p>
               </div>
             </motion.div>

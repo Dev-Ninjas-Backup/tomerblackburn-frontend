@@ -52,6 +52,17 @@ export interface Submission {
     code: string;
   };
   submissionItems?: SubmissionItem[];
+  submissionMedia?: Array<{
+    id: string;
+    mediaType: 'PHOTO' | 'VIDEO';
+    fileInstance: {
+      id: string;
+      url: string;
+      filename: string;
+      originalFilename: string;
+      mimeType: string;
+    };
+  }>;
   pdfFile?: {
     id: string;
     url: string;

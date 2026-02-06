@@ -59,4 +59,59 @@ export const submissionService = {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   },
+
+  // Next Steps CRUD
+  getAllNextSteps: async (includeInactive: boolean = false) => {
+    return axios.get<ApiResponse<Array<{
+      id: string;
+      stepNumber: number;
+      title: string;
+      description: string;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    }>>>(`${API_URL}/submissions/next-steps`, {
+      params: { includeInactive }
+    });
+  },
+
+  getNextStepById: async (id: string) => {
+    return axios.get<ApiResponse<{
+      id: string;
+      stepNumber: number;
+      title: string;
+      description: string;
+      isActive: boolean;
+    }>>(`${API_URL}/submissions/next-steps/${id}`);
+  },
+
+  createNextStep: async (data: {
+    stepNumber: number;
+    title: string;
+    description: string;
+    isActive?: boolean;
+  }) => {
+    return axios.post<ApiResponse<any>>(`${API_URL}/submissions/next-steps`, data);
+  },
+
+  updateNextStep: async (id: string, data: {
+    stepNumber?: number;
+    title?: string;
+    description?: string;
+    isActive?: boolean;
+  }) => {
+    return axios.patch<ApiResponse<any>>(`${API_URL}/submissions/next-steps/${id}`, data);
+  },
+
+  deleteNextStep: async (id: string) => {
+    return axios.delete<ApiResponse<void>>(`${API_URL}/submissions/next-steps/${id}`);
+  },
+
+  addMedia: async (submissionId: string, data: {
+    fileInstanceId: string;
+    mediaType: 'PHOTO' | 'VIDEO';
+    description?: string;
+  }) => {
+    return axios.post<ApiResponse<any>>(`${API_URL}/submissions/${submissionId}/media`, data);
+  },
 };

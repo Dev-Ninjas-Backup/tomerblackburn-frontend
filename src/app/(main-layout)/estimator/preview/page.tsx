@@ -6,9 +6,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import { Upload } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import { submissionService } from "@/services/submission.service";
+import { uploadService } from "@/services/upload.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
+
+interface UploadedFile {
+  id: string;
+  file: File;
+  preview: string;
+  progress: number;
+  uploaded: boolean;
+  type: 'image' | 'video';
+}
 
 export default function PreviewPage() {
   const router = useRouter();
@@ -28,8 +38,7 @@ export default function PreviewPage() {
   const [zipCode, setZipCode] = useState(userInfo.zipCode);
   const [address, setAddress] = useState(userInfo.address);
   const [notes, setNotes] = useState(userInfo.notes);
-  const [photoCount, setPhotoCount] = useState(0);
-  const [videoCount, setVideoCount] = useState(0);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -48,18 +57,87 @@ export default function PreviewPage() {
     });
   }, [serviceId, router, basePrice, totalPrice, step1Selections, step2Selections, userInfo]);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setPhotoCount(Math.min(files.length, 10));
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter(f => f.type.startsWith('image/')).slice(0, 10 - uploadedFiles.filter(f => f.type === 'image').length);
+
+    for (const file of imageFiles) {
+      const id = Math.random().toString(36);
+      const preview = URL.createObjectURL(file);
+      
+      setUploadedFiles(prev => [...prev, {
+        id,
+        file,
+        preview,
+        progress: 0,
+        uploaded: false,
+        type: 'image'
+      }]);
+
+      try {
+        // Simulate progress
+        const progressInterval = setInterval(() => {
+          setUploadedFiles(prev => prev.map(f => 
+            f.id === id && f.progress < 90 ? { ...f, progress: f.progress + 10 } : f
+          ));
+        }, 200);
+
+        const uploaded = await uploadService.uploadSingle(file);
+        
+        clearInterval(progressInterval);
+        setUploadedFiles(prev => prev.map(f => 
+          f.id === id ? { ...f, id: uploaded.id, progress: 100, uploaded: true } : f
+        ));
+      } catch (error) {
+        console.error('Upload failed:', error);
+        setUploadedFiles(prev => prev.filter(f => f.id !== id));
+        alert('Failed to upload image');
+      }
     }
+    e.target.value = '';
   };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setVideoCount(Math.min(files.length, 2));
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const videoFiles = files.filter(f => f.type.startsWith('video/')).slice(0, 2 - uploadedFiles.filter(f => f.type === 'video').length);
+
+    for (const file of videoFiles) {
+      const id = Math.random().toString(36);
+      const preview = URL.createObjectURL(file);
+      
+      setUploadedFiles(prev => [...prev, {
+        id,
+        file,
+        preview,
+        progress: 0,
+        uploaded: false,
+        type: 'video'
+      }]);
+
+      try {
+        const progressInterval = setInterval(() => {
+          setUploadedFiles(prev => prev.map(f => 
+            f.id === id && f.progress < 90 ? { ...f, progress: f.progress + 10 } : f
+          ));
+        }, 200);
+
+        const uploaded = await uploadService.uploadVideo(file);
+        
+        clearInterval(progressInterval);
+        setUploadedFiles(prev => prev.map(f => 
+          f.id === id ? { ...f, id: uploaded.id, progress: 100, uploaded: true } : f
+        ));
+      } catch (error) {
+        console.error('Upload failed:', error);
+        setUploadedFiles(prev => prev.filter(f => f.id !== id));
+        alert('Failed to upload video');
+      }
     }
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (id: string) => {
+    setUploadedFiles(prev => prev.filter(f => f.id !== id));
   };
 
   const handleSubmit = async () => {
@@ -122,7 +200,10 @@ export default function PreviewPage() {
         totalPrice,
         additionalItemsTotal: totalPrice - basePrice,
       });
-      console.log("Files:", { photos: photoCount, videos: videoCount });
+      console.log("Files:", { 
+        photos: uploadedFiles.filter(f => f.type === 'image').length, 
+        videos: uploadedFiles.filter(f => f.type === 'video').length 
+      });
       console.log("Selections:", {
         step1: step1Selections.length,
         step2: step2Selections.length,
@@ -132,6 +213,24 @@ export default function PreviewPage() {
 
       // Submit to API
       const response = await submissionService.create(submissionData);
+      const submissionId = response.data.data?.id;
+
+      // Add media files to submission if any
+      if (submissionId) {
+        const uploadedMediaFiles = uploadedFiles.filter(f => f.uploaded);
+        if (uploadedMediaFiles.length > 0) {
+          for (const file of uploadedMediaFiles) {
+            try {
+              await submissionService.addMedia(submissionId, {
+                fileInstanceId: file.id,
+                mediaType: file.type === 'image' ? 'PHOTO' : 'VIDEO',
+              });
+            } catch (error) {
+              console.error('Failed to add media:', error);
+            }
+          }
+        }
+      }
 
       // Update user info in store
       setUserInfo({
@@ -153,12 +252,7 @@ export default function PreviewPage() {
       
       const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
       alert(`Submission failed: ${errorMessage}`);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      alert(`Failed to submit estimate: ${error.response?.data?.message || error.message}`);
+
     } finally {
       setIsSubmitting(false);
     }
@@ -274,14 +368,14 @@ export default function PreviewPage() {
               Upload Photos & Videos
             </h2>
             <p className="text-gray-600 mb-6 text-sm">
-              Help us understand your space better by uploading photos and
-              videos of your current bathroom.
+              Help us understand your space better (Max 10 photos, 2 videos)
             </p>
 
             <div className="space-y-6">
+              {/* Photos Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Photos (Max 10)
+                  Upload Photos ({uploadedFiles.filter(f => f.type === 'image').length}/10)
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
                   <input
@@ -291,7 +385,7 @@ export default function PreviewPage() {
                     onChange={handlePhotoUpload}
                     className="hidden"
                     id="photo-upload"
-                    max={10}
+                    disabled={uploadedFiles.filter(f => f.type === 'image').length >= 10}
                   />
                   <label htmlFor="photo-upload" className="cursor-pointer">
                     <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
@@ -301,18 +395,14 @@ export default function PreviewPage() {
                     <p className="text-xs text-gray-500">
                       PNG, JPG, JPEG (Max 10MB each)
                     </p>
-                    {photoCount > 0 && (
-                      <p className="text-sm text-[#283878] font-medium mt-2">
-                        {photoCount} photo{photoCount > 1 ? "s" : ""} selected
-                      </p>
-                    )}
                   </label>
                 </div>
               </div>
 
+              {/* Videos Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Videos (Max 2)
+                  Upload Videos ({uploadedFiles.filter(f => f.type === 'video').length}/2)
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
                   <input
@@ -322,7 +412,7 @@ export default function PreviewPage() {
                     onChange={handleVideoUpload}
                     className="hidden"
                     id="video-upload"
-                    max={2}
+                    disabled={uploadedFiles.filter(f => f.type === 'video').length >= 2}
                   />
                   <label htmlFor="video-upload" className="cursor-pointer">
                     <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
@@ -332,20 +422,61 @@ export default function PreviewPage() {
                     <p className="text-xs text-gray-500">
                       MP4, MOV (Max 50MB each)
                     </p>
-                    {videoCount > 0 && (
-                      <p className="text-sm text-[#283878] font-medium mt-2">
-                        {videoCount} video{videoCount > 1 ? "s" : ""} selected
-                      </p>
-                    )}
                   </label>
                 </div>
               </div>
 
+              {/* Uploaded Files Preview */}
+              {uploadedFiles.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {uploadedFiles.map((file) => (
+                    <div key={file.id} className="relative group">
+                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                        {file.type === 'image' ? (
+                          <img
+                            src={file.preview}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <VideoIcon className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
+                        
+                        {/* Progress Overlay */}
+                        {!file.uploaded && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin mb-2"></div>
+                              <p className="text-white text-sm font-medium">{file.progress}%</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => handleRemoveFile(file.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      
+                      {/* File Type Badge */}
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {file.type === 'image' ? 'Photo' : 'Video'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
                   💡 Tip: Include photos of the entire bathroom, fixtures, any
-                  problem areas, and measurements if available. Videos can show
-                  the layout and flow of the space.
+                  problem areas, and measurements if available.
                 </p>
               </div>
             </div>

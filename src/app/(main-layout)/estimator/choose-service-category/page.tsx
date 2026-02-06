@@ -9,18 +9,16 @@ import { useServiceCategoriesByProjectType } from "@/hooks/useProjectManagement"
 
 export default function ChooseServiceCategoryPage() {
   const router = useRouter();
-  const { 
-    projectTypeId, 
-    serviceCategoryId, 
-    setServiceCategoryId 
-  } = useEstimatorStore();
-  
-  const { data: serviceCategories, isLoading } = useServiceCategoriesByProjectType(projectTypeId || undefined);
+  const { projectTypeId, serviceCategoryId, setServiceCategoryId } =
+    useEstimatorStore();
+
+  const { data: serviceCategories, isLoading } =
+    useServiceCategoriesByProjectType(projectTypeId || undefined);
   const [selected, setSelected] = useState<string | null>(serviceCategoryId);
 
   useEffect(() => {
     if (!projectTypeId) {
-      router.push("/estimator/choose-bathroom-type");
+      router.push("/estimator/choose-project-type");
       return;
     }
   }, [projectTypeId, router]);
@@ -37,7 +35,7 @@ export default function ChooseServiceCategoryPage() {
   };
 
   const handleBack = () => {
-    router.push("/estimator/choose-bathroom-type");
+    router.push("/estimator/choose-project-type");
   };
 
   if (isLoading) {
@@ -78,7 +76,7 @@ export default function ChooseServiceCategoryPage() {
               onClick={() => handleSelect(category.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300
+                bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === category.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
@@ -86,7 +84,7 @@ export default function ChooseServiceCategoryPage() {
                 }
               `}
             >
-              <div className="relative h-48 bg-gradient-to-br from-blue-500 to-blue-700">
+              <div className="relative h-48 bg-linear-to-br from-blue-500 to-blue-700">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-white text-6xl font-bold opacity-20">
                     {category.name.charAt(0)}
@@ -113,7 +111,8 @@ export default function ChooseServiceCategoryPage() {
                   {category.name}
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  {category.description || `${category.name} services and options`}
+                  {category.description ||
+                    `${category.name} services and options`}
                 </p>
               </div>
             </motion.div>
@@ -133,7 +132,7 @@ export default function ChooseServiceCategoryPage() {
           >
             ← Back
           </Button>
-          
+
           <Button
             onClick={handleContinue}
             disabled={!selected}

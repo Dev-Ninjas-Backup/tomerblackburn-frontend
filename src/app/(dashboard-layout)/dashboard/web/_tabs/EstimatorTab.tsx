@@ -12,6 +12,12 @@ import {
   useUpdateWhyChooseUsFeature,
   useDeleteWhyChooseUsFeature,
 } from "@/hooks/useEstimatorPage";
+import {
+  useNextSteps,
+  useCreateNextStep,
+  useUpdateNextStep,
+  useDeleteNextStep,
+} from "@/hooks/useNextSteps";
 import { uploadService } from "@/services/upload.service";
 import { HowItWorksStep, WhyChooseUsFeature } from "@/types/estimator.types";
 import { EstimatorTabSkeleton } from "./_skeleton/EstimatorTabSkeleton";
@@ -39,6 +45,9 @@ export default function EstimatorTab() {
   const [iconPreview, setIconPreview] = useState<string>("");
   const [isUploadingIcon, setIsUploadingIcon] = useState(false);
 
+  const [nextStepForm, setNextStepForm] = useState<any>({});
+  const [editingNextStep, setEditingNextStep] = useState<string | null>(null);
+
   const createStep = useCreateHowItWorksStep();
   const updateStep = useUpdateHowItWorksStep();
   const deleteStep = useDeleteHowItWorksStep();
@@ -46,6 +55,11 @@ export default function EstimatorTab() {
   const createFeature = useCreateWhyChooseUsFeature();
   const updateFeature = useUpdateWhyChooseUsFeature();
   const deleteFeature = useDeleteWhyChooseUsFeature();
+
+  const { data: nextSteps } = useNextSteps(false);
+  const createNextStep = useCreateNextStep();
+  const updateNextStep = useUpdateNextStep();
+  const deleteNextStep = useDeleteNextStep();
 
   if (isLoading) return <EstimatorTabSkeleton />;
   if (!data?.page) return <div>No data</div>;
@@ -158,6 +172,26 @@ export default function EstimatorTab() {
       setIconFile(file);
       setIconPreview(URL.createObjectURL(file));
     }
+  };
+
+  const handleNextStepSubmit = () => {
+    if (editingNextStep) {
+      updateNextStep.mutate({ id: editingNextStep, payload: nextStepForm });
+    } else {
+      createNextStep.mutate(nextStepForm);
+    }
+    setNextStepForm({});
+    setEditingNextStep(null);
+  };
+
+  const handleEditNextStep = (step: any) => {
+    setEditingNextStep(step.id);
+    setNextStepForm({
+      stepNumber: step.stepNumber,
+      title: step.title,
+      description: step.description,
+      isActive: step.isActive,
+    });
   };
 
   return (
@@ -584,6 +618,156 @@ export default function EstimatorTab() {
                     setFeatureForm({});
                     setIconFile(null);
                     setIconPreview("");
+                  }}
+                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* What Happens Next Steps */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-linear-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            What Happens Next Steps
+          </h2>
+          <p className="text-sm text-gray-600 mt-0.5">
+            {nextSteps?.length || 0} step(s) configured for confirmation page
+          </p>
+        </div>
+        <div className="p-6 space-y-4">
+          {nextSteps && nextSteps.length > 0 && (
+            <div className="space-y-3">
+              {nextSteps
+                .sort((a, b) => a.stepNumber - b.stepNumber)
+                .map((step) => (
+                  <div
+                    key={step.id}
+                    className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">
+                        Step {step.stepNumber}: {step.title}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {step.description}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Status: {step.isActive ? "Active" : "Inactive"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEditNextStep(step)}
+                        aria-label="Edit next step"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteNextStep.mutate(step.id)}
+                        aria-label="Delete next step"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 pt-5 mt-5 space-y-4">
+            <h4 className="font-medium text-gray-900">
+              {editingNextStep ? "Edit Next Step" : "Add New Next Step"}
+            </h4>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Step Number
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g., 1"
+                  value={nextStepForm.stepNumber || ""}
+                  onChange={(e) =>
+                    setNextStepForm({
+                      ...nextStepForm,
+                      stepNumber: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., You'll receive an email confirmation"
+                  value={nextStepForm.title || ""}
+                  onChange={(e) =>
+                    setNextStepForm({ ...nextStepForm, title: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+              </label>
+              <textarea
+                placeholder="Describe this step..."
+                value={nextStepForm.description || ""}
+                onChange={(e) =>
+                  setNextStepForm({
+                    ...nextStepForm,
+                    description: e.target.value,
+                  })
+                }
+                rows={3}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+              />
+            </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={nextStepForm.isActive ?? true}
+                  onChange={(e) =>
+                    setNextStepForm({
+                      ...nextStepForm,
+                      isActive: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Active (show on confirmation page)
+                </span>
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleNextStepSubmit}
+                disabled={
+                  createNextStep.isPending || updateNextStep.isPending
+                }
+                className="px-6 py-2.5 bg-[#2d4a8f] text-white rounded-lg hover:bg-[#3461c9] disabled:bg-gray-400 transition-colors shadow-sm"
+              >
+                {editingNextStep ? "Update Step" : "Add Step"}
+              </button>
+              {editingNextStep && (
+                <button
+                  onClick={() => {
+                    setEditingNextStep(null);
+                    setNextStepForm({});
                   }}
                   className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >

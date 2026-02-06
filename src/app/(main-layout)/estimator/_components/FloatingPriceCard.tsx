@@ -5,24 +5,32 @@ import { useEstimatorStore } from "@/store/estimatorStore";
 import { DollarSign, X } from "lucide-react";
 
 export const FloatingPriceCard = () => {
-  const { totalPrice, basePrice, step1Selections, step2Selections } = useEstimatorStore();
+  const { totalPrice, basePrice, step1Selections, step2Selections } =
+    useEstimatorStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Calculate additional costs from selections
   const additionalCosts = [
-    ...step1Selections.filter(s => s.isEnabled).map(s => ({
-      id: s.costCodeId,
-      name: `Step 1 Item`,
-      cost: (Number(s.unitPrice) * (s.quantity || 1))
-    })),
-    ...step2Selections.filter(s => s.isEnabled).map(s => ({
-      id: s.costCodeId,
-      name: `Step 2 Item`,
-      cost: (Number(s.unitPrice) * (s.quantity || 1))
-    }))
+    ...step1Selections
+      .filter((s) => s.isEnabled)
+      .map((s) => ({
+        id: s.costCodeId,
+        name: `Step 1 Item`,
+        cost: Number(s.unitPrice) * (s.quantity || 1),
+      })),
+    ...step2Selections
+      .filter((s) => s.isEnabled)
+      .map((s) => ({
+        id: s.costCodeId,
+        name: `Step 2 Item`,
+        cost: Number(s.unitPrice) * (s.quantity || 1),
+      })),
   ];
 
-  const additionalTotal = additionalCosts.reduce((sum, c) => sum + Number(c.cost), 0);
+  const additionalTotal = additionalCosts.reduce(
+    (sum, c) => sum + Number(c.cost),
+    0,
+  );
 
   return (
     <>
@@ -32,7 +40,7 @@ export const FloatingPriceCard = () => {
           Total Estimated Cost
         </h3>
         <div className="text-4xl font-bold mb-2 text-center">
-          ${totalPrice.toLocaleString()}
+          ${Number(totalPrice).toLocaleString()}
         </div>
         <p className="text-sm text-gray-300 mb-6 text-center">
           Includes materials & estimated labor
@@ -45,7 +53,7 @@ export const FloatingPriceCard = () => {
             <div className="flex justify-between">
               <span className="text-gray-300">Base Price:</span>
               <span className="font-semibold">
-                ${basePrice.toLocaleString()}
+                ${Number(basePrice).toLocaleString()}
               </span>
             </div>
 
@@ -143,7 +151,7 @@ export const FloatingPriceCard = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-300">Base Price:</span>
                   <span className="font-semibold">
-                    ${basePrice.toLocaleString()}
+                    ${Number(basePrice).toLocaleString()}
                   </span>
                 </div>
 
@@ -171,9 +179,7 @@ export const FloatingPriceCard = () => {
                 <div className="border-t border-white/20 pt-2 mt-3">
                   <div className="flex justify-between font-bold">
                     <span>Additions Total:</span>
-                    <span>
-                      ${additionalTotal.toLocaleString()}
-                    </span>
+                    <span>${additionalTotal.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
