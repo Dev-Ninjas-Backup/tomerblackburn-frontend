@@ -1,22 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, Save } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Facebook, Instagram, Twitter, Save } from "lucide-react";
+import { SiteSettings } from "@/types/site-settings.types";
 
 interface SocialMediaLinksProps {
-  socialLinks: {
-    facebook: string;
-    instagram: string;
-    twitter: string;
-    linkedin: string;
-    youtube: string;
-  };
-  onUpdate: (links: any) => void;
+  settings?: SiteSettings;
+  onUpdate: (links: { facebookUrl?: string; instagramUrl?: string; twitterUrl?: string }) => void;
+  isLoading?: boolean;
 }
 
-export const SocialMediaLinks = ({ socialLinks, onUpdate }: SocialMediaLinksProps) => {
-  const [links, setLinks] = useState(socialLinks);
+export const SocialMediaLinks = ({ settings, onUpdate, isLoading }: SocialMediaLinksProps) => {
+  const [links, setLinks] = useState({
+    facebookUrl: '',
+    instagramUrl: '',
+    twitterUrl: ''
+  });
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setLinks({
+        facebookUrl: settings.facebookUrl || '',
+        instagramUrl: settings.instagramUrl || '',
+        twitterUrl: settings.twitterUrl || ''
+      });
+    }
+  }, [settings]);
 
   const handleSave = () => {
     onUpdate(links);
@@ -24,17 +34,33 @@ export const SocialMediaLinks = ({ socialLinks, onUpdate }: SocialMediaLinksProp
   };
 
   const handleCancel = () => {
-    setLinks(socialLinks);
+    if (settings) {
+      setLinks({
+        facebookUrl: settings.facebookUrl || '',
+        instagramUrl: settings.instagramUrl || '',
+        twitterUrl: settings.twitterUrl || ''
+      });
+    }
     setIsEditing(false);
   };
 
   const socialPlatforms = [
-    { key: "facebook", label: "Facebook", icon: Facebook, placeholder: "https://facebook.com/yourpage" },
-    { key: "instagram", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/yourpage" },
-    { key: "twitter", label: "Twitter", icon: Twitter, placeholder: "https://twitter.com/yourpage" },
-    { key: "linkedin", label: "LinkedIn", icon: Linkedin, placeholder: "https://linkedin.com/company/yourpage" },
-    { key: "youtube", label: "YouTube", icon: Youtube, placeholder: "https://youtube.com/channel/yourpage" },
+    { key: "facebookUrl", label: "Facebook", icon: Facebook, placeholder: "https://facebook.com/yourpage" },
+    { key: "instagramUrl", label: "Instagram", icon: Instagram, placeholder: "https://instagram.com/yourpage" },
+    { key: "twitterUrl", label: "Twitter", icon: Twitter, placeholder: "https://twitter.com/yourpage" },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

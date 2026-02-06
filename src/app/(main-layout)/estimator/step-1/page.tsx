@@ -7,57 +7,52 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FloatingPriceCard } from '../_components/FloatingPriceCard'
 import { useEstimatorStore } from '@/store/estimatorStore'
+import { useCostCodes } from '@/hooks/useCostManagement'
+import { CostCodeRenderer } from '../_components/CostCodeRenderer'
 
 export default function Step1Page() {
   const router = useRouter()
-  const { bathroomType, step1Data, setStep1Data, addCost, removeCost } = useEstimatorStore()
+  const { 
+    serviceId, 
+    step1Selections,
+    addCostCodeSelection,
+    updateCostCodeSelection,
+    removeCostCodeSelection
+  } = useEstimatorStore()
   
-  const [wallTileRemoval, setWallTileRemoval] = useState(step1Data.demolition.wallTileRemoval)
-  const [wallTileSqft, setWallTileSqft] = useState(step1Data.demolition.wallTileSqft || 0)
-  const [floorTileSelection, setFloorTileSelection] = useState(step1Data.flooring.floorTileSelection || '')
-  const [floorTileQty, setFloorTileQty] = useState(step1Data.flooring.floorTileQty || 1)
-  const [heatedFloor, setHeatedFloor] = useState(step1Data.flooring.heatedFloor)
+  // Fetch cost codes for step 1
+  const { data: costCodes, isLoading } = useCostCodes({
+    serviceId: serviceId || undefined,
+    includeOptions: true,
+    includeCategory: true
+  })
+
+  // Filter cost codes for step 1
+  const step1CostCodes = costCodes?.filter(code => code.step === 1) || []
 
   useEffect(() => {
-    if (!bathroomType) {
-      router.push('/estimator/choose-bathroom-type')
+    if (!serviceId) {
+      router.push('/estimator/choose-service')
     }
-  }, [bathroomType, router])
-
-  useEffect(() => {
-    if (wallTileRemoval && wallTileSqft > 0) {
-      addCost({ id: 'wall-tile-removal', name: `Wall Tile Removal (${wallTileSqft} sqft)`, cost: wallTileSqft * 5 })
-    } else {
-      removeCost('wall-tile-removal')
-    }
-  }, [wallTileRemoval, wallTileSqft])
-
-  useEffect(() => {
-    if (floorTileSelection) {
-      addCost({ id: 'floor-tile', name: `Floor Tile (${floorTileSelection})`, cost: 10000 })
-    } else {
-      removeCost('floor-tile')
-    }
-  }, [floorTileSelection])
-
-  useEffect(() => {
-    if (heatedFloor) {
-      addCost({ id: 'heated-floor', name: 'Heated Floor', cost: 15 })
-    } else {
-      removeCost('heated-floor')
-    }
-  }, [heatedFloor])
+  }, [serviceId, router])
 
   const handleNext = () => {
-    setStep1Data({
-      demolition: { wallTileRemoval, wallTileSqft },
-      flooring: { floorTileSelection, floorTileQty, heatedFloor },
-    })
     router.push('/estimator/step-2')
   }
 
   const handleCancel = () => {
-    router.push('/estimator/choose-bathroom-type')
+    router.push('/estimator/choose-service')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading cost codes...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -68,10 +63,10 @@ export default function Step1Page() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#283878]">Step 1: Demolition & Structural Prep</span>
+            <span className="text-sm font-medium text-[#283878]">Step 1: Rough</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#283878] h-2 rounded-full" style={{ width: '33%' }}></div>
+            <div className="bg-[#283878] h-2 rounded-full" style={{ width: '50%' }}></div>
           </div>
         </div>
 
@@ -80,133 +75,28 @@ export default function Step1Page() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
-          {/* Demolition Section */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Demolition & Site Preparation</h2>
-            <p className="text-gray-600 mb-6">
-              Removal of existing fixtures and materials, with complete cleanup and waste disposal included in the base price
-            </p>
-
-            {/* White - Included in base */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <h3 className="font-semibold text-gray-900 mb-1">Demolition</h3>
-              <p className="text-sm text-gray-600">Remove existing fixtures, tiles, and prepare space for remodel</p>
-              <p className="text-xs text-green-600 mt-2">Included in base price</p>
+          {/* Render cost codes by category */}
+          {step1CostCodes.length > 0 ? (
+            <CostCodeRenderer
+              costCodes={step1CostCodes as any}
+              selections={step1Selections}
+              onSelectionChange={(costCodeId, selection) => {
+                const existing = step1Selections.find(s => s.costCodeId === costCodeId)
+                if (existing) {
+                  updateCostCodeSelection(1, costCodeId, selection)
+                } else {
+                  addCostCodeSelection(1, { costCodeId, unitPrice: selection.unitPrice || 0, ...selection })
+                }
+              }}
+              onSelectionRemove={(costCodeId) => {
+                removeCostCodeSelection(1, costCodeId)
+              }}
+            />
+          ) : (
+            <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
+              <p className="text-gray-500">No cost codes available for this step.</p>
             </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-gray-900 mb-1">Waste Removal</h3>
-              <p className="text-sm text-gray-600">Haul away and disposal of all demolition debris</p>
-              <p className="text-xs text-green-600 mt-2">Included in base price</p>
-            </div>
-
-            {/* Blue - Yes/No Toggle */}
-            <div className="bg-blue-50 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Wall Tile Removal</h3>
-                  <p className="text-sm text-gray-600">Remove existing wall tiles</p>
-                </div>
-                <button
-                  onClick={() => setWallTileRemoval(!wallTileRemoval)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    wallTileRemoval ? 'bg-[#283878]' : 'bg-gray-300'
-                  }`}
-                  aria-label="Toggle wall tile removal"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      wallTileRemoval ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Green - Data Input */}
-              {wallTileRemoval && (
-                <div className="mt-4 bg-green-50 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
-                    Enter square feet of tile
-                  </label>
-                  <Input
-                    type="number"
-                    value={wallTileSqft}
-                    onChange={(e) => setWallTileSqft(Number(e.target.value))}
-                    placeholder="0"
-                    className="w-32"
-                  />
-                  <p className="text-xs text-green-700 mt-2">$250 per each</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Flooring Section */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Flooring Options</h2>
-            <p className="text-gray-600 mb-6">
-              Tile flooring installation is included in the base price. You can customize your bathroom by selecting your preferred tile style or adding radiant heated flooring for extra comfort.
-            </p>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-gray-900 mb-1">Floor Tile Installation</h3>
-              <p className="text-sm text-gray-600">Install tile flooring throughout bathroom</p>
-              <p className="text-xs text-green-600 mt-2">Included in base price</p>
-            </div>
-
-            {/* Orange - Dropdown */}
-            <div className="bg-orange-50 rounded-lg p-4 mb-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Floor Tile Selection</h3>
-              <p className="text-sm text-gray-600 mb-3">Choose tile style and material</p>
-              <div className="flex gap-4">
-                <select
-                  value={floorTileSelection}
-                  onChange={(e) => setFloorTileSelection(e.target.value)}
-                  className="flex-1 rounded-lg border-gray-300 p-2"
-                  aria-label="Select floor tile type"
-                >
-                  <option value="">Select option</option>
-                  <option value="Ceramic">Ceramic</option>
-                  <option value="Porcelain">Porcelain</option>
-                  <option value="Natural Stone">Natural Stone</option>
-                  <option value="Luxury Vinyl">Luxury Vinyl</option>
-                </select>
-                <Input
-                  type="number"
-                  value={floorTileQty}
-                  onChange={(e) => setFloorTileQty(Number(e.target.value))}
-                  placeholder="QTY"
-                  className="w-24"
-                  min="1"
-                  max="4"
-                />
-              </div>
-              <p className="text-xs text-orange-700 mt-2">+$10,000</p>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Heated Floor</h3>
-                  <p className="text-sm text-gray-600">Add radiant floor heating system</p>
-                  <p className="text-xs text-blue-700 mt-2">+$15</p>
-                </div>
-                <button
-                  onClick={() => setHeatedFloor(!heatedFloor)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    heatedFloor ? 'bg-[#283878]' : 'bg-gray-300'
-                  }`}
-                  aria-label="Toggle heated floor"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      heatedFloor ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-4">

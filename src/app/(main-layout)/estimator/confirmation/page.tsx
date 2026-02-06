@@ -1,21 +1,54 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { CheckCircle } from "lucide-react";
+import { submissionService } from "@/services/submission.service";
+
+interface NextStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+}
+
+interface WhatHappensNextData {
+  title: string;
+  steps: NextStep[];
+}
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { bathroomType, totalPrice, resetEstimator } = useEstimatorStore();
+  const { serviceId, totalPrice, resetEstimator } = useEstimatorStore();
+  const [nextSteps, setNextSteps] = useState<WhatHappensNextData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!bathroomType) {
-      router.push("/estimator/choose-bathroom-type");
+    if (!serviceId) {
+      router.push("/estimator/choose-service");
     }
-  }, [bathroomType, router]);
+  }, [serviceId, router]);
+
+  useEffect(() => {
+    const fetchNextSteps = async () => {
+      try {
+        const response = await submissionService.getAllNextSteps(false);
+        setNextSteps({
+          title: "What happens next?",
+          steps: response.data.data
+        });
+      } catch (error) {
+        console.error("Failed to fetch next steps:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNextSteps();
+  }, []);
 
   const estimateNumber = `EST-${new Date().getFullYear()}-${Math.floor(
     Math.random() * 1000
@@ -25,7 +58,7 @@ export default function ConfirmationPage() {
 
   const handleStartNew = () => {
     resetEstimator();
-    router.push("/estimator/choose-bathroom-type");
+    router.push("/estimator/choose-service");
   };
 
   const handleBackHome = () => {
@@ -102,66 +135,34 @@ export default function ConfirmationPage() {
             className="bg-white rounded-2xl p-8 shadow-sm mb-8 text-left"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              What happens next?
+              {nextSteps?.title || "What happens next?"}
             </h2>
 
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="shrink-0 w-10 h-10 bg-[#283878] text-white rounded-full flex items-center justify-center font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    You'll receive an email confirmation
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Check your inbox for a summary of your estimate
-                  </p>
-                </div>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#283878] mx-auto"></div>
               </div>
-
-              <div className="flex gap-4">
-                <div className="shrink-0 w-10 h-10 bg-[#283878] text-white rounded-full flex items-center justify-center font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    We'll review your estimate (1-2 hours)
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Our team will carefully review your project details
-                  </p>
-                </div>
+            ) : (
+              <div className="space-y-6">
+                {nextSteps?.steps
+                  .sort((a, b) => a.stepNumber - b.stepNumber)
+                  .map((step) => (
+                    <div key={step.id} className="flex gap-4">
+                      <div className="shrink-0 w-10 h-10 bg-[#283878] text-white rounded-full flex items-center justify-center font-bold">
+                        {step.stepNumber}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {step.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
               </div>
-
-              <div className="flex gap-4">
-                <div className="shrink-0 w-10 h-10 bg-[#283878] text-white rounded-full flex items-center justify-center font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    You'll get a detailed PDF proposal
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Complete breakdown of costs and project timeline
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="shrink-0 w-10 h-10 bg-[#283878] text-white rounded-full flex items-center justify-center font-bold">
-                  4
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">
-                    We'll contact you to discuss next steps
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Schedule a consultation to finalize your project
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </motion.div>
 
           {/* Action Buttons */}

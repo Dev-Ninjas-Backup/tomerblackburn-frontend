@@ -61,7 +61,7 @@ const HeroSection = ({ data }: HeroSectionProps) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Link href="/estimator/choose-bathroom-type">
+              <Link href="/estimator/choose-project-type">
                 <Button className="bg-white text-[#283878] hover:bg-gray-100 px-8 py-6 text-lg font-semibold rounded-full transition-all duration-300 transform hover:scale-105">
                   Start Your Free Estimate
                 </Button>
