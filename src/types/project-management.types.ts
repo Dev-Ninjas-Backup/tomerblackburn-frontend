@@ -3,16 +3,23 @@ export interface ProjectType {
   id: string;
   name: string;
   description?: string;
+  imageId?: string;
   displayOrder: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   serviceCategories?: ServiceCategory[];
+  image?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
 }
 
 export interface CreateProjectTypeDto {
   name: string;
   description?: string;
+  imageId?: string;
   displayOrder?: number;
   isActive?: boolean;
 }
@@ -25,18 +32,25 @@ export interface ServiceCategory {
   projectTypeId: string;
   name: string;
   description?: string;
+  imageId?: string;
   displayOrder: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
   projectType?: ProjectType;
   services?: Service[];
+  image?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
 }
 
 export interface CreateServiceCategoryDto {
   projectTypeId: string;
   name: string;
   description?: string;
+  imageId?: string;
   displayOrder?: number;
   isActive?: boolean;
 }
@@ -59,6 +73,11 @@ export interface Service {
   updatedAt: string;
   serviceCategory?: ServiceCategory;
   imageFile?: {
+    id: string;
+    url: string;
+    filename: string;
+  };
+  image?: {
     id: string;
     url: string;
     filename: string;

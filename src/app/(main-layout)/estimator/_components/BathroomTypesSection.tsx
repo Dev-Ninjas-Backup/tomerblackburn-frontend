@@ -4,34 +4,12 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-
-const bathroomTypes = [
-  {
-    title: "Two Piece (Powder Room)",
-    description: "Toilet + Sink",
-    image: "/images/bathroom-two-piece.jpg",
-  },
-  {
-    title: "Three Piece - Tub",
-    description: "Toilet + Sink + Tub",
-    image: "/images/bathroom-three-tub.jpg",
-  },
-  {
-    title: "Three Piece - Shower",
-    description: "Toilet + Sink + Shower",
-    image: "/images/bathroom-three-shower.jpg",
-  },
-  {
-    title: "Four Piece",
-    description: "Toilet + Sink + Shower + Tub",
-    image: "/images/bathroom-four-piece.jpg",
-  },
-];
+import { useProjectTypes } from "@/hooks/useProjectManagement";
 
 const BathroomTypesSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { data: projectTypes, isLoading } = useProjectTypes(true);
 
   return (
     <section ref={ref} className="py-20 bg-gray-50">
@@ -50,34 +28,52 @@ const BathroomTypesSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {bathroomTypes.map((type, index) => (
-            <motion.div
-              key={type.title}
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xltransform "
-            >
-              <div className="relative h-48 bg-gray-200">
-                <Image
-                  src={type.image}
-                  alt={type.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {type.title}
-                </h3>
-                <p className="text-gray-600 text-sm">{type.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading project types...</p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center gap-8 mb-12">
+            {projectTypes?.map((type, index) => (
+              <motion.div
+                key={type.id}
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 0.8, delay: index * 0.1 }}
+                whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl w-full sm:w-64 md:w-72"
+              >
+                <div className="relative h-48 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
+                  {type.image?.url ? (
+                    <img
+                      src={type.image.url}
+                      alt={type.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white text-6xl font-bold opacity-20">
+                        {type.name.charAt(0)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    {type.name}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    {type.description ||
+                      `Complete ${type.name.toLowerCase()} services`}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
