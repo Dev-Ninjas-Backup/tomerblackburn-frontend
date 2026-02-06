@@ -1,58 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import type { BathroomType } from "@/types/estimator";
+import { useProjectTypes } from "@/hooks/useProjectManagement";
 
-// Note: This is a client component, so revalidate doesn't apply here
-// ISR only works with server components
-
-const bathroomTypes = [
-  {
-    id: "TP" as BathroomType,
-    title: "Two Piece (Powder Room)",
-    description: "Toilet + Sink",
-    image: "/images/bathroom-two-piece.jpg",
-  },
-  {
-    id: "TPT" as BathroomType,
-    title: "Three Piece - Tub",
-    description: "Toilet + Sink + Tub",
-    image: "/images/bathroom-three-tub.jpg",
-  },
-  {
-    id: "TPS" as BathroomType,
-    title: "Three Piece - Shower",
-    description: "Toilet + Sink + Shower",
-    image: "/images/bathroom-three-shower.jpg",
-  },
-  {
-    id: "FP" as BathroomType,
-    title: "Four Piece",
-    description: "Toilet + Sink + Shower + Tub",
-    image: "/images/bathroom-four-piece.jpg",
-  },
-];
-
-export default function ChooseBathroomTypePage() {
+export default function ChooseProjectTypePage() {
   const router = useRouter();
-  const { bathroomType, setBathroomType } = useEstimatorStore();
-  const [selected, setSelected] = useState<BathroomType | null>(bathroomType);
+  const { projectTypeId, setProjectTypeId, resetEstimator } =
+    useEstimatorStore();
+  const { data: projectTypes, isLoading } = useProjectTypes(true); // Only active
+  const [selected, setSelected] = useState<string | null>(projectTypeId);
 
-  const handleSelect = (type: BathroomType) => {
-    setSelected(type);
+  useEffect(() => {
+    // Reset estimator when component mounts
+    resetEstimator();
+  }, [resetEstimator]);
+
+  const handleSelect = (typeId: string) => {
+    setSelected(typeId);
   };
 
   const handleContinue = () => {
     if (selected) {
-      setBathroomType(selected);
-      router.push("/estimator/step-1");
+      setProjectTypeId(selected);
+      router.push("/estimator/choose-service-category");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project types...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -64,15 +52,15 @@ export default function ChooseBathroomTypePage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
-            Select Your Bathroom Type
+            Choose Your Project Type
           </h1>
           <p className="text-gray-600 text-lg">
-            Choose the type of bathroom remodel you're planning
+            Select the type of project you're planning to get started
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {bathroomTypes.map((type, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {projectTypes?.map((type, index) => (
             <motion.div
               key={type.id}
               initial={{ opacity: 0, y: 50 }}
@@ -81,7 +69,7 @@ export default function ChooseBathroomTypePage() {
               onClick={() => handleSelect(type.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer 
+                bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === type.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
@@ -89,15 +77,15 @@ export default function ChooseBathroomTypePage() {
                 }
               `}
             >
-              <div className="relative h-56 bg-gray-200">
-                <Image
-                  src={type.image}
-                  alt={type.title}
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative h-48 bg-linear-to-br from-[#283878] to-[#1f2d5c]">
+                {/* Placeholder for project type image */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-white text-6xl font-bold opacity-20">
+                    {type.name.charAt(0)}
+                  </div>
+                </div>
                 {selected === type.id && (
-                  <div className="absolute top-4 right-4 bg-[#283878] text-white rounded-full p-2">
+                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2">
                     <svg
                       className="w-6 h-6"
                       fill="currentColor"
@@ -114,9 +102,12 @@ export default function ChooseBathroomTypePage() {
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {type.title}
+                  {type.name}
                 </h3>
-                <p className="text-gray-600">{type.description}</p>
+                <p className="text-gray-600 text-sm">
+                  {type.description ||
+                    `Complete ${type.name.toLowerCase()} services`}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -133,7 +124,7 @@ export default function ChooseBathroomTypePage() {
             disabled={!selected}
             className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Continue to Estimate →
+            Continue to Services →
           </Button>
         </motion.div>
       </div>

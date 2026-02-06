@@ -43,7 +43,7 @@ const BathroomTypesSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
-            Bathroom Types
+            Project Types
           </h2>
           <p className="text-gray-600 text-lg">
             Choose the configuration that fits your needs
@@ -87,7 +87,7 @@ const BathroomTypesSection = () => {
         >
           <Button
             onClick={() =>
-              (window.location.href = "/estimator/choose-bathroom-type")
+              (window.location.href = "/estimator/choose-project-type")
             }
             className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-6 text-lg rounded-full"
           >

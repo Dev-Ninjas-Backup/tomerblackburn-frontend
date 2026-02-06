@@ -1,35 +1,55 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/dashboard/Navbar';
-import { Button } from '@/components/ui/button';
-import { Eye, Trash2, FileText, Download, FileSpreadsheet } from 'lucide-react';
-import { useSubmissions, useDeleteSubmission, useUpdateSubmissionStatus, useExportSubmissions } from '@/hooks/useSubmissions';
-import { SubmissionStatus } from '@/types/submission.types';
-import SubmissionDetailModal from './_components/SubmissionDetailModal';
+import React, { useState } from "react";
+import { Navbar } from "@/components/dashboard/Navbar";
+import { Button } from "@/components/ui/button";
+import {
+  Eye,
+  Trash2,
+  FileText,
+  Download,
+  FileSpreadsheet,
+  Paperclip,
+} from "lucide-react";
+import {
+  useSubmissions,
+  useDeleteSubmission,
+  useUpdateSubmissionStatus,
+  useExportSubmissions,
+} from "@/hooks/useSubmissions";
+import { SubmissionStatus } from "@/types/submission.types";
+import SubmissionDetailModal from "./_components/SubmissionDetailModal";
+import { MediaGalleryModal } from "@/components/dashboard/MediaGalleryModal";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PROCESSING: 'bg-blue-100 text-blue-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
+  PENDING: "bg-yellow-100 text-yellow-800",
+  PROCESSING: "bg-blue-100 text-blue-800",
+  COMPLETED: "bg-green-100 text-green-800",
+  CANCELLED: "bg-red-100 text-red-800",
 };
 
 const SubmissionsPage = () => {
-  const [filterStatus, setFilterStatus] = useState<SubmissionStatus | ''>('');
+  const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "">("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const { data: response, isLoading } = useSubmissions(filterStatus || undefined, page, limit);
+  const { data: response, isLoading } = useSubmissions(
+    filterStatus || undefined,
+    page,
+    limit,
+  );
   const deleteMutation = useDeleteSubmission();
   const updateStatusMutation = useUpdateSubmissionStatus();
   const exportMutation = useExportSubmissions();
-  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
+    null,
+  );
+  const [mediaModalSubmission, setMediaModalSubmission] = useState<any>(null);
 
   const submissions = response?.data;
   const pagination = response?.pagination;
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this submission?')) {
+    if (confirm("Are you sure you want to delete this submission?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -58,14 +78,16 @@ const SubmissionsPage = () => {
   return (
     <div>
       <Navbar title="Submissions" />
-      
+
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold">Customer Submissions</h2>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as SubmissionStatus | '')}
+              onChange={(e) =>
+                setFilterStatus(e.target.value as SubmissionStatus | "")
+              }
               className="border rounded px-3 py-2 text-sm"
               title="Filter by status"
               aria-label="Filter by status"
@@ -93,23 +115,43 @@ const SubmissionsPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submission #</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Submission #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Client
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Service
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Total Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Media
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {submissions?.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     No submissions found
                   </td>
                 </tr>
@@ -121,18 +163,43 @@ const SubmissionsPage = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div>{submission.clientName}</div>
-                      <div className="text-xs text-gray-500">{submission.clientEmail}</div>
+                      <div className="text-xs text-gray-500">
+                        {submission.clientEmail}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {submission.service?.name || '-'}
+                      {submission.service?.name || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       ${submission.totalAmount.toLocaleString()}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {submission.submissionMedia &&
+                      submission.submissionMedia.length > 0 ? (
+                        <button
+                          onClick={() => setMediaModalSubmission(submission)}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-900"
+                          title="View media files"
+                          aria-label="View media files"
+                        >
+                          <Paperclip size={16} />
+                          <span className="text-xs">
+                            {submission.submissionMedia.length}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
                         value={submission.status}
-                        onChange={(e) => handleStatusChange(submission.id, e.target.value as SubmissionStatus)}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            submission.id,
+                            e.target.value as SubmissionStatus,
+                          )
+                        }
                         className={`px-2 py-1 text-xs rounded-full border-0 ${STATUS_COLORS[submission.status]}`}
                         title="Change status"
                         aria-label="Change status"
@@ -144,9 +211,11 @@ const SubmissionsPage = () => {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : '-'}
+                      {submission.submittedAt
+                        ? new Date(submission.submittedAt).toLocaleDateString()
+                        : "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="flex px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleViewDetails(submission.id)}
                         className="text-blue-600 hover:text-blue-900 mr-3"
@@ -186,7 +255,7 @@ const SubmissionsPage = () => {
         {pagination && pagination.totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-4">
             <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={!pagination.hasPreviousPage}
               className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
               title="Previous page"
@@ -198,7 +267,7 @@ const SubmissionsPage = () => {
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
-              onClick={() => setPage(p => p + 1)}
+              onClick={() => setPage((p) => p + 1)}
               disabled={!pagination.hasNextPage}
               className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
               title="Next page"
@@ -215,6 +284,15 @@ const SubmissionsPage = () => {
           submissionId={selectedSubmission}
           isOpen={!!selectedSubmission}
           onClose={() => setSelectedSubmission(null)}
+        />
+      )}
+
+      {mediaModalSubmission && (
+        <MediaGalleryModal
+          isOpen={!!mediaModalSubmission}
+          onClose={() => setMediaModalSubmission(null)}
+          media={mediaModalSubmission.submissionMedia || []}
+          submissionNumber={mediaModalSubmission.submissionNumber}
         />
       )}
     </div>

@@ -1,57 +1,35 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { Bell } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CompanyProfile } from './_components/CompanyProfile'
 import { EmailNotifications } from './_components/EmailNotifications'
 import { TeamMembers } from './_components/TeamMembers'
 import { SocialMediaLinks } from './_components/SocialMediaLinks'
+import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
-  const [companyData, setCompanyData] = useState({
-    companyName: 'BBurn Builders LLC',
-    email: 'info@bburnbuilders.com',
-    phone: '(773) 555-0100',
-    location: 'BBurn Builders LLC',
-    logo: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop'
-  })
+  const { data: settings, isLoading } = useSiteSettings()
+  const updateMutation = useUpdateSiteSettings()
 
-  const [notifications, setNotifications] = useState({
-    newSubmission: true,
-    confirmationEmail: true,
-    dailySummary: true
-  })
-
-  const [teamMembers, setTeamMembers] = useState([
-    { id: 1, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: true },
-    { id: 2, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: false }
-  ])
-
-  const [socialLinks, setSocialLinks] = useState({
-    facebook: '',
-    instagram: '',
-    twitter: '',
-    linkedin: '',
-    youtube: ''
-  })
-
-  const handleUpdateCompany = (data: any) => {
-    setCompanyData({ ...companyData, ...data })
-  }
-
-  const handleAddMember = (email: string, role: string) => {
-    const newMember = {
-      id: teamMembers.length + 1,
-      email,
-      role,
-      isSuperAdmin: false
+  const handleUpdateCompany = async (data: any) => {
+    try {
+      await updateMutation.mutateAsync(data)
+      toast.success('Settings updated successfully')
+    } catch (error) {
+      toast.error('Failed to update settings')
     }
-    setTeamMembers([...teamMembers, newMember])
   }
 
-  const handleRemoveMember = (id: number) => {
-    setTeamMembers(teamMembers.filter(m => m.id !== id))
+  const handleUpdateSocial = async (data: any) => {
+    try {
+      await updateMutation.mutateAsync(data)
+      toast.success('Social links updated successfully')
+    } catch (error) {
+      toast.error('Failed to update social links')
+    }
   }
 
   return (
@@ -84,12 +62,9 @@ export default function SettingsPage() {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <CompanyProfile
-          companyName={companyData.companyName}
-          email={companyData.email}
-          phone={companyData.phone}
-          location={companyData.location}
-          logo={companyData.logo}
+          settings={settings}
           onUpdate={handleUpdateCompany}
+          isLoading={isLoading}
         />
       </motion.div>
 
@@ -100,8 +75,12 @@ export default function SettingsPage() {
         transition={{ duration: 0.5, delay: 0.4 }}
       >
         <EmailNotifications
-          notifications={notifications}
-          onUpdate={setNotifications}
+          notifications={{
+            newSubmission: true,
+            confirmationEmail: true,
+            dailySummary: true
+          }}
+          onUpdate={() => {}}
         />
       </motion.div>
 
@@ -112,9 +91,12 @@ export default function SettingsPage() {
         transition={{ duration: 0.5, delay: 0.5 }}
       >
         <TeamMembers
-          members={teamMembers}
-          onAddMember={handleAddMember}
-          onRemoveMember={handleRemoveMember}
+          members={[
+            { id: 1, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: true },
+            { id: 2, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: false }
+          ]}
+          onAddMember={() => {}}
+          onRemoveMember={() => {}}
         />
       </motion.div>
 
@@ -125,8 +107,9 @@ export default function SettingsPage() {
         transition={{ duration: 0.5, delay: 0.6 }}
       >
         <SocialMediaLinks
-          socialLinks={socialLinks}
-          onUpdate={setSocialLinks}
+          settings={settings}
+          onUpdate={handleUpdateSocial}
+          isLoading={isLoading}
         />
       </motion.div>
     </motion.div>
