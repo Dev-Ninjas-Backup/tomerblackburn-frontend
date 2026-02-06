@@ -6,7 +6,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import { Upload, X, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import {
+  Upload,
+  X,
+  Image as ImageIcon,
+  Video as VideoIcon,
+} from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 import { uploadService } from "@/services/upload.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
@@ -17,7 +22,7 @@ interface UploadedFile {
   preview: string;
   progress: number;
   uploaded: boolean;
-  type: 'image' | 'video';
+  type: "image" | "video";
 }
 
 export default function PreviewPage() {
@@ -45,99 +50,207 @@ export default function PreviewPage() {
     if (!serviceId) {
       router.push("/estimator/choose-service");
     }
-    
+
+    // Load previously uploaded files from store
+    const loadUploadedFiles = async () => {
+      const photoIds = userInfo.photoIds || [];
+      const videoIds = userInfo.videoIds || [];
+
+      const loadedFiles: UploadedFile[] = [];
+
+      // Load photos
+      for (const photoId of photoIds) {
+        try {
+          const response = await uploadService.getFileUrl(photoId);
+          loadedFiles.push({
+            id: photoId,
+            file: null as any, // No file object for previously uploaded
+            preview: response.url,
+            progress: 100,
+            uploaded: true,
+            type: "image",
+          });
+        } catch (error) {
+          console.error("Failed to load photo:", photoId, error);
+        }
+      }
+
+      // Load videos
+      for (const videoId of videoIds) {
+        try {
+          const response = await uploadService.getFileUrl(videoId);
+          loadedFiles.push({
+            id: videoId,
+            file: null as any, // No file object for previously uploaded
+            preview: response.url,
+            progress: 100,
+            uploaded: true,
+            type: "video",
+          });
+        } catch (error) {
+          console.error("Failed to load video:", videoId, error);
+        }
+      }
+
+      if (loadedFiles.length > 0) {
+        setUploadedFiles(loadedFiles);
+      }
+    };
+
+    loadUploadedFiles();
+
     // Debug log
-    console.log('Preview page loaded with:', {
+    console.log("Preview page loaded with:", {
       serviceId,
       basePrice,
       totalPrice,
       step1Count: step1Selections.length,
       step2Count: step2Selections.length,
-      userInfo
+      userInfo,
     });
-  }, [serviceId, router, basePrice, totalPrice, step1Selections, step2Selections, userInfo]);
+  }, [
+    serviceId,
+    router,
+    basePrice,
+    totalPrice,
+    step1Selections,
+    step2Selections,
+    userInfo,
+  ]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const imageFiles = files.filter(f => f.type.startsWith('image/')).slice(0, 10 - uploadedFiles.filter(f => f.type === 'image').length);
+    const imageFiles = files
+      .filter((f) => f.type.startsWith("image/"))
+      .slice(0, 10 - uploadedFiles.filter((f) => f.type === "image").length);
 
     for (const file of imageFiles) {
       const id = Math.random().toString(36);
       const preview = URL.createObjectURL(file);
-      
-      setUploadedFiles(prev => [...prev, {
-        id,
-        file,
-        preview,
-        progress: 0,
-        uploaded: false,
-        type: 'image'
-      }]);
+
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          id,
+          file,
+          preview,
+          progress: 0,
+          uploaded: false,
+          type: "image",
+        },
+      ]);
 
       try {
         // Simulate progress
         const progressInterval = setInterval(() => {
-          setUploadedFiles(prev => prev.map(f => 
-            f.id === id && f.progress < 90 ? { ...f, progress: f.progress + 10 } : f
-          ));
+          setUploadedFiles((prev) =>
+            prev.map((f) =>
+              f.id === id && f.progress < 90
+                ? { ...f, progress: f.progress + 10 }
+                : f,
+            ),
+          );
         }, 200);
 
         const uploaded = await uploadService.uploadSingle(file);
-        
+
         clearInterval(progressInterval);
-        setUploadedFiles(prev => prev.map(f => 
-          f.id === id ? { ...f, id: uploaded.id, progress: 100, uploaded: true } : f
-        ));
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === id
+              ? { ...f, id: uploaded.id, progress: 100, uploaded: true }
+              : f,
+          ),
+        );
+
+        // Save photo ID to store - get current state first
+        const currentPhotoIds = useEstimatorStore.getState().userInfo.photoIds || [];
+        setUserInfo({
+          photoIds: [...currentPhotoIds, uploaded.id],
+        });
       } catch (error) {
-        console.error('Upload failed:', error);
-        setUploadedFiles(prev => prev.filter(f => f.id !== id));
-        alert('Failed to upload image');
+        console.error("Upload failed:", error);
+        setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
+        alert("Failed to upload image");
       }
     }
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const videoFiles = files.filter(f => f.type.startsWith('video/')).slice(0, 2 - uploadedFiles.filter(f => f.type === 'video').length);
+    const videoFiles = files
+      .filter((f) => f.type.startsWith("video/"))
+      .slice(0, 2 - uploadedFiles.filter((f) => f.type === "video").length);
 
     for (const file of videoFiles) {
       const id = Math.random().toString(36);
       const preview = URL.createObjectURL(file);
-      
-      setUploadedFiles(prev => [...prev, {
-        id,
-        file,
-        preview,
-        progress: 0,
-        uploaded: false,
-        type: 'video'
-      }]);
+
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          id,
+          file,
+          preview,
+          progress: 0,
+          uploaded: false,
+          type: "video",
+        },
+      ]);
 
       try {
         const progressInterval = setInterval(() => {
-          setUploadedFiles(prev => prev.map(f => 
-            f.id === id && f.progress < 90 ? { ...f, progress: f.progress + 10 } : f
-          ));
+          setUploadedFiles((prev) =>
+            prev.map((f) =>
+              f.id === id && f.progress < 90
+                ? { ...f, progress: f.progress + 10 }
+                : f,
+            ),
+          );
         }, 200);
 
         const uploaded = await uploadService.uploadVideo(file);
-        
+
         clearInterval(progressInterval);
-        setUploadedFiles(prev => prev.map(f => 
-          f.id === id ? { ...f, id: uploaded.id, progress: 100, uploaded: true } : f
-        ));
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.id === id
+              ? { ...f, id: uploaded.id, progress: 100, uploaded: true }
+              : f,
+          ),
+        );
+
+        // Save video ID to store - get current state first
+        const currentVideoIds = useEstimatorStore.getState().userInfo.videoIds || [];
+        setUserInfo({
+          videoIds: [...currentVideoIds, uploaded.id],
+        });
       } catch (error) {
-        console.error('Upload failed:', error);
-        setUploadedFiles(prev => prev.filter(f => f.id !== id));
-        alert('Failed to upload video');
+        console.error("Upload failed:", error);
+        setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
+        alert("Failed to upload video");
       }
     }
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const handleRemoveFile = (id: string) => {
-    setUploadedFiles(prev => prev.filter(f => f.id !== id));
+    const file = uploadedFiles.find((f) => f.id === id);
+    if (file) {
+      // Remove from store - get current state first
+      const currentUserInfo = useEstimatorStore.getState().userInfo;
+      if (file.type === "image") {
+        setUserInfo({
+          photoIds: (currentUserInfo.photoIds || []).filter((photoId) => photoId !== id),
+        });
+      } else {
+        setUserInfo({
+          videoIds: (currentUserInfo.videoIds || []).filter((videoId) => videoId !== id),
+        });
+      }
+    }
+    setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleSubmit = async () => {
@@ -184,10 +297,10 @@ export default function PreviewPage() {
         ],
       };
 
-      console.log('=== SUBMISSION DEBUG ===');
-      console.log('API URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
-      console.log('Submission Data:', JSON.stringify(submissionData, null, 2));
-      console.log('========================');
+      console.log("=== SUBMISSION DEBUG ===");
+      console.log("API URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+      console.log("Submission Data:", JSON.stringify(submissionData, null, 2));
+      console.log("========================");
       console.log("User Information:", {
         fullName,
         email,
@@ -200,9 +313,9 @@ export default function PreviewPage() {
         totalPrice,
         additionalItemsTotal: totalPrice - basePrice,
       });
-      console.log("Files:", { 
-        photos: uploadedFiles.filter(f => f.type === 'image').length, 
-        videos: uploadedFiles.filter(f => f.type === 'video').length 
+      console.log("Files:", {
+        photos: uploadedFiles.filter((f) => f.type === "image").length,
+        videos: uploadedFiles.filter((f) => f.type === "video").length,
       });
       console.log("Selections:", {
         step1: step1Selections.length,
@@ -217,16 +330,16 @@ export default function PreviewPage() {
 
       // Add media files to submission if any
       if (submissionId) {
-        const uploadedMediaFiles = uploadedFiles.filter(f => f.uploaded);
+        const uploadedMediaFiles = uploadedFiles.filter((f) => f.uploaded);
         if (uploadedMediaFiles.length > 0) {
           for (const file of uploadedMediaFiles) {
             try {
               await submissionService.addMedia(submissionId, {
                 fileInstanceId: file.id,
-                mediaType: file.type === 'image' ? 'PHOTO' : 'VIDEO',
+                mediaType: file.type === "image" ? "PHOTO" : "VIDEO",
               });
             } catch (error) {
-              console.error('Failed to add media:', error);
+              console.error("Failed to add media:", error);
             }
           }
         }
@@ -244,15 +357,15 @@ export default function PreviewPage() {
 
       router.push("/estimator/confirmation");
     } catch (error: any) {
-      console.error('=== SUBMISSION ERROR ===');
-      console.error('Full error:', error);
-      console.error('Response status:', error.response?.status);
-      console.error('Response data:', error.response?.data);
-      console.error('========================');
-      
-      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
-      alert(`Submission failed: ${errorMessage}`);
+      console.error("=== SUBMISSION ERROR ===");
+      console.error("Full error:", error);
+      console.error("Response status:", error.response?.status);
+      console.error("Response data:", error.response?.data);
+      console.error("========================");
 
+      const errorMessage =
+        error.response?.data?.message || error.message || "Unknown error";
+      alert(`Submission failed: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -260,6 +373,24 @@ export default function PreviewPage() {
 
   const isFormValid = fullName && email && phone && zipCode && address;
   const additionalTotal = totalPrice - basePrice;
+
+  // Calculate additional costs from selections
+  const additionalCosts = [
+    ...step1Selections
+      .filter((s) => s.isEnabled)
+      .map((s) => ({
+        id: s.costCodeId,
+        name: s.costCodeName || `Step 1 Item`,
+        cost: Number(s.unitPrice) * (s.quantity || 1),
+      })),
+    ...step2Selections
+      .filter((s) => s.isEnabled)
+      .map((s) => ({
+        id: s.costCodeId,
+        name: s.costCodeName || `Step 2 Item`,
+        cost: Number(s.unitPrice) * (s.quantity || 1),
+      })),
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -287,6 +418,7 @@ export default function PreviewPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="John Doe"
+                  className="h-12 px-4"
                   required
                 />
               </div>
@@ -300,6 +432,7 @@ export default function PreviewPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="example@email.com"
+                  className="h-12 px-4"
                   required
                 />
               </div>
@@ -313,6 +446,7 @@ export default function PreviewPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="(773) 555-0123"
+                  className="h-12 px-4"
                   required
                 />
               </div>
@@ -326,6 +460,7 @@ export default function PreviewPage() {
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
                   placeholder="60614"
+                  className="h-12 px-4"
                   required
                 />
               </div>
@@ -339,6 +474,7 @@ export default function PreviewPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="example address"
+                  className="h-12 px-4"
                   required
                 />
               </div>
@@ -375,7 +511,8 @@ export default function PreviewPage() {
               {/* Photos Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Photos ({uploadedFiles.filter(f => f.type === 'image').length}/10)
+                  Upload Photos (
+                  {uploadedFiles.filter((f) => f.type === "image").length}/10)
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
                   <input
@@ -385,7 +522,10 @@ export default function PreviewPage() {
                     onChange={handlePhotoUpload}
                     className="hidden"
                     id="photo-upload"
-                    disabled={uploadedFiles.filter(f => f.type === 'image').length >= 10}
+                    disabled={
+                      uploadedFiles.filter((f) => f.type === "image").length >=
+                      10
+                    }
                   />
                   <label htmlFor="photo-upload" className="cursor-pointer">
                     <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
@@ -402,7 +542,8 @@ export default function PreviewPage() {
               {/* Videos Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Videos ({uploadedFiles.filter(f => f.type === 'video').length}/2)
+                  Upload Videos (
+                  {uploadedFiles.filter((f) => f.type === "video").length}/2)
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
                   <input
@@ -412,7 +553,10 @@ export default function PreviewPage() {
                     onChange={handleVideoUpload}
                     className="hidden"
                     id="video-upload"
-                    disabled={uploadedFiles.filter(f => f.type === 'video').length >= 2}
+                    disabled={
+                      uploadedFiles.filter((f) => f.type === "video").length >=
+                      2
+                    }
                   />
                   <label htmlFor="video-upload" className="cursor-pointer">
                     <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
@@ -432,7 +576,7 @@ export default function PreviewPage() {
                   {uploadedFiles.map((file) => (
                     <div key={file.id} className="relative group">
                       <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                        {file.type === 'image' ? (
+                        {file.type === "image" ? (
                           <img
                             src={file.preview}
                             alt="Preview"
@@ -443,18 +587,20 @@ export default function PreviewPage() {
                             <VideoIcon className="w-12 h-12 text-gray-400" />
                           </div>
                         )}
-                        
+
                         {/* Progress Overlay */}
                         {!file.uploaded && (
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                             <div className="text-center">
                               <div className="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin mb-2"></div>
-                              <p className="text-white text-sm font-medium">{file.progress}%</p>
+                              <p className="text-white text-sm font-medium">
+                                {file.progress}%
+                              </p>
                             </div>
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Remove Button */}
                       <button
                         onClick={() => handleRemoveFile(file.id)}
@@ -463,10 +609,10 @@ export default function PreviewPage() {
                       >
                         <X className="w-4 h-4" />
                       </button>
-                      
+
                       {/* File Type Badge */}
                       <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {file.type === 'image' ? 'Photo' : 'Video'}
+                        {file.type === "image" ? "Photo" : "Video"}
                       </div>
                     </div>
                   ))}
@@ -496,17 +642,29 @@ export default function PreviewPage() {
                 </span>
               </div>
 
-              {additionalTotal > 0 && (
-                <div className="border-t pt-3">
-                  <div className="flex justify-between text-lg">
-                    <span className="text-gray-600">
-                      Additional Items Total:
-                    </span>
-                    <span className="font-semibold">
-                      +${additionalTotal.toLocaleString()}
-                    </span>
+              {additionalCosts.length > 0 && (
+                <>
+                  <div className="border-t pt-3">
+                    <p className="text-gray-600 mb-3">Additional Items:</p>
+                    <div className="space-y-2 pl-4">
+                      {additionalCosts.map((cost) => (
+                        <div key={cost.id} className="flex justify-between text-sm">
+                          <span className="text-gray-600">{cost.name}:</span>
+                          <span className="font-medium">+${cost.cost.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between text-lg">
+                      <span className="text-gray-600">Additions Total:</span>
+                      <span className="font-semibold">
+                        ${additionalCosts.reduce((sum, c) => sum + c.cost, 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="border-t-2 border-[#283878] pt-4">

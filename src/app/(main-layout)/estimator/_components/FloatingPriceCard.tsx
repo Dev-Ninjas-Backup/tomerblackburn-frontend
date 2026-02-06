@@ -15,14 +15,14 @@ export const FloatingPriceCard = () => {
       .filter((s) => s.isEnabled)
       .map((s) => ({
         id: s.costCodeId,
-        name: `Step 1 Item`,
+        name: s.costCodeName || `Step 1 Item`,
         cost: Number(s.unitPrice) * (s.quantity || 1),
       })),
     ...step2Selections
       .filter((s) => s.isEnabled)
       .map((s) => ({
         id: s.costCodeId,
-        name: `Step 2 Item`,
+        name: s.costCodeName || `Step 2 Item`,
         cost: Number(s.unitPrice) * (s.quantity || 1),
       })),
   ];
@@ -100,7 +100,7 @@ export const FloatingPriceCard = () => {
         {/* Toggle Button */}
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className={`fixed bottom-24 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
+          className={`fixed bottom-60 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
             isMobileOpen ? "right-80" : "right-0"
           }`}
           aria-label="Toggle price summary"

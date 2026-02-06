@@ -69,6 +69,7 @@ const ServiceCategoriesTab = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Project Type</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
@@ -80,6 +81,13 @@ const ServiceCategoriesTab = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredCategories?.map((item) => (
               <tr key={item.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.image?.url ? (
+                    <img src={item.image.url} alt={item.name} className="h-12 w-12 object-cover rounded" />
+                  ) : (
+                    <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">No Image</div>
+                  )}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {projectTypes?.find((pt) => pt.id === item.projectTypeId)?.name || '-'}

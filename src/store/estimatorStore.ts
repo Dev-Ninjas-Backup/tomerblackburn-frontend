@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware'
 
 interface CostCodeSelection {
   costCodeId: string
+  costCodeName?: string
   selectedOptionId?: string
   quantity?: number
   unitPrice: number
@@ -20,8 +21,8 @@ interface UserInfo {
   zipCode: string
   address: string
   notes: string
-  photos: File[]
-  videos: File[]
+  photoIds: string[]
+  videoIds: string[]
 }
 
 interface EstimatorState {
@@ -78,8 +79,8 @@ const initialState: EstimatorState = {
     zipCode: '',
     address: '',
     notes: '',
-    photos: [],
-    videos: [],
+    photoIds: [],
+    videoIds: [],
   },
 }
 

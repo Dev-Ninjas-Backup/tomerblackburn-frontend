@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 
 interface CostCode {
@@ -30,6 +30,7 @@ interface CostCode {
 
 interface CostCodeSelection {
   costCodeId: string;
+  costCodeName?: string;
   selectedOptionId?: string;
   quantity?: number;
   unitPrice: number;
@@ -74,6 +75,29 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   onSelectionChange,
   onSelectionRemove,
 }) => {
+  // Track which WHITE cost codes have been auto-added
+  const autoAddedRef = useRef<Set<string>>(new Set());
+
+  // Auto-add WHITE type cost codes that are not included in base
+  useEffect(() => {
+    costCodes.forEach((costCode) => {
+      if (
+        costCode.questionType === "WHITE" &&
+        !costCode.isIncludedInBase &&
+        !selections.find((s) => s.costCodeId === costCode.id) &&
+        !autoAddedRef.current.has(costCode.id)
+      ) {
+        autoAddedRef.current.add(costCode.id);
+        onSelectionChange(costCode.id, {
+          costCodeName: costCode.name,
+          unitPrice: costCode.basePrice,
+          isEnabled: true,
+          quantity: 1,
+        });
+      }
+    });
+  }, [costCodes, selections, onSelectionChange]);
+
   // Group cost codes by category
   const groupedCostCodes = costCodes.reduce(
     (acc, costCode) => {
@@ -94,6 +118,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   const handleToggle = (costCode: CostCode, enabled: boolean) => {
     if (enabled) {
       onSelectionChange(costCode.id, {
+        costCodeName: costCode.name,
         unitPrice: costCode.basePrice,
         isEnabled: true,
         quantity: costCode.requiresQuantity ? 1 : undefined,
@@ -114,6 +139,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     const option = costCode.options?.find((o) => o.id === optionId);
     if (option) {
       onSelectionChange(costCode.id, {
+        costCodeName: costCode.name,
         selectedOptionId: optionId,
         unitPrice: Number(option.priceModifier),
         isEnabled: true,
@@ -126,6 +152,31 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (selection) {
       onSelectionChange(costCode.id, { userInputValue: value });
     }
+  };
+
+  const formatDescription = (description?: string) => {
+    if (!description) return null;
+    
+    // Split by " - " or "- " at the start of lines
+    const lines = description
+      .split(/\s*-\s+/)
+      .filter(line => line.trim())
+      .map(line => line.trim());
+    
+    if (lines.length <= 1) {
+      return <p className="text-sm text-gray-600 whitespace-pre-line">{description}</p>;
+    }
+    
+    return (
+      <div className="text-sm text-gray-600 space-y-1 mt-2 mb-3">
+        {lines.map((line, index) => (
+          <div key={index} className="flex gap-2">
+            <span className="text-gray-400">•</span>
+            <span>{line}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const renderCostCode = (costCode: CostCode) => {
@@ -141,12 +192,16 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       ] || "text-gray-600";
 
     // WHITE - Included in base (non-interactive)
-    if (costCode.questionType === "WHITE" || costCode.isIncludedInBase) {
+    if (costCode.questionType === "WHITE") {
       return (
         <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-1">{costCode.name}</h3>
-          <p className="text-sm text-gray-600">{costCode.description}</p>
-          <p className={`text-xs ${textColor} mt-2`}>Included in base price</p>
+          {formatDescription(costCode.description)}
+          {costCode.isIncludedInBase && (
+            <p className={`text-xs ${textColor} mt-2`}>
+              Included in base price
+            </p>
+          )}
         </div>
       );
     }
@@ -155,30 +210,30 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "BLUE") {
       return (
         <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
               <h3 className="font-semibold text-gray-900 mb-1">
                 {costCode.name}
               </h3>
-              <p className="text-sm text-gray-600">{costCode.description}</p>
+              {formatDescription(costCode.description)}
             </div>
             <button
+              type="button"
               onClick={() => handleToggle(costCode, !isEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#283878] ${
                 isEnabled ? "bg-[#283878]" : "bg-gray-300"
               }`}
+              role="switch"
+              aria-checked={isEnabled ? "true" : "false"}
               aria-label={`Toggle ${costCode.name}`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
                   isEnabled ? "translate-x-6" : "translate-x-1"
                 }`}
               />
             </button>
           </div>
-          {/* {costCode.basePrice > 0 && (
-            <p className={`text-xs ${textColor} mt-2`}>+${costCode.basePrice.toLocaleString()}</p>
-          )} */}
         </div>
       );
     }
@@ -188,21 +243,40 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-2">{costCode.name}</h3>
-          <p className="text-sm text-gray-600 mb-3">{costCode.description}</p>
+          {formatDescription(costCode.description)}
           <div className="flex items-center gap-4">
             <Input
               type="number"
+              min="1"
               value={selection?.userInputValue || ""}
               onChange={(e) => {
                 const value = e.target.value;
-                if (!selection) {
-                  onSelectionChange(costCode.id, {
-                    unitPrice: costCode.basePrice,
-                    isEnabled: true,
-                    userInputValue: value,
-                  });
-                } else {
-                  handleUserInput(costCode, value);
+                const numValue = Number(value);
+
+                // If empty or 0 or negative, remove selection
+                if (!value || numValue <= 0) {
+                  if (selection) {
+                    onSelectionRemove(costCode.id);
+                  }
+                  return;
+                }
+
+                // Only allow positive integers
+                if (numValue > 0) {
+                  if (!selection) {
+                    onSelectionChange(costCode.id, {
+                      costCodeName: costCode.name,
+                      unitPrice: costCode.basePrice,
+                      isEnabled: true,
+                      userInputValue: value,
+                      quantity: numValue,
+                    });
+                  } else {
+                    onSelectionChange(costCode.id, {
+                      userInputValue: value,
+                      quantity: numValue,
+                    });
+                  }
                 }
               }}
               placeholder="Enter amount"
@@ -212,11 +286,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               {costCode.unitType.replace("PER_", "per ").toLowerCase()}
             </span>
           </div>
-          {/* {costCode.basePrice > 0 && (
-            <p className={`text-xs ${textColor} mt-2`}>
-              ${costCode.basePrice.toLocaleString()} {costCode.unitType.replace('PER_', 'per ').toLowerCase()}
-            </p>
-          )} */}
         </div>
       );
     }
@@ -226,7 +295,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-2">{costCode.name}</h3>
-          <p className="text-sm text-gray-600 mb-3">{costCode.description}</p>
+          {formatDescription(costCode.description)}
           <select
             value={selection?.selectedOptionId || ""}
             onChange={(e) => {
@@ -266,7 +335,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-1">{costCode.name}</h3>
-          <p className="text-sm text-gray-600">{costCode.description}</p>
+          {formatDescription(costCode.description)}
           <p className={`text-xs ${textColor} mt-2`}>
             Calculated automatically
           </p>
