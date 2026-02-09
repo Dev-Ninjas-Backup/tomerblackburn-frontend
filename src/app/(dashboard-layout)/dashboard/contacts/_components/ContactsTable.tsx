@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Mail, MailOpen, Trash2, Eye } from "lucide-react";
+import { Search, Mail, MailOpen, Trash2, Eye, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ContactSubmission } from "@/types/contact.types";
 import {
   useMarkAsRead,
   useMarkAsUnread,
   useDeleteContact,
+  useExportContactsByIds,
 } from "@/hooks/useContacts";
 import { format } from "date-fns";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
@@ -39,6 +40,7 @@ export const ContactsTable = ({
   onLimitChange,
 }: ContactsTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     contactId: string;
@@ -48,6 +50,7 @@ export const ContactsTable = ({
   const markAsRead = useMarkAsRead();
   const markAsUnread = useMarkAsUnread();
   const deleteContact = useDeleteContact();
+  const exportByIds = useExportContactsByIds();
 
   const handleViewDetails = (contact: ContactSubmission) => {
     if (!contact.isRead) {
@@ -77,23 +80,60 @@ export const ContactsTable = ({
     });
   };
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredContacts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredContacts.map(c => c.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleExportSelected = () => {
+    if (selectedIds.length > 0) {
+      exportByIds.mutate(selectedIds);
+    }
+  };
+
+  const handleExportSingle = (id: string) => {
+    exportByIds.mutate([id]);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          size={20}
-        />
-        <Input
-          placeholder="Search by name, email, phone"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-          {filteredContacts.length} results
-        </span>
+      {/* Search Bar & Export Selected */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
+          <Input
+            placeholder="Search by name, email, phone"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+            {filteredContacts.length} results
+          </span>
+        </div>
+        {selectedIds.length > 0 && (
+          <button
+            onClick={handleExportSelected}
+            disabled={exportByIds.isPending}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            title="Export selected"
+          >
+            <Download size={16} />
+            Export ({selectedIds.length})
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -102,6 +142,15 @@ export const ContactsTable = ({
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300"
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
@@ -132,6 +181,15 @@ export const ContactsTable = ({
                   className={`hover:bg-gray-50 ${!contact.isRead ? "bg-blue-50" : ""}`}
                 >
                   <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(contact.id)}
+                      onChange={() => toggleSelect(contact.id)}
+                      className="w-4 h-4 rounded border-gray-300"
+                      aria-label="Select contact"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
                     {contact.isRead ? (
                       <MailOpen size={18} className="text-gray-400" />
                     ) : (
@@ -155,6 +213,14 @@ export const ContactsTable = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleExportSingle(contact.id)}
+                        className="p-1.5 hover:bg-green-50 rounded transition-colors"
+                        title="Export"
+                        disabled={exportByIds.isPending}
+                      >
+                        <Download size={16} className="text-green-600" />
+                      </button>
                       <button
                         onClick={() => handleViewDetails(contact)}
                         className="p-1.5 hover:bg-blue-50 rounded transition-colors"

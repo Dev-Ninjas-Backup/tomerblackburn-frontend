@@ -45,19 +45,14 @@ export const submissionService = {
       params,
       responseType: 'blob',
     });
-    
-    const blob = new Blob([response.data], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    return response.data;
+  },
+
+  exportByIds: async (ids: string[]) => {
+    const response = await axios.post(`${API_URL}/submissions/export`, { ids }, {
+      responseType: 'blob',
     });
-    
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `submissions-export-${new Date().toISOString().split('T')[0]}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    return response.data;
   },
 
   // Next Steps CRUD

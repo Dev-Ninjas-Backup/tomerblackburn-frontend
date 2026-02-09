@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Download } from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 
 interface NextStep {
@@ -22,7 +22,8 @@ interface WhatHappensNextData {
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { serviceId, totalPrice, resetEstimator } = useEstimatorStore();
+  const { serviceId, totalPrice, resetEstimator, submissionId, pdfUrl } =
+    useEstimatorStore();
   const [nextSteps, setNextSteps] = useState<WhatHappensNextData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,7 +39,7 @@ export default function ConfirmationPage() {
         const response = await submissionService.getAllNextSteps(false);
         setNextSteps({
           title: "What happens next?",
-          steps: response.data.data
+          steps: response.data.data,
         });
       } catch (error) {
         console.error("Failed to fetch next steps:", error);
@@ -51,7 +52,7 @@ export default function ConfirmationPage() {
   }, []);
 
   const estimateNumber = `EST-${new Date().getFullYear()}-${Math.floor(
-    Math.random() * 1000
+    Math.random() * 1000,
   )
     .toString()
     .padStart(3, "0")}`;
@@ -172,10 +173,20 @@ export default function ConfirmationPage() {
             transition={{ delay: 0.7 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
+            {pdfUrl && (
+              <Button
+                onClick={() => window.open(pdfUrl, "_blank")}
+                variant="outline"
+                className="px-8 py-6 text-sm rounded-full"
+              >
+                <Download className="w-5 h-5" />
+                Download PDF
+              </Button>
+            )}
             <Button
               onClick={handleBackHome}
               variant="outline"
-              className="px-8 py-6 text-lg rounded-full"
+              className="px-8 py-6 text-base rounded-full"
             >
               Back to home
             </Button>

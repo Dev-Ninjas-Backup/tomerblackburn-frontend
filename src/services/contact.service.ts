@@ -79,11 +79,19 @@ export const contactService = {
     return response.data;
   },
 
-  // Dashboard - Export contacts to Excel
+  // Dashboard - Export all contacts to Excel
   exportContacts: async (isRead?: boolean) => {
     const params = isRead !== undefined ? { isRead: isRead.toString() } : {};
     const response = await api.get("/contact-us/export", {
       params,
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
+  // Dashboard - Export contacts by IDs
+  exportContactsByIds: async (ids: string[]) => {
+    const response = await api.post("/contact-us/export", { ids }, {
       responseType: "blob",
     });
     return response.data;

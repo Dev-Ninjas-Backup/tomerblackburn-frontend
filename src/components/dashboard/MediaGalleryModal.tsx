@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import JSZip from "jszip";
 import {
   X,
   Image as ImageIcon,
@@ -36,6 +37,7 @@ export function MediaGalleryModal({
   submissionNumber,
 }: MediaGalleryModalProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -62,6 +64,34 @@ export function MediaGalleryModal({
     }
   };
 
+  const handleDownloadAll = async () => {
+    setIsDownloading(true);
+    try {
+      const zip = new JSZip();
+
+      for (const file of media) {
+        const response = await fetch(file.fileInstance.url);
+        const blob = await response.blob();
+        zip.file(file.fileInstance.originalFilename, blob);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = window.URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `submission-${submissionNumber}-media.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download files:", error);
+      alert("Failed to download files");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const selectedMedia = selectedIndex !== null ? media[selectedIndex] : null;
 
   return (
@@ -83,14 +113,27 @@ export function MediaGalleryModal({
                 Submission #{submissionNumber}
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Close modal"
-              title="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {media.length > 0 && (
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors disabled:opacity-50"
+                  title="Download all files"
+                >
+                  <Download className="w-4 h-4" />
+                  {isDownloading ? "Downloading..." : "Download All"}
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Close modal"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Content */}

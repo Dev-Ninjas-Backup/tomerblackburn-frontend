@@ -108,3 +108,23 @@ export const useExportContacts = () => {
     },
   });
 };
+
+export const useExportContactsByIds = () => {
+  return useMutation({
+    mutationFn: contactService.exportContactsByIds,
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `contact-submissions-${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Contacts exported successfully");
+    },
+    onError: () => {
+      toast.error("Failed to export contacts");
+    },
+  });
+};

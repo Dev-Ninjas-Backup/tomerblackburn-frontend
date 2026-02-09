@@ -1,11 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { submissionService } from '@/services/submission.service';
-import { SubmissionStatus } from '@/types/submission.types';
-import { toast } from 'sonner';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { submissionService } from "@/services/submission.service";
+import { SubmissionStatus } from "@/types/submission.types";
+import { toast } from "sonner";
 
-export const useSubmissions = (status?: SubmissionStatus, page: number = 1, limit: number = 10) => {
+export const useSubmissions = (
+  status?: SubmissionStatus,
+  page: number = 1,
+  limit: number = 10,
+) => {
   return useQuery({
-    queryKey: ['submissions', status, page, limit],
+    queryKey: ["submissions", status, page, limit],
     queryFn: async () => {
       const response = await submissionService.getAll(status, page, limit);
       return response.data;
@@ -15,7 +19,7 @@ export const useSubmissions = (status?: SubmissionStatus, page: number = 1, limi
 
 export const useSubmission = (id: string) => {
   return useQuery({
-    queryKey: ['submission', id],
+    queryKey: ["submission", id],
     queryFn: async () => {
       const response = await submissionService.getById(id);
       return response.data.data;
@@ -26,7 +30,7 @@ export const useSubmission = (id: string) => {
 
 export const useDashboardStats = () => {
   return useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const response = await submissionService.getDashboardStats();
       return response.data.data;
@@ -40,12 +44,12 @@ export const useUpdateSubmissionStatus = () => {
     mutationFn: ({ id, status }: { id: string; status: SubmissionStatus }) =>
       submissionService.updateStatus(id, status),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success('Status updated successfully');
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success("Status updated successfully");
     },
     onError: () => {
-      toast.error('Failed to update status');
+      toast.error("Failed to update status");
     },
   });
 };
@@ -55,12 +59,12 @@ export const useDeleteSubmission = () => {
   return useMutation({
     mutationFn: (id: string) => submissionService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success('Submission deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success("Submission deleted successfully");
     },
     onError: () => {
-      toast.error('Failed to delete submission');
+      toast.error("Failed to delete submission");
     },
   });
 };
@@ -70,23 +74,63 @@ export const useRegeneratePdf = () => {
   return useMutation({
     mutationFn: (id: string) => submissionService.regeneratePdf(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      toast.success('PDF regenerated successfully');
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      toast.success("PDF regenerated successfully");
     },
     onError: () => {
-      toast.error('Failed to regenerate PDF');
+      toast.error("Failed to regenerate PDF");
     },
   });
 };
 
 export const useExportSubmissions = () => {
   return useMutation({
-    mutationFn: (status?: SubmissionStatus) => submissionService.exportToExcel(status),
-    onSuccess: () => {
-      toast.success('Excel file downloaded successfully');
+    mutationFn: submissionService.exportToExcel,
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `submissions-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Submissions exported successfully");
     },
     onError: () => {
-      toast.error('Failed to export submissions');
+      toast.error("Failed to export submissions");
     },
   });
 };
+
+export const useExportSubmissionsByIds = () => {
+  return useMutation({
+    mutationFn: submissionService.exportByIds,
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `submissions-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Submissions exported successfully");
+    },
+    onError: () => {
+      toast.error("Failed to export submissions");
+    },
+  });
+};
+
+// export const useExportSubmissions = () => {
+//   return useMutation({
+//     mutationFn: (status?: SubmissionStatus) => submissionService.exportToExcel(status),
+//     onSuccess: () => {
+//       toast.success('Excel file downloaded successfully');
+//     },
+//     onError: () => {
+//       toast.error('Failed to export submissions');
+//     },
+//   });
+// };
