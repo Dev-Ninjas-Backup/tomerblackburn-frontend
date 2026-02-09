@@ -16,6 +16,7 @@ import {
   useDeleteSubmission,
   useUpdateSubmissionStatus,
   useExportSubmissions,
+  useExportSubmissionsByIds,
 } from "@/hooks/useSubmissions";
 import { SubmissionStatus } from "@/types/submission.types";
 import SubmissionDetailModal from "./_components/SubmissionDetailModal";
@@ -32,6 +33,7 @@ const SubmissionsPage = () => {
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "">("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { data: response, isLoading } = useSubmissions(
     filterStatus || undefined,
     page,
@@ -40,6 +42,7 @@ const SubmissionsPage = () => {
   const deleteMutation = useDeleteSubmission();
   const updateStatusMutation = useUpdateSubmissionStatus();
   const exportMutation = useExportSubmissions();
+  const exportByIds = useExportSubmissionsByIds();
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
     null,
   );
@@ -64,6 +67,30 @@ const SubmissionsPage = () => {
 
   const handleExport = () => {
     exportMutation.mutate(filterStatus || undefined);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === submissions?.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(submissions?.map((s) => s.id) || []);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
+  };
+
+  const handleExportSelected = () => {
+    if (selectedIds.length > 0) {
+      exportByIds.mutate(selectedIds);
+    }
+  };
+
+  const handleExportSingle = (id: string) => {
+    exportByIds.mutate([id]);
   };
 
   if (isLoading) {
@@ -100,6 +127,16 @@ const SubmissionsPage = () => {
             </select>
           </div>
           <div className="flex items-center gap-3">
+            {selectedIds.length > 0 && (
+              <Button
+                onClick={handleExportSelected}
+                disabled={exportByIds.isPending}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Download size={18} />
+                Export ({selectedIds.length})
+              </Button>
+            )}
             <Button
               onClick={handleExport}
               variant="outline"
@@ -107,7 +144,7 @@ const SubmissionsPage = () => {
               className="flex items-center gap-2"
             >
               <FileSpreadsheet size={18} />
-              Export to Excel
+              Export All
             </Button>
             <div className="text-sm text-gray-600">
               Total: {pagination?.total || 0} submissions
@@ -119,6 +156,18 @@ const SubmissionsPage = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedIds.length === submissions?.length &&
+                      submissions?.length > 0
+                    }
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300"
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Submission #
                 </th>
@@ -140,7 +189,7 @@ const SubmissionsPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Date
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -149,7 +198,7 @@ const SubmissionsPage = () => {
               {submissions?.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     No submissions found
@@ -158,6 +207,15 @@ const SubmissionsPage = () => {
               ) : (
                 submissions?.map((submission) => (
                   <tr key={submission.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(submission.id)}
+                        onChange={() => toggleSelect(submission.id)}
+                        className="w-4 h-4 rounded border-gray-300"
+                        aria-label="Select submission"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {submission.submissionNumber}
                     </td>
@@ -217,6 +275,15 @@ const SubmissionsPage = () => {
                     </td>
                     <td className="flex px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
+                        onClick={() => handleExportSingle(submission.id)}
+                        className="text-green-600 hover:text-green-900 mr-3"
+                        title="Export"
+                        aria-label="Export"
+                        disabled={exportByIds.isPending}
+                      >
+                        <FileSpreadsheet size={16} />
+                      </button>
+                      <button
                         onClick={() => handleViewDetails(submission.id)}
                         className="text-blue-600 hover:text-blue-900 mr-3"
                         title="View details"
@@ -229,11 +296,11 @@ const SubmissionsPage = () => {
                           href={submission.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-900 mr-3"
+                          className="text-red-600 hover:text-red-900 mr-3"
                           title="Download PDF"
                           aria-label="Download PDF"
                         >
-                          <Download size={16} />
+                          <FileText size={16} />
                         </a>
                       )}
                       <button

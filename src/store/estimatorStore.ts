@@ -41,6 +41,10 @@ interface EstimatorState {
   
   // User information
   userInfo: UserInfo
+  
+  // Submission
+  submissionId: string | null
+  pdfUrl: string | null
 }
 
 interface EstimatorStore extends EstimatorState {
@@ -56,6 +60,9 @@ interface EstimatorStore extends EstimatorState {
   
   // User info
   setUserInfo: (data: Partial<UserInfo>) => void
+  
+  // Submission
+  setSubmissionData: (submissionId: string, pdfUrl: string | null) => void
   
   // Calculations
   calculateTotal: () => void
@@ -82,6 +89,8 @@ const initialState: EstimatorState = {
     photoIds: [],
     videoIds: [],
   },
+  submissionId: null,
+  pdfUrl: null,
 }
 
 export const useEstimatorStore = create<EstimatorStore>()(
@@ -154,6 +163,10 @@ export const useEstimatorStore = create<EstimatorStore>()(
         set((state) => ({
           userInfo: { ...state.userInfo, ...data },
         }))
+      },
+
+      setSubmissionData: (submissionId, pdfUrl) => {
+        set({ submissionId, pdfUrl })
       },
 
       calculateTotal: () => {
