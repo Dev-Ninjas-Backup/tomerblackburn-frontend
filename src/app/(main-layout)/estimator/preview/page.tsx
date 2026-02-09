@@ -35,6 +35,7 @@ export default function PreviewPage() {
     basePrice,
     step1Selections,
     step2Selections,
+    setSubmissionData,
   } = useEstimatorStore();
 
   const [fullName, setFullName] = useState(userInfo.fullName);
@@ -327,6 +328,12 @@ export default function PreviewPage() {
       // Submit to API
       const response = await submissionService.create(submissionData);
       const submissionId = response.data.data?.id;
+      const pdfUrl = response.data.data?.pdfUrl || null;
+
+      // Save submission data to store
+      if (submissionId) {
+        setSubmissionData(submissionId, pdfUrl);
+      }
 
       // Add media files to submission if any
       if (submissionId) {
@@ -683,13 +690,21 @@ export default function PreviewPage() {
 
           {/* Submit Button */}
           <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <Button
-              onClick={handleSubmit}
-              disabled={!isFormValid || isSubmitting}
-              className="w-full bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Estimate Budget →"}
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => router.back()}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg rounded-full px-8"
+              >
+                ← Back
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={!isFormValid || isSubmitting}
+                className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Estimate Budget →"}
+              </Button>
+            </div>
             <p className="text-xs text-gray-500 text-center mt-4">
               By submitting, you agree to receive communication from BBurn
               Builders regarding your estimate.
