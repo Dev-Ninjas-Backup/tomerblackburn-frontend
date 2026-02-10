@@ -4,15 +4,45 @@ import React, { useState } from 'react'
 import { Bell, User, LogOut, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
+import { useNotifications, useMarkNotificationAsRead } from '@/hooks/useNotifications'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
 
 interface NavbarProps {
   title: string
 }
 
 export const Navbar = ({ title }: NavbarProps) => {
+  const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { user, logout } = useAuthStore();
+  const { data: notifications = [], refetch } = useNotifications(20);
+  const markAsRead = useMarkNotificationAsRead();
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.isRead) {
+      await markAsRead.mutateAsync(notification.id);
+      refetch();
+    }
+    
+    setIsNotificationOpen(false);
+    
+    if (notification.entityType === 'submission') {
+      router.push('/dashboard/submissions');
+    } else if (notification.entityType === 'contact_us') {
+      router.push('/dashboard/contacts');
+    }
+  };
+
+  const getNotificationIcon = (entityType: string) => {
+    if (entityType === 'submission') return '📋';
+    if (entityType === 'contact_us') return '✉️';
+    return '🔔';
+  };
 
   const handleLogout = () => {
     logout();
@@ -25,15 +55,84 @@ export const Navbar = ({ title }: NavbarProps) => {
       
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
-        >
-          <Bell size={20} className="text-gray-700" />
-          {/* Notification Badge */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </motion.button>
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+          >
+            <Bell size={20} className="text-gray-700" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </motion.button>
+
+          {/* Notification Dropdown */}
+          <AnimatePresence>
+            {isNotificationOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsNotificationOpen(false)}
+                />
+
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 top-14 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[500px] overflow-hidden flex flex-col"
+                >
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {unreadCount} unread
+                    </p>
+                  </div>
+
+                  <div className="overflow-y-auto flex-1">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500">
+                        <Bell size={32} className="mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">No notifications</p>
+                      </div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 transition-colors ${
+                            !notification.isRead ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{getNotificationIcon(notification.entityType)}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${
+                                !notification.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'
+                              }`}>
+                                {notification.description || `${notification.action} ${notification.entityType}`}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                              </p>
+                            </div>
+                            {!notification.isRead && (
+                              <span className="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></span>
+                            )}
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* User Profile Dropdown */}
         <div className="relative">

@@ -1,27 +1,23 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-
-const data = [
-  { month: 'Jan', value: 4000 },
-  { month: 'Feb', value: 4500 },
-  { month: 'Mar', value: 5000 },
-  { month: 'Apr', value: 5500 },
-  { month: 'May', value: 6000 },
-  { month: 'Jun', value: 6500 },
-  { month: 'Jul', value: 7000 },
-  { month: 'Aug', value: 7500 },
-  { month: 'Sep', value: 7000 },
-  { month: 'Oct', value: 6500 },
-  { month: 'Nov', value: 6000 },
-  { month: 'Dec', value: 5500 },
-]
+import { useRevenueTrend } from '@/hooks/useDashboard'
 
 export const RevenueChart = () => {
+  const [months, setMonths] = useState(12);
+  const { data: revenueTrend, isLoading } = useRevenueTrend(months);
+
+  const chartData = revenueTrend?.labels.map((label, index) => ({
+    month: label,
+    value: revenueTrend.totals[index],
+  })) || [];
+
+  const totalRevenue = revenueTrend?.totals.reduce((sum, val) => sum + val, 0) || 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -33,48 +29,59 @@ export const RevenueChart = () => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">$12,500</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {isLoading ? '...' : `$${totalRevenue.toLocaleString()}`}
+              </p>
               <p className="text-sm text-gray-500 mt-1">
-                Last 30 Days <span className="text-green-600 ml-2">+12%</span>
+                Last {months} {months === 1 ? 'Month' : 'Months'}
               </p>
             </div>
-            <Select defaultValue="monthly">
+            <Select value={months.toString()} onValueChange={(val) => setMonths(Number(val))}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
+                <SelectItem value="1">1 Month</SelectItem>
+                <SelectItem value="6">6 Months</SelectItem>
+                <SelectItem value="12">12 Months</SelectItem>
+                <SelectItem value="24">2 Years</SelectItem>
+                <SelectItem value="36">3 Years</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="relative">
-            <div className="absolute top-0 right-1/2 transform translate-x-1/2 bg-[#2d4a8f] text-white px-4 py-2 rounded-lg text-sm z-10">
-              Total Earned<br />
-              <span className="font-bold">80.1% Overall</span>
-            </div>
-            
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#999"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis hide />
-                <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#3b82f6" 
-                  strokeWidth={3}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {isLoading ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-gray-500">Loading chart...</div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="#999"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    stroke="#999"
+                    style={{ fontSize: '12px' }}
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                  />
+                  <Tooltip 
+                    formatter={(value: number | undefined) => [`$${(value || 0).toLocaleString()}`, 'Revenue']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>
