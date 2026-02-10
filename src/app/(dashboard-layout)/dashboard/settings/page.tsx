@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { CompanyProfile } from './_components/CompanyProfile'
@@ -8,11 +8,30 @@ import { EmailNotifications } from './_components/EmailNotifications'
 import { TeamMembers } from './_components/TeamMembers'
 import { SocialMediaLinks } from './_components/SocialMediaLinks'
 import { useSiteSettings, useUpdateSiteSettings } from '@/hooks/useSiteSettings'
+import { authService } from '@/services/auth.service'
 import { toast } from 'sonner'
 
 export default function SettingsPage() {
   const { data: settings, isLoading } = useSiteSettings()
   const updateMutation = useUpdateSiteSettings()
+  const [users, setUsers] = useState<any[]>([])
+  const [usersLoading, setUsersLoading] = useState(true)
+
+  const fetchUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const response = await authService.getAllUsers()
+      setUsers(response.data)
+    } catch (error) {
+      toast.error('Failed to load users')
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   const handleUpdateCompany = async (data: any) => {
     try {
@@ -69,7 +88,7 @@ export default function SettingsPage() {
       </motion.div>
 
       {/* Email Notifications */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
@@ -82,7 +101,7 @@ export default function SettingsPage() {
           }}
           onUpdate={() => {}}
         />
-      </motion.div>
+      </motion.div> */}
 
       {/* Team Members */}
       <motion.div
@@ -91,12 +110,9 @@ export default function SettingsPage() {
         transition={{ duration: 0.5, delay: 0.5 }}
       >
         <TeamMembers
-          members={[
-            { id: 1, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: true },
-            { id: 2, email: 'admin@buburnbuilders.com', role: 'Super Admin', isSuperAdmin: false }
-          ]}
-          onAddMember={() => {}}
-          onRemoveMember={() => {}}
+          members={users}
+          onRefresh={fetchUsers}
+          isLoading={usersLoading}
         />
       </motion.div>
 
