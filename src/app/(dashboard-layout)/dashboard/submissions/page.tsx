@@ -10,9 +10,11 @@ import {
   Download,
   FileSpreadsheet,
   Paperclip,
+  Search,
 } from "lucide-react";
 import {
   useSubmissions,
+  useAllSubmissions,
   useDeleteSubmission,
   useUpdateSubmissionStatus,
   useExportSubmissions,
@@ -21,6 +23,10 @@ import {
 import { SubmissionStatus } from "@/types/submission.types";
 import SubmissionDetailModal from "./_components/SubmissionDetailModal";
 import { MediaGalleryModal } from "@/components/dashboard/MediaGalleryModal";
+import { useDebounce } from "@/hooks/useDebounce";
+import { searchSubmission } from "@/utils/search";
+import { useMemo } from "react";
+import { TableSkeleton } from "@/components/shared/TableSkeleton";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -31,14 +37,23 @@ const STATUS_COLORS: Record<SubmissionStatus, string> = {
 
 const SubmissionsPage = () => {
   const [filterStatus, setFilterStatus] = useState<SubmissionStatus | "">("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const { data: response, isLoading } = useSubmissions(
+
+  // Fetch all data when searching, paginated data otherwise
+  const { data: allResponse, isLoading: isLoadingAll } = useAllSubmissions(
     filterStatus || undefined,
-    page,
-    limit,
+    debouncedSearch.length > 0,
   );
+  const { data: paginatedResponse, isLoading: isLoadingPaginated } =
+    useSubmissions(filterStatus || undefined, page, limit);
+
+  const isSearching = debouncedSearch.length > 0;
+  const response = isSearching ? allResponse : paginatedResponse;
+  const isLoading = isSearching ? isLoadingAll : isLoadingPaginated;
   const deleteMutation = useDeleteSubmission();
   const updateStatusMutation = useUpdateSubmissionStatus();
   const exportMutation = useExportSubmissions();
@@ -50,6 +65,15 @@ const SubmissionsPage = () => {
 
   const submissions = response?.data;
   const pagination = response?.pagination;
+
+  const filteredSubmissions = useMemo(() => {
+    if (!submissions) return [];
+    if (!debouncedSearch) return submissions;
+
+    return submissions.filter((submission) =>
+      searchSubmission(submission, debouncedSearch),
+    );
+  }, [submissions, debouncedSearch]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this submission?")) {
@@ -70,10 +94,10 @@ const SubmissionsPage = () => {
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === submissions?.length) {
+    if (selectedIds.length === filteredSubmissions?.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(submissions?.map((s) => s.id) || []);
+      setSelectedIds(filteredSubmissions?.map((s) => s.id) || []);
     }
   };
 
@@ -97,7 +121,36 @@ const SubmissionsPage = () => {
     return (
       <div>
         <Navbar title="Submissions" />
-        <div className="p-6 text-center">Loading...</div>
+        <div className="p-4 md:p-6">
+          <div className="bg-white p-4 rounded-lg shadow mb-6">
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-semibold">Customer Submissions</h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, number..."
+                    disabled
+                    className="border rounded pl-10 pr-4 py-2 text-sm w-full bg-gray-50"
+                  />
+                </div>
+                <select
+                  disabled
+                  className="border rounded px-3 py-2 text-sm bg-gray-50"
+                  title="Filter by status"
+                  aria-label="Filter by status"
+                >
+                  <option value="">All Status</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <TableSkeleton rows={10} columns={9} />
+        </div>
       </div>
     );
   }
@@ -106,62 +159,88 @@ const SubmissionsPage = () => {
     <div>
       <Navbar title="Submissions" />
 
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold">Customer Submissions</h2>
-            <select
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as SubmissionStatus | "")
-              }
-              className="border rounded px-3 py-2 text-sm"
-              title="Filter by status"
-              aria-label="Filter by status"
-            >
-              <option value="">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-3">
-            {selectedIds.length > 0 && (
-              <Button
-                onClick={handleExportSelected}
-                disabled={exportByIds.isPending}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <Download size={18} />
-                Export ({selectedIds.length})
-              </Button>
-            )}
-            <Button
-              onClick={handleExport}
-              variant="outline"
-              disabled={exportMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <FileSpreadsheet size={18} />
-              Export All
-            </Button>
-            <div className="text-sm text-gray-600">
-              Total: {pagination?.total || 0} submissions
+      <div className="p-4 md:p-6">
+        {/* Header Section - Mobile Responsive */}
+        <div className="bg-white p-4 rounded-lg shadow mb-6">
+          <div className="flex flex-col gap-4">
+            {/* Title and Total */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <h2 className="text-xl font-semibold">Customer Submissions</h2>
+              <div className="text-sm text-gray-600">
+                Total: {pagination?.total || 0} submissions
+              </div>
+            </div>
+
+            {/* Search, Filter and Export Row - Desktop: same row, Mobile: stacked */}
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              {/* Search and Filter Group */}
+              <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                <div className="relative flex-1">
+                  <Search
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="border rounded pl-10 pr-4 py-2 text-sm w-full"
+                  />
+                </div>
+                <select
+                  value={filterStatus}
+                  onChange={(e) =>
+                    setFilterStatus(e.target.value as SubmissionStatus | "")
+                  }
+                  className="border rounded px-3 py-2 text-sm"
+                  title="Filter by status"
+                  aria-label="Filter by status"
+                >
+                  <option value="">All Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="PROCESSING">Processing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </div>
+
+              {/* Export Buttons Group */}
+              <div className="flex flex-col sm:flex-row gap-2 md:shrink-0">
+                {selectedIds.length > 0 && (
+                  <Button
+                    onClick={handleExportSelected}
+                    disabled={exportByIds.isPending}
+                    className="flex items-center justify-center gap-2 bg-[#2D4A8F] hover:bg-[#1B2A5A]"
+                  >
+                    <Download size={18} />
+                    Export ({selectedIds.length})
+                  </Button>
+                )}
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  disabled={exportMutation.isPending}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <FileSpreadsheet size={18} />
+                  Export All
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 border">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={
-                      selectedIds.length === submissions?.length &&
-                      submissions?.length > 0
+                      selectedIds.length === filteredSubmissions?.length &&
+                      filteredSubmissions?.length > 0
                     }
                     onChange={toggleSelectAll}
                     className="w-4 h-4 rounded border-gray-300"
@@ -195,17 +274,19 @@ const SubmissionsPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {submissions?.length === 0 ? (
+              {filteredSubmissions?.length === 0 ? (
                 <tr>
                   <td
                     colSpan={9}
                     className="px-6 py-8 text-center text-gray-500"
                   >
-                    No submissions found
+                    {searchQuery
+                      ? "No submissions found matching your search"
+                      : "No submissions found"}
                   </td>
                 </tr>
               ) : (
-                submissions?.map((submission) => (
+                filteredSubmissions?.map((submission) => (
                   <tr key={submission.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <input
@@ -258,7 +339,13 @@ const SubmissionsPage = () => {
                             e.target.value as SubmissionStatus,
                           )
                         }
-                        className={`px-2 py-1 text-xs rounded-full border-0 ${STATUS_COLORS[submission.status]}`}
+                        className={`px-3 py-1.5 pr-8 text-xs rounded-full border-0 appearance-none cursor-pointer ${STATUS_COLORS[submission.status]}`}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.5rem center',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundSize: '1.25em 1.25em',
+                        }}
                         title="Change status"
                         aria-label="Change status"
                       >

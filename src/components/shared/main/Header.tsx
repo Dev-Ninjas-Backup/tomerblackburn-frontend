@@ -15,13 +15,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
-  
+
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { data: settings } = useSiteSettings();
 
   const handleLogout = () => {
     logout();
@@ -44,28 +46,32 @@ const Header = () => {
       <div className="bg-[#283878] text-white py-2.5 px-4 text-sm ">
         <div className="container mx-auto flex justify-center items-center gap-8">
           <span>Contact us for a FREE Quote</span>
-          <a
-            href="tel:7734039950"
-            className="hover:underline flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-            </svg>
-            (773) 403-9950
-          </a>
+          {settings?.contactNumber && (
+            <a
+              href={`tel:${settings.contactNumber.replace(/\D/g, "")}`}
+              className="hover:underline flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              </svg>
+              {settings.contactNumber}
+            </a>
+          )}
         </div>
       </div>
 
       {/* Main Header */}
       <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 py-4">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-8 md:h-14">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-24 h-24 md:w-36 md:h-36">
                 <Image
-                  src="/images/BBurnBuilders_logo.svg"
-                  alt="BBurn Builders Logo"
+                  src={
+                    settings?.logoImage?.url || "/images/BBurnBuilders_logo.svg"
+                  }
+                  alt={settings?.siteTitle || "BBurn Builders Logo"}
                   fill
                   className="object-contain"
                 />
@@ -92,7 +98,11 @@ const Header = () => {
                     <motion.div
                       layoutId="activeTab"
                       className="absolute -bottom-2 left-0 right-0 h-1 bg-[#283878] rounded-full"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
                     />
                   )}
                 </Link>
@@ -112,8 +122,12 @@ const Header = () => {
                       {user?.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                      <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.name}
+                      </p>
+                      <p className="text-xs text-gray-500 capitalize">
+                        {user?.role?.toLowerCase()}
+                      </p>
                     </div>
                   </button>
 
@@ -127,10 +141,14 @@ const Header = () => {
 
                       <div className="absolute right-0 top-14 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                         <div className="px-4 py-3 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {user?.email}
+                          </p>
                         </div>
-                        
+
                         <Link
                           href="/dashboard"
                           className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -139,7 +157,7 @@ const Header = () => {
                           <LayoutDashboard className="h-4 w-4" />
                           <span>Dashboard</span>
                         </Link>
-                        
+
                         <div className="border-t border-gray-100 mt-1 pt-1">
                           <button
                             onClick={handleLogout}
@@ -202,12 +220,16 @@ const Header = () => {
                           {user?.name?.charAt(0).toUpperCase() || "U"}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                          <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {user?.name}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">
+                            {user?.role?.toLowerCase()}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
+
                     <Link
                       href="/dashboard"
                       className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
@@ -216,7 +238,7 @@ const Header = () => {
                       <LayoutDashboard className="h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
-                    
+
                     <button
                       onClick={() => {
                         handleLogout();
