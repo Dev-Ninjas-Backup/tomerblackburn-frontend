@@ -5,6 +5,7 @@ import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import ContactForm from "./ContactForm";
 import { BuilderTrendEmbed } from "./BuilderTrendEmbed";
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 interface ContactSectionProps {
   title?: string;
@@ -13,12 +14,20 @@ interface ContactSectionProps {
 
 const ContactSection = ({
   title = "Get in Touch",
-  mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2970.1234567890!2d-87.6431!3d41.9308!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880fd3b1234567890%3A0x1234567890abcdef!2s330%20W%20Diversey%20Pkwy%20%232604%2C%20Chicago%2C%20IL%2060657%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus",
 }: ContactSectionProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [formData, setFormData] = useState<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { data: settings } = useSiteSettings();
+
+  const getMapEmbedUrl = () => {
+    if (settings?.location) {
+      const encodedLocation = encodeURIComponent(settings.location);
+      return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodedLocation}`;
+    }
+    return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2970.1234567890!2d-87.6431!3d41.9308!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880fd3b1234567890%3A0x1234567890abcdef!2s330%20W%20Diversey%20Pkwy%20%232604%2C%20Chicago%2C%20IL%2060657%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus";
+  };
 
   const handleFormDataChange = (data: any) => {
     setFormData(data);
@@ -109,7 +118,7 @@ const ContactSection = ({
             className="relative h-[600px] lg:h-full min-h-[500px] rounded-2xl overflow-hidden shadow-lg"
           >
             <iframe
-              src={mapEmbedUrl}
+              src={getMapEmbedUrl()}
               width="100%"
               height="100%"
               style={{ border: 0 }}

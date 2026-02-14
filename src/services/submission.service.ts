@@ -14,6 +14,12 @@ export const submissionService = {
     return axios.get<ApiResponse<Submission[]>>(`${API_URL}/submissions`, { params });
   },
 
+  getAllWithoutPagination: async (status?: SubmissionStatus) => {
+    const params: any = { page: 1, limit: 100 };
+    if (status) params.status = status;
+    return axios.get<ApiResponse<Submission[]>>(`${API_URL}/submissions`, { params });
+  },
+
   getById: async (id: string) => {
     return axios.get<ApiResponse<Submission>>(`${API_URL}/submissions/${id}`);
   },

@@ -37,6 +37,16 @@ export const contactService = {
     return response.data;
   },
 
+  // Dashboard - Get all contacts without pagination (for search)
+  getAllContactsWithoutPagination: async (isRead?: boolean) => {
+    const params: any = { page: 1, limit: 100 };
+    if (isRead !== undefined) {
+      params.isRead = isRead.toString();
+    }
+    const response = await api.get<ContactsResponse>("/contact-us", { params });
+    return response.data;
+  },
+
   // Dashboard - Get unread count
   getUnreadCount: async () => {
     const response = await api.get<UnreadCountResponse>("/contact-us/unread-count");
