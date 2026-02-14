@@ -118,7 +118,7 @@ export function MediaGalleryModal({
                 <button
                   onClick={handleDownloadAll}
                   disabled={isDownloading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#2D4A8F] hover:bg-[#1B2A5A] text-white rounded-lg transition-colors disabled:opacity-50"
                   title="Download all files"
                 >
                   <Download className="w-4 h-4" />

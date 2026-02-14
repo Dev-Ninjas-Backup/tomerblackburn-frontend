@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Mail, MailOpen, Trash2, Eye, Download } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Mail, MailOpen, Trash2, Eye, FileSpreadsheet } from "lucide-react";
 import { ContactSubmission } from "@/types/contact.types";
 import {
   useMarkAsRead,
@@ -39,7 +38,6 @@ export const ContactsTable = ({
   onPageChange,
   onLimitChange,
 }: ContactsTableProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
@@ -59,15 +57,6 @@ export const ContactsTable = ({
     onViewDetails(contact);
   };
 
-  const filteredContacts = contacts.filter(
-    (contact) =>
-      `${contact.firstName} ${contact.lastName}`
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      contact.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.phone.includes(searchQuery),
-  );
-
   const handleDeleteClick = (id: string, name: string) => {
     setDeleteModal({ isOpen: true, contactId: id, contactName: name });
   };
@@ -81,16 +70,16 @@ export const ContactsTable = ({
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === filteredContacts.length) {
+    if (selectedIds.length === contacts.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredContacts.map(c => c.id));
+      setSelectedIds(contacts.map((c) => c.id));
     }
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
@@ -106,35 +95,20 @@ export const ContactsTable = ({
 
   return (
     <div className="space-y-4">
-      {/* Search Bar & Export Selected */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={20}
-          />
-          <Input
-            placeholder="Search by name, email, phone"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-            {filteredContacts.length} results
-          </span>
-        </div>
-        {selectedIds.length > 0 && (
+      {/* Export Selected Button */}
+      {selectedIds.length > 0 && (
+        <div className="flex justify-end">
           <button
             onClick={handleExportSelected}
             disabled={exportByIds.isPending}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-[#2D4A8F] text-white rounded-lg hover:bg-[#1E3A70] disabled:opacity-50"
             title="Export selected"
           >
-            <Download size={16} />
+            <FileSpreadsheet size={16} />
             Export ({selectedIds.length})
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200">
@@ -145,7 +119,10 @@ export const ContactsTable = ({
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedIds.length === filteredContacts.length && filteredContacts.length > 0}
+                    checked={
+                      selectedIds.length === contacts.length &&
+                      contacts.length > 0
+                    }
                     onChange={toggleSelectAll}
                     className="w-4 h-4 rounded border-gray-300"
                     aria-label="Select all"
@@ -175,7 +152,7 @@ export const ContactsTable = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredContacts.map((contact) => (
+              {contacts.map((contact) => (
                 <tr
                   key={contact.id}
                   className={`hover:bg-gray-50 ${!contact.isRead ? "bg-blue-50" : ""}`}
@@ -219,7 +196,7 @@ export const ContactsTable = ({
                         title="Export"
                         disabled={exportByIds.isPending}
                       >
-                        <Download size={16} className="text-green-600" />
+                        <FileSpreadsheet size={16} className="text-green-600" />
                       </button>
                       <button
                         onClick={() => handleViewDetails(contact)}
@@ -267,7 +244,7 @@ export const ContactsTable = ({
 
         {/* Pagination */}
         {pagination && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-6 py-4 border-t border-gray-200">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-700">Rows per page</span>
               <select
@@ -276,7 +253,7 @@ export const ContactsTable = ({
                   onLimitChange(Number(e.target.value));
                   onPageChange(1);
                 }}
-                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                className="border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm"
                 aria-label="Rows per page"
               >
                 <option value={10}>10</option>
@@ -285,15 +262,16 @@ export const ContactsTable = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-700">
-                Page {pagination.page} of {pagination.totalPages || 1} ({pagination.total} total)
+            <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
+              <span className="text-sm text-gray-700 text-center">
+                Page {pagination.page} of {pagination.totalPages || 1} (
+                {pagination.total} total)
               </span>
               <div className="flex gap-1">
                 <button
                   onClick={() => onPageChange(1)}
                   disabled={!pagination.hasPreviousPage}
-                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="First page"
                 >
                   «
@@ -301,7 +279,7 @@ export const ContactsTable = ({
                 <button
                   onClick={() => onPageChange(page - 1)}
                   disabled={!pagination.hasPreviousPage}
-                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Previous page"
                 >
                   ‹
@@ -309,7 +287,7 @@ export const ContactsTable = ({
                 <button
                   onClick={() => onPageChange(page + 1)}
                   disabled={!pagination.hasNextPage}
-                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Next page"
                 >
                   ›
@@ -317,7 +295,7 @@ export const ContactsTable = ({
                 <button
                   onClick={() => onPageChange(pagination.totalPages)}
                   disabled={!pagination.hasNextPage}
-                  className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                   aria-label="Last page"
                 >
                   »

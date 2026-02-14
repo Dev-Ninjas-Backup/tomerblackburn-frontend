@@ -17,6 +17,18 @@ export const useSubmissions = (
   });
 };
 
+export const useAllSubmissions = (status?: SubmissionStatus, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ["all-submissions", status],
+    queryFn: async () => {
+      const response = await submissionService.getAllWithoutPagination(status);
+      return response.data;
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useSubmission = (id: string) => {
   return useQuery({
     queryKey: ["submission", id],

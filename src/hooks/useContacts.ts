@@ -10,6 +10,15 @@ export const useContacts = (isRead?: boolean, page: number = 1, limit: number = 
   });
 };
 
+export const useAllContacts = (isRead?: boolean, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ["all-contacts", isRead],
+    queryFn: () => contactService.getAllContactsWithoutPagination(isRead),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useUnreadCount = () => {
   return useQuery({
     queryKey: ["unreadCount"],
