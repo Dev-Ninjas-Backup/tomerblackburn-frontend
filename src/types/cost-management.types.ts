@@ -45,6 +45,9 @@ export interface CostCode {
   requiresQuantity: boolean;
   isOptional: boolean;
   isActive: boolean;
+  parentCostCodeId?: string;
+  showWhenParentValue?: string;
+  nestedInputType?: 'QUANTITY' | 'DROPDOWN' | 'CUSTOM_PRICE' | 'NONE';
   createdAt: string;
   updatedAt: string;
   category?: CostCodeCategory;
@@ -73,6 +76,9 @@ export interface CreateCostCodeDto {
   requiresQuantity?: boolean;
   isOptional?: boolean;
   isActive?: boolean;
+  parentCostCodeId?: string;
+  showWhenParentValue?: string;
+  nestedInputType?: 'QUANTITY' | 'DROPDOWN' | 'CUSTOM_PRICE' | 'NONE';
 }
 
 export interface UpdateCostCodeDto extends Partial<CreateCostCodeDto> {}

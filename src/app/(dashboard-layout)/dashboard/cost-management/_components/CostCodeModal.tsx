@@ -41,6 +41,9 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
     requiresQuantity: false,
     isOptional: false,
     isActive: true,
+    parentCostCodeId: '',
+    showWhenParentValue: '',
+    nestedInputType: 'NONE',
   });
 
   useEffect(() => {
@@ -69,6 +72,9 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         requiresQuantity: data.requiresQuantity,
         isOptional: data.isOptional,
         isActive: data.isActive,
+        parentCostCodeId: data.parentCostCodeId || '',
+        showWhenParentValue: data.showWhenParentValue || '',
+        nestedInputType: data.nestedInputType || 'NONE',
       });
     } else if (mode === 'create') {
       setFormData({
@@ -88,6 +94,9 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         requiresQuantity: false,
         isOptional: false,
         isActive: true,
+        parentCostCodeId: '',
+        showWhenParentValue: '',
+        nestedInputType: 'NONE',
       });
       setSelectedProjectType('');
       setSelectedCategory('');
@@ -102,6 +111,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
     }
     const submitData = { ...formData };
     if (!submitData.serviceId) delete submitData.serviceId;
+    if (!submitData.parentCostCodeId) delete submitData.parentCostCodeId;
+    if (!submitData.showWhenParentValue) delete submitData.showWhenParentValue;
     if (mode === 'create') {
       await createMutation.mutateAsync(submitData);
     } else {
@@ -348,6 +359,56 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
                 placeholder="0"
                 title="Display order"
               />
+            </div>
+
+            <div className="col-span-2 border-t pt-4 mt-2">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">🔗 Nested Question Settings (Optional)</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Parent Question</label>
+                  <select
+                    value={formData.parentCostCodeId}
+                    onChange={(e) => setFormData({ ...formData, parentCostCodeId: e.target.value })}
+                    className="w-full border rounded px-3 py-2"
+                    title="Select parent question"
+                  >
+                    <option value="">None (Top-level question)</option>
+                    {/* TODO: Load cost codes for selected service */}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">This question will appear after parent is answered</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Show When Parent Value</label>
+                  <input
+                    type="text"
+                    value={formData.showWhenParentValue}
+                    onChange={(e) => setFormData({ ...formData, showWhenParentValue: e.target.value })}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="true / false / optionId / ANY"
+                    disabled={!formData.parentCostCodeId}
+                    title="Condition to show this question"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Use: true, false, optionId, or ANY</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nested Input Type</label>
+                  <select
+                    value={formData.nestedInputType}
+                    onChange={(e) => setFormData({ ...formData, nestedInputType: e.target.value as any })}
+                    className="w-full border rounded px-3 py-2"
+                    disabled={!formData.parentCostCodeId}
+                    title="Type of nested input"
+                  >
+                    <option value="NONE">None</option>
+                    <option value="QUANTITY">Quantity Input</option>
+                    <option value="DROPDOWN">Dropdown</option>
+                    <option value="CUSTOM_PRICE">Custom Price</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">How user will interact with this nested question</p>
+                </div>
+              </div>
             </div>
 
             <div className="col-span-2 grid grid-cols-2 gap-4">
