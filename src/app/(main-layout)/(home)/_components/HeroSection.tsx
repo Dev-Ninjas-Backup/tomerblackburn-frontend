@@ -60,7 +60,7 @@ const HeroSection = ({ homePageData }: HeroSectionProps) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <Link href="/estimator">
+            <Link href="/estimator/choose-project-type">
               <Button
                 size="lg"
                 className="bg-white text-[#283878] hover:bg-gray-50 font-semibold px-10 py-7 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
