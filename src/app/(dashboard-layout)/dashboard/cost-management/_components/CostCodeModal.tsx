@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCreateCostCode, useUpdateCostCode } from '@/hooks/useCostManagement';
+import { useCreateCostCode, useUpdateCostCode, useCostCodes } from '@/hooks/useCostManagement';
 import { useProjectTypes, useServiceCategories, useServiceCategoriesByProjectType, useServicesByCategory } from '@/hooks/useProjectManagement';
 import { CreateCostCodeDto, CostCodeCategory, QuestionType, UnitType } from '@/types/cost-management.types';
 
@@ -22,8 +22,10 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
   const { data: allServiceCategories } = useServiceCategories(true);
   const [selectedProjectType, setSelectedProjectType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const { data: serviceCategories } = useServiceCategoriesByProjectType(selectedProjectType);
   const { data: services } = useServicesByCategory(selectedCategory);
+  const { data: allCostCodes } = useCostCodes({ serviceId: selectedServiceId, isActive: true });
   
   const [formData, setFormData] = useState<CreateCostCodeDto>({
     categoryId: '',
@@ -76,6 +78,7 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         showWhenParentValue: data.showWhenParentValue || '',
         nestedInputType: data.nestedInputType || 'NONE',
       });
+      setSelectedServiceId(data.serviceId || '');
     } else if (mode === 'create') {
       setFormData({
         categoryId: '',
@@ -100,6 +103,7 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
       });
       setSelectedProjectType('');
       setSelectedCategory('');
+      setSelectedServiceId('');
     }
   }, [mode, data, allServiceCategories]);
 
@@ -181,7 +185,10 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
               <label className="block text-sm font-medium mb-1">Service *</label>
               <select
                 value={formData.serviceId}
-                onChange={(e) => setFormData({ ...formData, serviceId: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, serviceId: e.target.value });
+                  setSelectedServiceId(e.target.value);
+                }}
                 className="w-full border rounded px-3 py-2"
                 required
                 disabled={!selectedCategory}
@@ -371,9 +378,12 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
                     onChange={(e) => setFormData({ ...formData, parentCostCodeId: e.target.value })}
                     className="w-full border rounded px-3 py-2"
                     title="Select parent question"
+                    disabled={!formData.serviceId}
                   >
                     <option value="">None (Top-level question)</option>
-                    {/* TODO: Load cost codes for selected service */}
+                    {allCostCodes?.map((cc) => (
+                      <option key={cc.id} value={cc.id}>{cc.code} - {cc.name}</option>
+                    ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-1">This question will appear after parent is answered</p>
                 </div>
