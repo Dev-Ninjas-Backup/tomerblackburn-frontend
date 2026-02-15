@@ -121,11 +121,11 @@ export const useEstimatorStore = create<EstimatorStore>()(
         })
       },
 
-      setServiceId: (id, basePrice) => {
+      setServiceId: (id, clientPrice) => {
         set({ 
           serviceId: id,
-          basePrice,
-          totalPrice: basePrice,
+          basePrice: clientPrice,
+          totalPrice: clientPrice,
           step1Selections: [],
           step2Selections: []
         })

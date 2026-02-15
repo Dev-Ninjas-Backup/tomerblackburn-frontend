@@ -35,6 +35,8 @@ export interface CostCode {
   name: string;
   description?: string;
   basePrice: number;
+  markup: number;
+  clientPrice: number;
   unitType: UnitType;
   questionType: QuestionType;
   step: number;
@@ -61,6 +63,8 @@ export interface CreateCostCodeDto {
   name: string;
   description?: string;
   basePrice: number;
+  markup?: number;
+  clientPrice?: number;
   unitType?: UnitType;
   questionType?: QuestionType;
   step?: number;

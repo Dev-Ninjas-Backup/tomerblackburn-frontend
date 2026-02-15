@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import {
   LayoutDashboard,
   Bath,
@@ -43,22 +44,35 @@ const menuItems = [
 ];
 
 // Reusable Logo Component
-const SidebarLogo = () => (
-  <div className="p-4 border-b border-gray-200">
-    <div className="flex items-center gap-2">
-      <Image
-        src="/images/BBurnBuilders_logo.svg"
-        alt="BBurn Builders"
-        width={24}
-        height={24}
-      />
-      <div>
-        <h2 className="text-sm font-semibold text-gray-900">BBurn Builders</h2>
-        <p className="text-xs text-gray-500">Admin Panel</p>
+const SidebarLogo = () => {
+  const { data: settings } = useSiteSettings();
+  const logoUrl = settings?.logoImage?.url;
+
+  return (
+    <div className="p-4 border-b border-gray-200">
+      <div className="flex flex-col items-center gap-2">
+        {logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt="Logo"
+            width={120}
+            height={60}
+            className="object-contain"
+          />
+        ) : (
+          <Image
+            src={"/images/BBurnBuilders_logo.svg"}
+            alt="BBurn Builders"
+            width={120}
+            height={60}
+            className="object-contain"
+          />
+        )}
+        <p className="text-xs text-gray-500 font-medium">Admin Panel</p>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Reusable Menu Item Component
 interface MenuItemProps {

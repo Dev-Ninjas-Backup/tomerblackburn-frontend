@@ -12,9 +12,15 @@ export default function ChooseServicePage() {
   const router = useRouter();
   const { serviceCategoryId, serviceId, setServiceId } = useEstimatorStore();
 
-  const { data: services, isLoading } = useServicesByCategory(
+  const { data: allServices, isLoading } = useServicesByCategory(
     serviceCategoryId || undefined,
   );
+
+  // Filter services by selected category
+  const services = allServices?.filter(
+    (service) => service.serviceCategoryId === serviceCategoryId,
+  );
+
   const [selected, setSelected] = useState<string | null>(serviceId);
 
   useEffect(() => {
@@ -22,6 +28,8 @@ export default function ChooseServicePage() {
       router.push("/estimator/choose-service-category");
       return;
     }
+
+    setSelected(null);
   }, [serviceCategoryId, router]);
 
   const handleSelect = (service: Service) => {
@@ -32,14 +40,14 @@ export default function ChooseServicePage() {
     if (selected) {
       const selectedService = services?.find((s) => s.id === selected);
       if (selectedService) {
-        setServiceId(selected, selectedService.basePrice || 0);
+        setServiceId(selected, selectedService.clientPrice || 0);
         router.push("/estimator/step-1");
       }
     }
   };
 
   const handleBack = () => {
-    router.push("/estimator/choose-service-category");
+    router.push("/estimator/choose-project-type");
   };
 
   if (isLoading) {
@@ -48,6 +56,68 @@ export default function ChooseServicePage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading services...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeServices = services?.filter((service) => service.isActive) || [];
+
+  if (activeServices.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
+              Choose Your Service
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Select the specific service for your project
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center py-16"
+          >
+            <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md text-center">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  className="w-12 h-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                No Services Available
+              </h3>
+              <p className="text-gray-600 mb-6">
+                There are currently no active services for this category. Please
+                go back and select a different category.
+              </p>
+              <Button
+                onClick={handleBack}
+                className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-3 rounded-full"
+              >
+                ← Back to Categories
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -70,8 +140,8 @@ export default function ChooseServicePage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {services?.map((service, index) => (
+        <div className="flex flex-wrap justify-center gap-6 mb-12">
+          {activeServices.map((service, index) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 50 }}
@@ -80,7 +150,7 @@ export default function ChooseServicePage() {
               onClick={() => handleSelect(service)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer
+                w-full sm:w-72 bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === service.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"

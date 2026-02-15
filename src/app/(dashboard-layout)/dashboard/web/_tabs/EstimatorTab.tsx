@@ -18,6 +18,12 @@ import {
   useUpdateNextStep,
   useDeleteNextStep,
 } from "@/hooks/useNextSteps";
+import {
+  useTips,
+  useCreateTip,
+  useUpdateTip,
+  useDeleteTip,
+} from "@/hooks/useTips";
 import { uploadService } from "@/services/upload.service";
 import { HowItWorksStep, WhyChooseUsFeature } from "@/types/estimator.types";
 import { EstimatorTabSkeleton } from "./_skeleton/EstimatorTabSkeleton";
@@ -48,6 +54,9 @@ export default function EstimatorTab() {
   const [nextStepForm, setNextStepForm] = useState<any>({});
   const [editingNextStep, setEditingNextStep] = useState<string | null>(null);
 
+  const [tipForm, setTipForm] = useState<any>({});
+  const [editingTip, setEditingTip] = useState<string | null>(null);
+
   const createStep = useCreateHowItWorksStep();
   const updateStep = useUpdateHowItWorksStep();
   const deleteStep = useDeleteHowItWorksStep();
@@ -60,6 +69,11 @@ export default function EstimatorTab() {
   const createNextStep = useCreateNextStep();
   const updateNextStep = useUpdateNextStep();
   const deleteNextStep = useDeleteNextStep();
+
+  const { data: tips } = useTips();
+  const createTip = useCreateTip();
+  const updateTip = useUpdateTip();
+  const deleteTip = useDeleteTip();
 
   if (isLoading) return <EstimatorTabSkeleton />;
   if (!data?.page) return <div>No data</div>;
@@ -191,6 +205,24 @@ export default function EstimatorTab() {
       title: step.title,
       description: step.description,
       isActive: step.isActive,
+    });
+  };
+
+  const handleTipSubmit = () => {
+    if (editingTip) {
+      updateTip.mutate({ id: editingTip, data: tipForm });
+    } else {
+      createTip.mutate(tipForm);
+    }
+    setTipForm({});
+    setEditingTip(null);
+  };
+
+  const handleEditTip = (tip: any) => {
+    setEditingTip(tip.id);
+    setTipForm({
+      position: tip.position,
+      message: tip.message,
     });
   };
 
@@ -756,9 +788,7 @@ export default function EstimatorTab() {
             <div className="flex gap-2">
               <button
                 onClick={handleNextStepSubmit}
-                disabled={
-                  createNextStep.isPending || updateNextStep.isPending
-                }
+                disabled={createNextStep.isPending || updateNextStep.isPending}
                 className="px-6 py-2.5 bg-[#2d4a8f] text-white rounded-lg hover:bg-[#3461c9] disabled:bg-gray-400 transition-colors shadow-sm"
               >
                 {editingNextStep ? "Update Step" : "Add Step"}
@@ -768,6 +798,114 @@ export default function EstimatorTab() {
                   onClick={() => {
                     setEditingNextStep(null);
                     setNextStepForm({});
+                  }}
+                  className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tips Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-linear-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Tips</h2>
+          <p className="text-sm text-gray-600 mt-0.5">
+            {tips?.length || 0} tip(s) configured for estimator page
+          </p>
+        </div>
+        <div className="p-6 space-y-4">
+          {tips && tips.length > 0 && (
+            <div className="space-y-3">
+              {tips
+                .sort((a, b) => a.position - b.position)
+                .map((tip) => (
+                  <div
+                    key={tip.id}
+                    className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">
+                        Position {tip.position}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {tip.message}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEditTip(tip)}
+                        aria-label="Edit tip"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteTip.mutate(tip.id)}
+                        aria-label="Delete tip"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 pt-5 mt-5 space-y-4">
+            <h4 className="font-medium text-gray-900">
+              {editingTip ? "Edit Tip" : "Add New Tip"}
+            </h4>
+            <div className="grid md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Position
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g., 1"
+                  value={tipForm.position || ""}
+                  onChange={(e) =>
+                    setTipForm({
+                      ...tipForm,
+                      position: parseInt(e.target.value),
+                    })
+                  }
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Always check measurements twice before cutting."
+                  value={tipForm.message || ""}
+                  onChange={(e) =>
+                    setTipForm({ ...tipForm, message: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleTipSubmit}
+                disabled={createTip.isPending || updateTip.isPending}
+                className="px-6 py-2.5 bg-[#2d4a8f] text-white rounded-lg hover:bg-[#3461c9] disabled:bg-gray-400 transition-colors shadow-sm"
+              >
+                {editingTip ? "Update Tip" : "Add Tip"}
+              </button>
+              {editingTip && (
+                <button
+                  onClick={() => {
+                    setEditingTip(null);
+                    setTipForm({});
                   }}
                   className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
