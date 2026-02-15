@@ -66,6 +66,8 @@ export interface Service {
   shortDescription?: string;
   fullDescription?: string;
   basePrice: number;
+  markup?: number;
+  clientPrice: number;
   imageFileId?: string;
   displayOrder: number;
   isActive: boolean;

@@ -31,6 +31,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
     name: '',
     description: '',
     basePrice: 0,
+    markup: 0,
+    clientPrice: 0,
     unitType: 'FIXED',
     questionType: 'WHITE',
     step: 1,
@@ -57,6 +59,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         name: data.name,
         description: data.description || '',
         basePrice: data.basePrice,
+        markup: data.markup || 0,
+        clientPrice: data.clientPrice || 0,
         unitType: data.unitType,
         questionType: data.questionType,
         step: data.step,
@@ -74,6 +78,8 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
         name: '',
         description: '',
         basePrice: 0,
+        markup: 0,
+        clientPrice: 0,
         unitType: 'FIXED',
         questionType: 'WHITE',
         step: 1,
@@ -235,13 +241,49 @@ const CostCodeModal = ({ isOpen, onClose, mode, data, categories }: CostCodeModa
               <input
                 type="number"
                 value={formData.basePrice}
-                onChange={(e) => setFormData({ ...formData, basePrice: parseFloat(e.target.value) })}
+                onChange={(e) => {
+                  const basePrice = parseFloat(e.target.value) || 0;
+                  const calculatedClientPrice = basePrice + (basePrice * (formData.markup || 0) / 100);
+                  setFormData({ ...formData, basePrice, clientPrice: calculatedClientPrice });
+                }}
                 className="w-full border rounded px-3 py-2"
                 min="0"
                 step="0.01"
                 required
                 placeholder="0.00"
                 title="Base price"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Markup (%)</label>
+              <input
+                type="number"
+                value={formData.markup}
+                onChange={(e) => {
+                  const markup = parseFloat(e.target.value) || 0;
+                  const calculatedClientPrice = formData.basePrice + (formData.basePrice * markup / 100);
+                  setFormData({ ...formData, markup, clientPrice: calculatedClientPrice });
+                }}
+                className="w-full border rounded px-3 py-2"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                title="Markup percentage"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Client Price</label>
+              <input
+                type="number"
+                value={formData.clientPrice}
+                onChange={(e) => setFormData({ ...formData, clientPrice: parseFloat(e.target.value) || 0 })}
+                className="w-full border rounded px-3 py-2"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                title="Client price (can be manually overridden)"
               />
             </div>
 

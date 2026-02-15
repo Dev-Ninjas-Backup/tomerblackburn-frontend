@@ -21,7 +21,16 @@ export default function ChooseServiceCategoryPage() {
       router.push("/estimator/choose-project-type");
       return;
     }
-  }, [projectTypeId, router]);
+
+    // Auto-skip if only one active category
+    if (serviceCategories && !isLoading) {
+      const activeCategories = serviceCategories.filter(cat => cat.isActive);
+      if (activeCategories.length === 1) {
+        setServiceCategoryId(activeCategories[0].id);
+        router.push("/estimator/choose-service");
+      }
+    }
+  }, [projectTypeId, router, serviceCategories, isLoading, setServiceCategoryId]);
 
   const handleSelect = (categoryId: string) => {
     setSelected(categoryId);
@@ -29,7 +38,11 @@ export default function ChooseServiceCategoryPage() {
 
   const handleContinue = () => {
     if (selected) {
+      console.log('=== Setting Service Category ===');
+      console.log('Selected category ID:', selected);
       setServiceCategoryId(selected);
+      console.log('Navigating to choose-service');
+      console.log('================================');
       router.push("/estimator/choose-service");
     }
   };
@@ -44,6 +57,67 @@ export default function ChooseServiceCategoryPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading service categories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const activeCategories = serviceCategories?.filter(cat => cat.isActive) || [];
+
+  if (activeCategories.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
+              Choose Service Category
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Select the specific category for your project
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center py-16"
+          >
+            <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md text-center">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  className="w-12 h-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                No Service Categories Available
+              </h3>
+              <p className="text-gray-600 mb-6">
+                There are currently no active service categories for this project type. Please go back and select a different project type.
+              </p>
+              <Button
+                onClick={handleBack}
+                className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-3 rounded-full"
+              >
+                ← Back to Project Types
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -66,8 +140,8 @@ export default function ChooseServiceCategoryPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 justify-items-center">
-          {serviceCategories?.map((category, index) => (
+        <div className="flex flex-wrap justify-center gap-8 mb-12">
+          {activeCategories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, y: 50 }}
@@ -76,7 +150,7 @@ export default function ChooseServiceCategoryPage() {
               onClick={() => handleSelect(category.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                bg-white rounded-2xl overflow-hidden cursor-pointer
+                w-full sm:w-80 bg-white rounded-2xl overflow-hidden cursor-pointer
                 ${
                   selected === category.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"

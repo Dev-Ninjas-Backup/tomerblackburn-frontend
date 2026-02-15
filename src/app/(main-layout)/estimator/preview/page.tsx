@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEstimatorStore } from "@/store/estimatorStore";
+import { useTips } from "@/hooks/useTips";
 import {
   Upload,
   X,
@@ -37,6 +38,8 @@ export default function PreviewPage() {
     step2Selections,
     setSubmissionData,
   } = useEstimatorStore();
+
+  const { data: tips } = useTips();
 
   const [fullName, setFullName] = useState(userInfo.fullName);
   const [email, setEmail] = useState(userInfo.email);
@@ -626,12 +629,22 @@ export default function PreviewPage() {
                 </div>
               )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  💡 Tip: Include photos of the entire bathroom, fixtures, any
-                  problem areas, and measurements if available.
-                </p>
-              </div>
+              {tips && tips.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-blue-900 mb-2">
+                    💡 Tips:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {tips
+                      .sort((a, b) => a.position - b.position)
+                      .map((tip) => (
+                        <li key={tip.id} className="text-sm text-blue-800">
+                          {tip.message}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
