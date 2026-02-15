@@ -204,14 +204,13 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   };
 
   const renderCostCode = (costCode: CostCode) => {
-    // Check if this nested question should be visible
-    if (!shouldShowNestedQuestion(costCode)) {
+    // Skip if this is a nested question (will be rendered by parent)
+    if (costCode.parentCostCodeId) {
       return null;
     }
 
     const selection = getSelection(costCode.id);
     const isEnabled = selection?.isEnabled || false;
-    const isNested = !!costCode.parentCostCodeId;
     const bgColor =
       QUESTION_TYPE_COLORS[
         costCode.questionType as keyof typeof QUESTION_TYPE_COLORS
@@ -221,10 +220,13 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         costCode.questionType as keyof typeof QUESTION_TYPE_TEXT_COLORS
       ] || "text-gray-600";
 
+    // Get child questions for this cost code
+    const childQuestions = costCodes.filter(cc => cc.parentCostCodeId === costCode.id);
+
     // WHITE - Included in base (non-interactive)
     if (costCode.questionType === "WHITE") {
       return (
-        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4 ${isNested ? 'ml-8 border-l-4 border-gray-300' : ''}`}>
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-1">{costCode.name}</h3>
           {formatDescription(costCode.description)}
           {costCode.isIncludedInBase && (
@@ -239,7 +241,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     // BLUE - Yes/No Toggle
     if (costCode.questionType === "BLUE") {
       return (
-        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4 ${isNested ? 'ml-8 border-l-4 border-blue-300' : ''}`}>
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 mb-1">
@@ -264,6 +266,12 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               />
             </button>
           </div>
+          {/* Render child questions if toggle is enabled */}
+          {isEnabled && childQuestions.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {childQuestions.map(childCostCode => renderNestedQuestion(childCostCode))}
+            </div>
+          )}
         </div>
       );
     }
@@ -271,7 +279,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     // GREEN - Data Input (numbers only)
     if (costCode.questionType === "GREEN") {
       return (
-        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4 ${isNested ? 'ml-8 border-l-4 border-green-300' : ''}`}>
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-2">{costCode.name}</h3>
           {formatDescription(costCode.description)}
           <div className="flex items-center gap-4">
@@ -283,7 +291,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 const value = e.target.value;
                 const numValue = Number(value);
 
-                // If empty or 0 or negative, remove selection
                 if (!value || numValue <= 0) {
                   if (selection) {
                     onSelectionRemove(costCode.id);
@@ -291,7 +298,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                   return;
                 }
 
-                // Only allow positive integers
                 if (numValue > 0) {
                   if (!selection) {
                     onSelectionChange(costCode.id, {
@@ -323,7 +329,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     // ORANGE - Dropdown list
     if (costCode.questionType === "ORANGE" && costCode.options) {
       return (
-        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4 ${isNested ? 'ml-8 border-l-4 border-orange-300' : ''}`}>
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-2">{costCode.name}</h3>
           {formatDescription(costCode.description)}
           <select
@@ -349,6 +355,12 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 </option>
               ))}
           </select>
+          {/* Render child questions if option is selected */}
+          {selection?.selectedOptionId && childQuestions.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {childQuestions.map(childCostCode => renderNestedQuestion(childCostCode))}
+            </div>
+          )}
         </div>
       );
     }
@@ -363,7 +375,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     // PURPLE - Uses data from previous questions (calculated)
     if (costCode.questionType === "PURPLE") {
       return (
-        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4 ${isNested ? 'ml-8 border-l-4 border-purple-300' : ''}`}>
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-4 mb-4`}>
           <h3 className="font-semibold text-gray-900 mb-1">{costCode.name}</h3>
           {formatDescription(costCode.description)}
           <p className={`text-xs ${textColor} mt-2`}>
@@ -376,6 +388,110 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     // RED - Hidden/Inactive (should not be rendered)
     if (costCode.questionType === "RED") {
       return null;
+    }
+
+    return null;
+  };
+
+  // Render nested question (child)
+  const renderNestedQuestion = (costCode: CostCode) => {
+    if (!shouldShowNestedQuestion(costCode)) {
+      return null;
+    }
+
+    const selection = getSelection(costCode.id);
+    const bgColor = QUESTION_TYPE_COLORS[costCode.questionType as keyof typeof QUESTION_TYPE_COLORS] || "bg-gray-50";
+
+    // GREEN nested - Data Input
+    if (costCode.questionType === "GREEN") {
+      return (
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-3`}>
+          <h4 className="font-medium text-gray-900 mb-2 text-sm">{costCode.name}</h4>
+          {costCode.description && (
+            <p className="text-xs text-gray-600 mb-2">{costCode.description}</p>
+          )}
+          <div className="flex items-center gap-3">
+            <Input
+              type="number"
+              min="1"
+              value={selection?.userInputValue || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                const numValue = Number(value);
+
+                if (!value || numValue <= 0) {
+                  if (selection) {
+                    onSelectionRemove(costCode.id);
+                  }
+                  return;
+                }
+
+                if (numValue > 0) {
+                  if (!selection) {
+                    onSelectionChange(costCode.id, {
+                      costCodeName: costCode.name,
+                      unitPrice: costCode.clientPrice,
+                      isEnabled: true,
+                      userInputValue: value,
+                      quantity: numValue,
+                    });
+                  } else {
+                    onSelectionChange(costCode.id, {
+                      userInputValue: value,
+                      quantity: numValue,
+                    });
+                  }
+                }
+              }}
+              placeholder="Enter amount"
+              className="w-28"
+            />
+            <span className="text-xs text-gray-600">
+              {costCode.unitType.replace("PER_", "per ").toLowerCase()}
+            </span>
+            {selection?.userInputValue && (
+              <span className="text-xs font-medium text-green-600">
+                ${(costCode.clientPrice * Number(selection.userInputValue)).toLocaleString()} per each
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ORANGE nested - Dropdown
+    if (costCode.questionType === "ORANGE" && costCode.options) {
+      return (
+        <div key={costCode.id} className={`${bgColor} rounded-lg p-3`}>
+          <h4 className="font-medium text-gray-900 mb-2 text-sm">{costCode.name}</h4>
+          {costCode.description && (
+            <p className="text-xs text-gray-600 mb-2">{costCode.description}</p>
+          )}
+          <select
+            value={selection?.selectedOptionId || ""}
+            onChange={(e) => {
+              if (e.target.value) {
+                handleOptionChange(costCode, e.target.value);
+              } else {
+                onSelectionRemove(costCode.id);
+              }
+            }}
+            className="w-full rounded-lg border-gray-300 p-2 border text-sm"
+            aria-label={`Select ${costCode.name}`}
+          >
+            <option value="">Select option</option>
+            {costCode.options
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.optionName.replace(/_/g, " ")}
+                  {Number(option.priceModifier) > 0 &&
+                    ` (+$${Number(option.priceModifier).toLocaleString()})`}
+                </option>
+              ))}
+          </select>
+        </div>
+      );
     }
 
     return null;
