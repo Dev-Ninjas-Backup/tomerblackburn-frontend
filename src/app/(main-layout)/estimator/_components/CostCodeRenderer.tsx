@@ -6,7 +6,7 @@ interface CostCode {
   code: string;
   name: string;
   description?: string;
-  basePrice: number;
+  clientPrice: number;
   unitType: string;
   questionType: string;
   step: number;
@@ -90,7 +90,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         autoAddedRef.current.add(costCode.id);
         onSelectionChange(costCode.id, {
           costCodeName: costCode.name,
-          unitPrice: costCode.basePrice,
+          unitPrice: costCode.clientPrice,
           isEnabled: true,
           quantity: 1,
         });
@@ -119,7 +119,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (enabled) {
       onSelectionChange(costCode.id, {
         costCodeName: costCode.name,
-        unitPrice: costCode.basePrice,
+        unitPrice: costCode.clientPrice,
         isEnabled: true,
         quantity: costCode.requiresQuantity ? 1 : undefined,
       });
@@ -266,7 +266,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                   if (!selection) {
                     onSelectionChange(costCode.id, {
                       costCodeName: costCode.name,
-                      unitPrice: costCode.basePrice,
+                      unitPrice: costCode.clientPrice,
                       isEnabled: true,
                       userInputValue: value,
                       quantity: numValue,
