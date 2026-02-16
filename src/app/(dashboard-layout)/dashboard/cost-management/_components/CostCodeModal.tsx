@@ -7,6 +7,10 @@ import {
   useCreateCostCode,
   useUpdateCostCode,
   useCostCodes,
+  useBulkCreateCostCodeOptions,
+  useCreateCostCodeOption,
+  useUpdateCostCodeOption,
+  useDeleteCostCodeOption,
 } from "@/hooks/useCostManagement";
 import {
   useProjectTypes,
@@ -38,6 +42,10 @@ const CostCodeModal = ({
 }: CostCodeModalProps) => {
   const createMutation = useCreateCostCode();
   const updateMutation = useUpdateCostCode();
+  const bulkCreateOptions = useBulkCreateCostCodeOptions();
+  const createOption = useCreateCostCodeOption();
+  const updateOption = useUpdateCostCodeOption();
+  const deleteOption = useDeleteCostCodeOption();
   const { data: projectTypes } = useProjectTypes(true);
   const { data: allServiceCategories } = useServiceCategories(true);
   const [selectedProjectType, setSelectedProjectType] = useState<string>("");
@@ -50,6 +58,20 @@ const CostCodeModal = ({
     serviceId: selectedServiceId,
     isActive: true,
   });
+
+  // Options state for ORANGE question type
+  const [options, setOptions] = useState<
+    Array<{
+      id?: string;
+      optionName: string;
+      priceModifier: number;
+      displayOrder: number;
+      isDefault: boolean;
+    }>
+  >([]);
+
+  // Track deleted option IDs for update mode
+  const [deletedOptionIds, setDeletedOptionIds] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<CreateCostCodeDto>({
     categoryId: "",
@@ -110,6 +132,19 @@ const CostCodeModal = ({
         nestedInputType: data.nestedInputType || "NONE",
       });
       setSelectedServiceId(data.serviceId || "");
+
+      // Load existing options if ORANGE type
+      if (data.questionType === "ORANGE" && data.options) {
+        setOptions(
+          data.options.map((opt: any) => ({
+            id: opt.id,
+            optionName: opt.optionName,
+            priceModifier: Number(opt.priceModifier),
+            displayOrder: opt.displayOrder,
+            isDefault: opt.isDefault,
+          })),
+        );
+      }
     } else if (mode === "create") {
       setFormData({
         categoryId: "",
@@ -135,6 +170,8 @@ const CostCodeModal = ({
       setSelectedProjectType("");
       setSelectedCategory("");
       setSelectedServiceId("");
+      setOptions([]);
+      setDeletedOptionIds([]);
     }
   }, [mode, data, allServiceCategories]);
 
@@ -144,16 +181,77 @@ const CostCodeModal = ({
       alert("Please select a service");
       return;
     }
+
+    // Validate ORANGE type has options
+    if (formData.questionType === "ORANGE" && options.length === 0) {
+      alert("Please add at least one option for dropdown question");
+      return;
+    }
+
     const submitData = { ...formData };
     if (!submitData.serviceId) delete submitData.serviceId;
     if (!submitData.parentCostCodeId) delete submitData.parentCostCodeId;
     if (!submitData.showWhenParentValue) delete submitData.showWhenParentValue;
-    if (mode === "create") {
-      await createMutation.mutateAsync(submitData);
-    } else {
-      await updateMutation.mutateAsync({ id: data.id, data: submitData });
+
+    try {
+      if (mode === "create") {
+        // Step 1: Create cost code first
+        const result = await createMutation.mutateAsync(submitData);
+        const newCostCodeId = result.data.data.id;
+
+        // Step 2: Create options with the new cost code ID
+        if (formData.questionType === "ORANGE" && options.length > 0) {
+          await bulkCreateOptions.mutateAsync({
+            costCodeId: newCostCodeId,
+            options: options.map((opt) => ({
+              optionName: opt.optionName,
+              priceModifier: opt.priceModifier,
+              displayOrder: opt.displayOrder,
+              isDefault: opt.isDefault,
+            })),
+          });
+        }
+      } else {
+        // Step 1: Update cost code
+        await updateMutation.mutateAsync({ id: data.id, data: submitData });
+
+        // Step 2: Handle options for ORANGE type
+        if (formData.questionType === "ORANGE") {
+          // Delete removed options
+          for (const optionId of deletedOptionIds) {
+            await deleteOption.mutateAsync(optionId);
+          }
+
+          // Update or create options
+          for (const option of options) {
+            if (option.id) {
+              // Update existing option
+              await updateOption.mutateAsync({
+                id: option.id,
+                data: {
+                  optionName: option.optionName,
+                  priceModifier: option.priceModifier,
+                  displayOrder: option.displayOrder,
+                  isDefault: option.isDefault,
+                },
+              });
+            } else {
+              // Create new option
+              await createOption.mutateAsync({
+                costCodeId: data.id,
+                optionName: option.optionName,
+                priceModifier: option.priceModifier,
+                displayOrder: option.displayOrder,
+                isDefault: option.isDefault,
+              });
+            }
+          }
+        }
+      }
+      onClose();
+    } catch (error) {
+      console.error("Failed to save cost code:", error);
     }
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -415,18 +513,23 @@ const CostCodeModal = ({
               </select>
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label className="block text-sm font-medium mb-1">
                 Question Type
               </label>
               <select
                 value={formData.questionType}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newType = e.target.value as QuestionType;
                   setFormData({
                     ...formData,
-                    questionType: e.target.value as QuestionType,
-                  })
-                }
+                    questionType: newType,
+                  });
+                  // Clear options if switching away from ORANGE
+                  if (newType !== "ORANGE") {
+                    setOptions([]);
+                  }
+                }}
                 className="w-full border rounded px-3 py-2"
                 title="Select question type"
                 aria-label="Select question type"
@@ -448,6 +551,119 @@ const CostCodeModal = ({
                 <option value="RED">RED - Inactive/Hidden (placeholder)</option>
               </select>
             </div>
+
+            {/* Options Management for ORANGE type */}
+            {formData.questionType === "ORANGE" && (
+              <div className="col-span-2 border-t pt-4 mt-2">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    📋 Dropdown Options
+                  </h3>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setOptions([
+                        ...options,
+                        {
+                          optionName: "",
+                          priceModifier: 0,
+                          displayOrder: options.length,
+                          isDefault: options.length === 0,
+                        },
+                      ]);
+                    }}
+                    className="bg-[#2D4A8F] hover:bg-[#4064b8] text-white px-3 py-1 text-sm"
+                  >
+                    + Add Option
+                  </Button>
+                </div>
+
+                {options.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded">
+                    No options added. Click "Add Option" to create dropdown
+                    choices.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {options.map((option, index) => (
+                      <div
+                        key={index}
+                        className="flex gap-2 items-start bg-gray-50 p-3 rounded"
+                      >
+                        <div className="flex-1 grid grid-cols-3 gap-2">
+                          <input
+                            type="text"
+                            value={option.optionName}
+                            onChange={(e) => {
+                              const newOptions = [...options];
+                              newOptions[index].optionName = e.target.value;
+                              setOptions(newOptions);
+                            }}
+                            placeholder="Option name"
+                            className="border rounded px-2 py-1 text-sm"
+                            required
+                          />
+                          <input
+                            type="number"
+                            value={option.priceModifier}
+                            onChange={(e) => {
+                              const newOptions = [...options];
+                              newOptions[index].priceModifier =
+                                parseFloat(e.target.value) || 0;
+                              setOptions(newOptions);
+                            }}
+                            placeholder="Price"
+                            className="border rounded px-2 py-1 text-sm"
+                            step="0.01"
+                            min="0"
+                          />
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center text-xs">
+                              <input
+                                type="checkbox"
+                                checked={option.isDefault}
+                                onChange={(e) => {
+                                  const newOptions = options.map((opt, i) => ({
+                                    ...opt,
+                                    isDefault:
+                                      i === index ? e.target.checked : false,
+                                  }));
+                                  setOptions(newOptions);
+                                }}
+                                className="mr-1"
+                              />
+                              Default
+                            </label>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const removedOption = options[index];
+                            // Track deleted option ID if it exists
+                            if (removedOption.id) {
+                              setDeletedOptionIds([
+                                ...deletedOptionIds,
+                                removedOption.id,
+                              ]);
+                            }
+                            setOptions(options.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-600 hover:text-red-800 p-1"
+                          title="Remove option"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Add dropdown options that users can select from. Set price
+                  for each option.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1">
