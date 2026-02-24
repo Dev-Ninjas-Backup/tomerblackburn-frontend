@@ -76,6 +76,30 @@ const CostCodesTab = () => {
     }
   };
 
+  // Build tree: parents first, then their children nested under them
+  const buildTree = () => {
+    if (!costCodes) return [];
+    const parents = costCodes.filter((c) => !c.parentCostCodeId);
+    const result: { item: any; isChild: boolean }[] = [];
+    parents.forEach((parent) => {
+      result.push({ item: parent, isChild: false });
+      costCodes
+        .filter((c) => c.parentCostCodeId === parent.id)
+        .forEach((child) => result.push({ item: child, isChild: true }));
+    });
+    // Also add any children whose parent isn't in current list
+    costCodes
+      .filter(
+        (c) =>
+          c.parentCostCodeId &&
+          !costCodes.find((p) => p.id === c.parentCostCodeId),
+      )
+      .forEach((c) => result.push({ item: c, isChild: true }));
+    return result;
+  };
+
+  const treeRows = buildTree();
+
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -276,6 +300,9 @@ const CostCodesTab = () => {
                 Step
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Type
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Status
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
@@ -284,12 +311,17 @@ const CostCodesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {costCodes?.map((item) => (
-              <tr key={item.id}>
+            {treeRows.map(({ item, isChild }) => (
+              <tr key={item.id} className={isChild ? "bg-gray-50" : ""}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {item.code}
+                  <span className={isChild ? "pl-6" : ""}>{item.code}</span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">{item.name}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {isChild && (
+                    <span className="text-gray-400 mr-1">↳</span>
+                  )}
+                  {item.name}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {item.service?.name || "-"}
                 </td>
@@ -298,7 +330,7 @@ const CostCodesTab = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`px-2 py-1 text-xs rounded-full ${QUESTION_TYPE_COLORS[item.questionType]}`}
+                    className={`px-2 py-1 text-xs rounded-full ${QUESTION_TYPE_COLORS[item.questionType as QuestionType]}`}
                   >
                     {item.questionType}
                   </span>
@@ -308,6 +340,17 @@ const CostCodesTab = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   Step {item.step}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      isChild
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {isChild ? "Child" : "Parent"}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
