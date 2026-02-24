@@ -1,48 +1,48 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { FloatingPriceCard } from '../_components/FloatingPriceCard'
-import { useEstimatorStore } from '@/store/estimatorStore'
-import { useCostCodes } from '@/hooks/useCostManagement'
-import { CostCodeRenderer } from '../_components/CostCodeRenderer'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FloatingPriceCard } from "../_components/FloatingPriceCard";
+import { useEstimatorStore } from "@/store/estimatorStore";
+import { useCostCodes } from "@/hooks/useCostManagement";
+import { CostCodeRenderer } from "../_components/CostCodeRenderer";
 
 export default function Step1Page() {
-  const router = useRouter()
-  const { 
-    serviceId, 
+  const router = useRouter();
+  const {
+    serviceId,
     step1Selections,
     addCostCodeSelection,
     updateCostCodeSelection,
-    removeCostCodeSelection
-  } = useEstimatorStore()
-  
+    removeCostCodeSelection,
+  } = useEstimatorStore();
+
   // Fetch cost codes for step 1
   const { data: costCodes, isLoading } = useCostCodes({
     serviceId: serviceId || undefined,
     includeOptions: true,
-    includeCategory: true
-  })
+    includeCategory: true,
+  });
 
   // Filter cost codes for step 1
-  const step1CostCodes = costCodes?.filter(code => code.step === 1) || []
+  const step1CostCodes = costCodes?.filter((code) => code.step === 1) || [];
 
   useEffect(() => {
     if (!serviceId) {
-      router.push('/estimator/choose-service')
+      router.push("/estimator/choose-service");
     }
-  }, [serviceId, router])
+  }, [serviceId, router]);
 
   const handleNext = () => {
-    router.push('/estimator/step-2')
-  }
+    router.push("/estimator/step-2");
+  };
 
   const handleCancel = () => {
-    router.push('/estimator/choose-service')
-  }
+    router.push("/estimator/choose-service");
+  };
 
   if (isLoading) {
     return (
@@ -52,21 +52,26 @@ export default function Step1Page() {
           <p className="text-gray-600">Loading cost codes...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <FloatingPriceCard />
-      
-      <div className="container mx-auto px-4 max-w-4xl">
+
+      <div className=" px-4 max-w-4xl container mx-auto">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#283878]">Step 1: Rough</span>
+            <span className="text-sm font-medium text-[#283878]">
+              Step 1: Rough
+            </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#283878] h-2 rounded-full" style={{ width: '50%' }}></div>
+            <div
+              className="bg-[#283878] h-2 rounded-full"
+              style={{ width: "50%" }}
+            ></div>
           </div>
         </div>
 
@@ -81,20 +86,28 @@ export default function Step1Page() {
               costCodes={step1CostCodes as any}
               selections={step1Selections}
               onSelectionChange={(costCodeId, selection) => {
-                const existing = step1Selections.find(s => s.costCodeId === costCodeId)
+                const existing = step1Selections.find(
+                  (s) => s.costCodeId === costCodeId,
+                );
                 if (existing) {
-                  updateCostCodeSelection(1, costCodeId, selection)
+                  updateCostCodeSelection(1, costCodeId, selection);
                 } else {
-                  addCostCodeSelection(1, { costCodeId, unitPrice: selection.unitPrice || 0, ...selection })
+                  addCostCodeSelection(1, {
+                    costCodeId,
+                    unitPrice: selection.unitPrice || 0,
+                    ...selection,
+                  });
                 }
               }}
               onSelectionRemove={(costCodeId) => {
-                removeCostCodeSelection(1, costCodeId)
+                removeCostCodeSelection(1, costCodeId);
               }}
             />
           ) : (
             <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
-              <p className="text-gray-500">No cost codes available for this step.</p>
+              <p className="text-gray-500">
+                No cost codes available for this step.
+              </p>
             </div>
           )}
 
@@ -117,5 +130,5 @@ export default function Step1Page() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
