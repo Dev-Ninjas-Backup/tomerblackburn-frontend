@@ -252,7 +252,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             <button
               type="button"
               onClick={() => handleToggle(costCode, !isEnabled)}
-              className={`shrink-0 relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+              className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#283878] focus:ring-offset-2 ${
                 isEnabled ? "bg-[#283878]" : "bg-gray-300"
               }`}
               role="switch"
@@ -260,7 +260,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               aria-label={`Toggle ${costCode.name}`}
             >
               <span
-                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${isEnabled ? "translate-x-4.5" : "translate-x-0.5"}`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${isEnabled ? "translate-x-5" : "translate-x-0.5"}`}
               />
             </button>
           </div>
@@ -286,7 +286,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 handleQuantityInput(costCode, e.target.value, selection)
               }
               placeholder="Enter amount"
-              className=" w-40 p-5 h-8 text-sm"
+              className="w-full sm:w-40 p-5 h-10 text-sm"
             />
             <span className="text-xs text-gray-500">
               {costCode.unitType.replace("PER_", "per ").toLowerCase()}
@@ -311,7 +311,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               if (e.target.value) handleOptionChange(costCode, e.target.value);
               else onSelectionRemove(costCode.id);
             }}
-            className="w-full rounded border-gray-300 p-1.5 border text-sm mt-1"
+            className="w-full rounded border-gray-300 p-2.5 border text-sm mt-1 min-h-[44px]"
             aria-label={`Select ${costCode.name}`}
           >
             <option value="">Select option</option>

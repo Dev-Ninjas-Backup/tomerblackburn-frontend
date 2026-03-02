@@ -18,7 +18,7 @@ const HeroSection = ({ data }: HeroSectionProps) => {
     "Professional estimates in minutes, not days. Transparent pricing, no hidden fees.";
 
   return (
-    <section className="relative h-[calc(100vh-120px)] bg-gray-100 flex items-center justify-center overflow-hidden">
+    <section className="relative h-[calc(100vh-120px)] bg-gray-100 flex flex-col items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -70,6 +70,50 @@ const HeroSection = ({ data }: HeroSectionProps) => {
           </motion.div>
         </div>
       </div>
+
+      {/* How it Works Button - Below Hero Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="relative z-10 mt-8 flex flex-col items-center gap-2"
+      >
+        <div className="relative">
+          <Button
+            onClick={() => {
+              const element = document.getElementById("how-it-works");
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            size="lg"
+            className="bg-[#283878] hover:bg-[#1f2d5f] text-white px-12 py-6 text-base font-semibold rounded-full hover:shadow-xl transition-all border border-white shadow-[0_0_0_3px_#283878,0_0_0_6px_white]"
+          >
+            How it Works
+          </Button>
+        </div>
+        <motion.svg
+          className="w-6 h-6 text-[#283878]"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          animate={{
+            y: [0, 8, 0],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M19 9l-7 7-7-7"
+          />
+        </motion.svg>
+      </motion.div>
     </section>
   );
 };
