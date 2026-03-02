@@ -100,7 +100,7 @@ export const FloatingPriceCard = () => {
         {/* Toggle Button */}
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className={`fixed bottom-60 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
+          className={`fixed bottom-6 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
             isMobileOpen ? "right-80" : "right-0"
           }`}
           aria-label="Toggle price summary"
