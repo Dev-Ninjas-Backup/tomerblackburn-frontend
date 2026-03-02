@@ -42,23 +42,19 @@ const Header = () => {
 
   return (
     <>
-      {/* Top Bar */}
-      <div className="bg-[#283878] text-white py-2.5 px-4 text-sm ">
-        <div className="container mx-auto flex justify-center items-center gap-8">
-          <span>Contact us for a FREE Quote</span>
-          {settings?.contactNumber && (
-            <a
-              href={`tel:${settings.contactNumber.replace(/\D/g, "")}`}
-              className="hover:underline flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-              </svg>
-              {settings.contactNumber}
-            </a>
-          )}
+      {/* CTA Banner */}
+      <Link href="/estimator">
+        <div className="bg-[#283878] text-white py-3 px-4 text-sm hover:bg-[#1f2d5f] transition-colors cursor-pointer">
+          <div className="container mx-auto flex justify-center items-center gap-2">
+            <span className="font-medium">
+              {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
+            </span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
         </div>
-      </div>
+      </Link>
 
       {/* Main Header */}
       <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 py-4">

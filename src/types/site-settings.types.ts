@@ -15,6 +15,8 @@ export interface SiteSettings {
   facebookUrl?: string;
   instagramUrl?: string;
   twitterUrl?: string;
+  ctaBannerText?: string;
+  ctaBannerEnabled?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +31,8 @@ export interface CreateSiteSettingsDto {
   facebookUrl?: string;
   instagramUrl?: string;
   twitterUrl?: string;
+  ctaBannerText?: string;
+  ctaBannerEnabled?: boolean;
 }
 
 export interface UpdateSiteSettingsDto extends Partial<CreateSiteSettingsDto> {}

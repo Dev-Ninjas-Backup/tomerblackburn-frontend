@@ -17,7 +17,7 @@ const HowItWorksSection = ({ title, steps }: HowItWorksSectionProps) => {
   const sectionTitle = title || "How It Works";
 
   return (
-    <section ref={ref} className="py-20 bg-white">
+    <section id="how-it-works" ref={ref} className="py-20 bg-white scroll-mt-20">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 50 }}

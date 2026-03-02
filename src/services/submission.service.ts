@@ -62,7 +62,7 @@ export const submissionService = {
   },
 
   // Next Steps CRUD
-  getAllNextSteps: async (includeInactive: boolean = false) => {
+  getAllNextSteps: async (includeInactive: boolean = true) => {
     return axios.get<ApiResponse<Array<{
       id: string;
       stepNumber: number;

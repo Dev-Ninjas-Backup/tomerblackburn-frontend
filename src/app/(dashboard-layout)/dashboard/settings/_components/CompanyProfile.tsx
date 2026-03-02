@@ -17,6 +17,8 @@ interface CompanyProfileProps {
     siteDescription: string;
     location: string;
     logoImageId?: string;
+    ctaBannerText?: string;
+    ctaBannerEnabled?: boolean;
   }) => void;
   isLoading?: boolean;
 }
@@ -36,6 +38,8 @@ export const CompanyProfile = ({
     siteDescription: "",
     location: "",
     logoImageId: "",
+    ctaBannerText: "",
+    ctaBannerEnabled: true,
   });
 
   useEffect(() => {
@@ -47,6 +51,8 @@ export const CompanyProfile = ({
         siteDescription: settings.siteDescription || "",
         location: settings.location || "",
         logoImageId: settings.logoImageId || "",
+        ctaBannerText: settings.ctaBannerText || "Get Your Free Live Estimate Now!",
+        ctaBannerEnabled: settings.ctaBannerEnabled ?? true,
       });
       setLogoPreview(settings.logoImage?.url || "");
     }
@@ -225,6 +231,24 @@ export const CompanyProfile = ({
             className={!isEditing ? "bg-gray-50" : ""}
             placeholder="Chicago, IL"
           />
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            CTA Banner Text
+          </label>
+          <Input
+            value={formData.ctaBannerText}
+            onChange={(e) =>
+              setFormData({ ...formData, ctaBannerText: e.target.value })
+            }
+            disabled={!isEditing}
+            className={!isEditing ? "bg-gray-50" : ""}
+            placeholder="Get Your Free Live Estimate Now!"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            This text appears in the top banner and links to the estimator page
+          </p>
         </div>
       </div>
     </div>

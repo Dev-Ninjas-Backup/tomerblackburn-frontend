@@ -120,7 +120,7 @@ export default function ChooseProjectTypePage() {
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {activeProjectTypes.map((type, index) => (
             <motion.div
               key={type.id}
@@ -130,7 +130,7 @@ export default function ChooseProjectTypePage() {
               onClick={() => handleSelect(type.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
               className={`
-                w-full sm:w-80 bg-white rounded-2xl overflow-hidden cursor-pointer
+                w-full bg-white rounded-2xl overflow-hidden cursor-pointer transition-all
                 ${
                   selected === type.id
                     ? "ring-4 ring-[#283878] shadow-xl scale-105"
@@ -191,7 +191,7 @@ export default function ChooseProjectTypePage() {
           <Button
             onClick={handleContinue}
             disabled={!selected}
-            className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue to Services →
           </Button>
