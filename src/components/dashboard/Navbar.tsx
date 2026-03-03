@@ -5,9 +5,11 @@ import { Bell, User, LogOut, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { useNotifications, useMarkNotificationAsRead } from '@/hooks/useNotifications'
+import { useSiteSettings } from '@/hooks/useSiteSettings'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
+import { formatRole } from '@/utils/formatRole'
 
 interface NavbarProps {
   title: string
@@ -17,11 +19,17 @@ export const Navbar = ({ title }: NavbarProps) => {
   const router = useRouter();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const { user, logout } = useAuthStore();
+  const { user, logout, fetchCurrentUser } = useAuthStore();
   const { data: notifications = [], refetch } = useNotifications(20);
+  const { data: settings } = useSiteSettings();
   const markAsRead = useMarkNotificationAsRead();
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Fetch fresh user data on mount
+  React.useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   const handleNotificationClick = async (notification: any) => {
     if (!notification.isRead) {
@@ -50,7 +58,24 @@ export const Navbar = ({ title }: NavbarProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <>
+      {/* CTA Banner */}
+      {settings?.ctaBannerEnabled && (
+        <Link href="/estimator">
+          <div className="bg-[#283878] text-white py-2 px-4 text-xs hover:bg-[#1f2d5f] transition-colors cursor-pointer">
+            <div className="flex justify-center items-center gap-2">
+              <span className="font-medium">
+                {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
+              </span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </Link>
+      )}
+
+      <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
       
       <div className="flex items-center gap-4">
@@ -145,7 +170,7 @@ export const Navbar = ({ title }: NavbarProps) => {
             </div>
             <div className="text-left hidden lg:block">
               <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase() || "user"}</p>
+              <p className="text-xs text-gray-500">{formatRole(user?.role)}</p>
             </div>
           </button>
 
@@ -169,8 +194,8 @@ export const Navbar = ({ title }: NavbarProps) => {
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
-                    <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded capitalize">
-                      {user?.role?.toLowerCase()}
+                    <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                      {formatRole(user?.role)}
                     </span>
                   </div>
 
@@ -200,5 +225,6 @@ export const Navbar = ({ title }: NavbarProps) => {
         </div>
       </div>
     </header>
+    </>
   )
 }
