@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Menu,
@@ -16,14 +16,22 @@ import {
 import Image from "next/image";
 import { useAuthStore } from "@/store/authStore";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { formatRole } from "@/utils/formatRole";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, fetchCurrentUser } = useAuthStore();
   const { data: settings } = useSiteSettings();
+
+  // Fetch fresh user data on mount
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchCurrentUser();
+    }
+  }, [isAuthenticated, fetchCurrentUser]);
 
   const handleLogout = () => {
     logout();
@@ -43,18 +51,20 @@ const Header = () => {
   return (
     <>
       {/* CTA Banner */}
-      <Link href="/estimator">
-        <div className="bg-[#283878] text-white py-3 px-4 text-sm hover:bg-[#1f2d5f] transition-colors cursor-pointer">
-          <div className="container mx-auto flex justify-center items-center gap-2">
-            <span className="font-medium">
-              {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
-            </span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+      {settings?.ctaBannerEnabled && (
+        <Link href="/estimator">
+          <div className="bg-[#283878] text-white py-3 px-4 text-sm hover:bg-[#1f2d5f] transition-colors cursor-pointer">
+            <div className="container mx-auto flex justify-center items-center gap-2">
+              <span className="font-medium">
+                {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
+              </span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      )}
 
       {/* Main Header */}
       <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 py-4">
@@ -121,8 +131,8 @@ const Header = () => {
                       <p className="text-sm font-medium text-gray-900">
                         {user?.name}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">
-                        {user?.role?.toLowerCase()}
+                      <p className="text-xs text-gray-500">
+                        {formatRole(user?.role)}
                       </p>
                     </div>
                   </button>
@@ -220,7 +230,7 @@ const Header = () => {
                             {user?.name}
                           </p>
                           <p className="text-xs text-gray-500 capitalize">
-                            {user?.role?.toLowerCase()}
+                            {formatRole(user?.role)}
                           </p>
                         </div>
                       </div>
