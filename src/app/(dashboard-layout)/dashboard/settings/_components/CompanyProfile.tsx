@@ -249,6 +249,23 @@ export const CompanyProfile = ({
           <p className="text-xs text-gray-500 mt-1">
             This text appears in the top banner and links to the estimator page
           </p>
+          
+          {/* CTA Banner Enable/Disable */}
+          <div className="flex items-center gap-2 mt-3">
+            <input
+              type="checkbox"
+              id="ctaBannerEnabled"
+              checked={formData.ctaBannerEnabled}
+              onChange={(e) =>
+                setFormData({ ...formData, ctaBannerEnabled: e.target.checked })
+              }
+              disabled={!isEditing}
+              className="w-4 h-4 text-[#2d4a8f] border-gray-300 rounded focus:ring-[#2d4a8f] disabled:opacity-50"
+            />
+            <label htmlFor="ctaBannerEnabled" className="text-sm text-gray-700">
+              Enable CTA Banner
+            </label>
+          </div>
         </div>
       </div>
     </div>

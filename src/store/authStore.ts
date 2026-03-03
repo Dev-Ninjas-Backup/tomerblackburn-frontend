@@ -15,6 +15,8 @@ interface AuthState {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => void;
+  fetchCurrentUser: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
   clearError: () => void;
 }
 
@@ -172,6 +174,30 @@ export const useAuthStore = create<AuthState>((set) => ({
         token: null,
         isAuthenticated: false,
       });
+    }
+  },
+
+  fetchCurrentUser: async () => {
+    try {
+      const currentUser = authStorage.getUser();
+      if (!currentUser?.id) return;
+
+      const response = await api.get(`/users/${currentUser.id}`);
+      const updatedUser = response.data.data;
+      
+      authStorage.setUser(updatedUser);
+      set({ user: updatedUser });
+    } catch (error) {
+      console.error('Failed to fetch current user:', error);
+    }
+  },
+
+  updateUser: (userData: Partial<User>) => {
+    const currentUser = authStorage.getUser();
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...userData };
+      authStorage.setUser(updatedUser);
+      set({ user: updatedUser });
     }
   },
 
