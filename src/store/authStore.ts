@@ -9,7 +9,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -74,7 +74,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: null,
       });
 
-      const { message, description } = toastMessages.auth.loginSuccess(user.name);
+      const { message, description } = toastMessages.auth.loginSuccess(
+        user.name,
+      );
       showToast.success(message, description);
     } catch (error: any) {
       const errorMessage =
@@ -86,9 +88,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         error: errorMessage,
       });
-      
+
       showToast.error(toastMessages.auth.loginError, errorMessage);
-      
+
       throw error;
     }
   },
@@ -114,7 +116,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: null,
       });
 
-      const { message, description } = toastMessages.auth.registerSuccess(user.name);
+      const { message, description } = toastMessages.auth.registerSuccess(
+        user.name,
+      );
       showToast.success(message, description);
     } catch (error: any) {
       const errorMessage =
@@ -127,9 +131,9 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         error: errorMessage,
       });
-      
+
       showToast.error(toastMessages.auth.registerError, errorMessage);
-      
+
       throw error;
     }
   },
@@ -142,10 +146,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: false,
       error: null,
     });
-    
+
     const { message, description } = toastMessages.auth.logoutSuccess;
     showToast.info(message, description);
-    
+
     if (typeof window !== "undefined") {
       window.location.href = "/login";
     }
@@ -168,7 +172,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         const { message, description } = toastMessages.auth.sessionExpired;
         showToast.warning(message, description);
       }
-      
+
       set({
         user: null,
         token: null,
@@ -184,11 +188,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const response = await api.get(`/users/${currentUser.id}`);
       const updatedUser = response.data.data;
-      
+
       authStorage.setUser(updatedUser);
       set({ user: updatedUser });
     } catch (error) {
-      console.error('Failed to fetch current user:', error);
+      console.error("Failed to fetch current user:", error);
     }
   },
 

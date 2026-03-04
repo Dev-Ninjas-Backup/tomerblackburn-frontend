@@ -9,12 +9,10 @@ import { useServiceCategoriesByProjectType } from "@/hooks/useProjectManagement"
 
 export default function ChooseServiceCategoryPage() {
   const router = useRouter();
-  const { projectTypeId, serviceCategoryId, setServiceCategoryId } =
-    useEstimatorStore();
+  const { projectTypeId, setServiceCategoryId } = useEstimatorStore();
 
   const { data: serviceCategories, isLoading } =
     useServiceCategoriesByProjectType(projectTypeId || undefined);
-  const [selected, setSelected] = useState<string | null>(serviceCategoryId);
 
   useEffect(() => {
     if (!projectTypeId) {
@@ -33,18 +31,8 @@ export default function ChooseServiceCategoryPage() {
   }, [projectTypeId, router, serviceCategories, isLoading, setServiceCategoryId]);
 
   const handleSelect = (categoryId: string) => {
-    setSelected(categoryId);
-  };
-
-  const handleContinue = () => {
-    if (selected) {
-      console.log('=== Setting Service Category ===');
-      console.log('Selected category ID:', selected);
-      setServiceCategoryId(selected);
-      console.log('Navigating to choose-service');
-      console.log('================================');
-      router.push("/estimator/choose-service");
-    }
+    setServiceCategoryId(categoryId);
+    router.push("/estimator/choose-service");
   };
 
   const handleBack = () => {
@@ -149,14 +137,7 @@ export default function ChooseServiceCategoryPage() {
               transition={{ duration: 0.8, delay: index * 0.1 }}
               onClick={() => handleSelect(category.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className={`
-                w-full sm:w-80 bg-white rounded-2xl overflow-hidden cursor-pointer
-                ${
-                  selected === category.id
-                    ? "ring-4 ring-[#283878] shadow-xl scale-105"
-                    : "hover:shadow-lg hover:scale-102"
-                }
-              `}
+              className="w-full sm:w-80 bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:scale-102"
             >
               <div className="relative h-64 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
                 {category.image?.url ? (
@@ -170,21 +151,6 @@ export default function ChooseServiceCategoryPage() {
                     <div className="text-white text-6xl font-bold opacity-20">
                       {category.name.charAt(0)}
                     </div>
-                  </div>
-                )}
-                {selected === category.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
                   </div>
                 )}
               </div>
@@ -205,7 +171,7 @@ export default function ChooseServiceCategoryPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex justify-between"
+          className="flex justify-start"
         >
           <Button
             onClick={handleBack}
@@ -213,14 +179,6 @@ export default function ChooseServiceCategoryPage() {
             className="px-8 py-6 text-lg rounded-full"
           >
             ← Back
-          </Button>
-
-          <Button
-            onClick={handleContinue}
-            disabled={!selected}
-            className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Continue to Services →
           </Button>
         </motion.div>
       </div>
