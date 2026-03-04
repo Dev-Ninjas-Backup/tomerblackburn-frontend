@@ -10,10 +10,8 @@ import { useProjectTypes } from "@/hooks/useProjectManagement";
 
 export default function ChooseProjectTypePage() {
   const router = useRouter();
-  const { projectTypeId, setProjectTypeId, resetEstimator } =
-    useEstimatorStore();
+  const { setProjectTypeId, resetEstimator } = useEstimatorStore();
   const { data: projectTypes, isLoading } = useProjectTypes(true); // Only active
-  const [selected, setSelected] = useState<string | null>(projectTypeId);
 
   useEffect(() => {
     // Reset estimator when component mounts
@@ -21,14 +19,8 @@ export default function ChooseProjectTypePage() {
   }, [resetEstimator]);
 
   const handleSelect = (typeId: string) => {
-    setSelected(typeId);
-  };
-
-  const handleContinue = () => {
-    if (selected) {
-      setProjectTypeId(selected);
-      router.push("/estimator/choose-service-category");
-    }
+    setProjectTypeId(typeId);
+    router.push("/estimator/choose-service-category");
   };
 
   if (isLoading) {
@@ -129,14 +121,7 @@ export default function ChooseProjectTypePage() {
               transition={{ duration: 0.8, delay: index * 0.1 }}
               onClick={() => handleSelect(type.id)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className={`
-                w-full bg-white rounded-2xl overflow-hidden cursor-pointer transition-all
-                ${
-                  selected === type.id
-                    ? "ring-4 ring-[#283878] shadow-xl scale-105"
-                    : "hover:shadow-lg hover:scale-102"
-                }
-              `}
+              className="w-full bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:scale-102"
             >
               <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
                 {/* Project type image */}
@@ -153,21 +138,6 @@ export default function ChooseProjectTypePage() {
                     </div>
                   </div>
                 )}
-                {selected === type.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                )}
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
@@ -181,21 +151,6 @@ export default function ChooseProjectTypePage() {
             </motion.div>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex justify-center"
-        >
-          <Button
-            onClick={handleContinue}
-            disabled={!selected}
-            className="w-full sm:w-auto bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Continue to Services →
-          </Button>
-        </motion.div>
       </div>
     </div>
   );

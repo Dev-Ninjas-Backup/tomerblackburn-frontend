@@ -118,7 +118,7 @@ export default function Step1Page() {
               variant="outline"
               className="flex-1 py-6 text-lg rounded-full"
             >
-              Cancel
+              ← Back
             </Button>
             <Button
               onClick={handleNext}
