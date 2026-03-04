@@ -10,7 +10,7 @@ import { Service } from "@/types/project-management.types";
 
 export default function ChooseServicePage() {
   const router = useRouter();
-  const { serviceCategoryId, serviceId, setServiceId } = useEstimatorStore();
+  const { serviceCategoryId, setServiceId } = useEstimatorStore();
 
   const { data: allServices, isLoading } = useServicesByCategory(
     serviceCategoryId || undefined,
@@ -21,29 +21,16 @@ export default function ChooseServicePage() {
     (service) => service.serviceCategoryId === serviceCategoryId,
   );
 
-  const [selected, setSelected] = useState<string | null>(serviceId);
-
   useEffect(() => {
     if (!serviceCategoryId) {
       router.push("/estimator/choose-service-category");
       return;
     }
-
-    setSelected(null);
   }, [serviceCategoryId, router]);
 
   const handleSelect = (service: Service) => {
-    setSelected(service.id);
-  };
-
-  const handleContinue = () => {
-    if (selected) {
-      const selectedService = services?.find((s) => s.id === selected);
-      if (selectedService) {
-        setServiceId(selected, selectedService.clientPrice || 0);
-        router.push("/estimator/step-1");
-      }
-    }
+    setServiceId(service.id, service.clientPrice || 0);
+    router.push("/estimator/step-1");
   };
 
   const handleBack = () => {
@@ -149,14 +136,7 @@ export default function ChooseServicePage() {
               transition={{ duration: 0.8, delay: index * 0.1 }}
               onClick={() => handleSelect(service)}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className={`
-                w-full sm:w-72 bg-white rounded-2xl overflow-hidden cursor-pointer
-                ${
-                  selected === service.id
-                    ? "ring-4 ring-[#283878] shadow-xl scale-105"
-                    : "hover:shadow-lg hover:scale-102"
-                }
-              `}
+              className="w-full sm:w-72 bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:scale-102"
             >
               <div className="relative h-48 overflow-hidden">
                 {service.imageFile?.url ? (
@@ -173,21 +153,6 @@ export default function ChooseServicePage() {
                         .map((word) => word.charAt(0))
                         .join("")}
                     </div>
-                  </div>
-                )}
-                {selected === service.id && (
-                  <div className="absolute top-4 right-4 bg-white text-[#283878] rounded-full p-2 shadow-lg">
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
                   </div>
                 )}
               </div>
@@ -209,7 +174,7 @@ export default function ChooseServicePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex justify-between"
+          className="flex justify-start"
         >
           <Button
             onClick={handleBack}
@@ -217,14 +182,6 @@ export default function ChooseServicePage() {
             className="px-8 py-6 text-lg rounded-full"
           >
             ← Back
-          </Button>
-
-          <Button
-            onClick={handleContinue}
-            disabled={!selected}
-            className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-12 py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Start Estimate →
           </Button>
         </motion.div>
       </div>
