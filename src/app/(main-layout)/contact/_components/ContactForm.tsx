@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { contactService } from "@/services/contact.service";
 import { toast } from "sonner";
+import MediaUpload from "./MediaUpload";
 
 interface ContactFormProps {
   onSubmit?: (data: any) => void;
@@ -32,6 +33,7 @@ const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormPr
     projectStartDate: "",
   });
 
+  const [mediaFiles, setMediaFiles] = useState<Array<{ fileInstanceId: string; mediaType: "PHOTO" | "VIDEO" }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -53,16 +55,22 @@ const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormPr
       if (onSubmit) {
         await onSubmit(formData);
       } else {
-        // Submit to your backend
-        await contactService.submitContactForm(formData);
+        const result = await contactService.submitContactForm(formData);
+        const contactId = result.data.id;
         
-        // Trigger BuilderTrend form submission
+        if (mediaFiles.length > 0) {
+          await Promise.all(
+            mediaFiles.map(media =>
+              contactService.addMedia(contactId, media.fileInstanceId, media.mediaType)
+            )
+          );
+        }
+        
         if (onFormSubmit) {
           onFormSubmit();
         }
         
         toast.success("Message sent successfully!");
-        // Reset form
         setFormData({
           firstName: "",
           lastName: "",
@@ -75,6 +83,7 @@ const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormPr
           message: "",
           projectStartDate: "",
         });
+        setMediaFiles([]);
       }
     } catch (error) {
       toast.error("Failed to send message. Please try again.");
@@ -248,6 +257,9 @@ const ContactForm = ({ onSubmit, onFormDataChange, onFormSubmit }: ContactFormPr
           className="w-full p-6"
         />
       </div>
+
+      {/* Media Upload */}
+      <MediaUpload onMediaChange={setMediaFiles} />
 
       {/* Submit Button */}
       <div className="flex justify-center pt-4">

@@ -21,6 +21,8 @@ interface UserInfo {
   zipCode: string
   address: string
   notes: string
+  desiredStartDate?: string
+  buildingType?: string
   photoIds: string[]
   videoIds: string[]
 }

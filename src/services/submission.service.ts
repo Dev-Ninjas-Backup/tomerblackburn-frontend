@@ -61,6 +61,14 @@ export const submissionService = {
     return response.data;
   },
 
+  archiveMany: async (ids: string[]) => {
+    return axios.post<ApiResponse<{ count: number }>>(`${API_URL}/submissions/bulk-archive`, { ids });
+  },
+
+  deleteMany: async (ids: string[]) => {
+    return axios.post<ApiResponse<{ count: number }>>(`${API_URL}/submissions/bulk-delete`, { ids });
+  },
+
   // Next Steps CRUD
   getAllNextSteps: async (includeInactive: boolean = true) => {
     return axios.get<ApiResponse<Array<{

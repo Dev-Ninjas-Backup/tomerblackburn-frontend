@@ -10,6 +10,8 @@ import {
   Calendar,
   MessageSquare,
   Home,
+  Image,
+  Video,
 } from "lucide-react";
 import { ContactSubmission } from "@/types/contact.types";
 import { format } from "date-fns";
