@@ -22,11 +22,9 @@ const ContactSection = ({
   const { data: settings } = useSiteSettings();
 
   const getMapEmbedUrl = () => {
-    if (settings?.location) {
-      const encodedLocation = encodeURIComponent(settings.location);
-      return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodedLocation}`;
-    }
-    return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2970.1234567890!2d-87.6431!3d41.9308!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880fd3b1234567890%3A0x1234567890abcdef!2s330%20W%20Diversey%20Pkwy%20%232604%2C%20Chicago%2C%20IL%2060657%2C%20USA!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus";
+    // Chicago-centered map showing service area
+    // Coordinates: 41.8781° N, 87.6298° W (Chicago downtown)
+    return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d190255.5385582!2d-87.8!3d41.85!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880e2c3cd0f4cbed%3A0xafe0a6ad09c0c000!2sChicago%2C%20IL!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus";
   };
 
   const handleFormDataChange = (data: any) => {
@@ -110,23 +108,30 @@ const ContactSection = ({
             />
           </div>
 
-          {/* Right: Map */}
+          {/* Right: Map and Service Area */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
             transition={{ duration: 0.8 }}
-            className="relative h-[600px] lg:h-full min-h-[500px] rounded-2xl overflow-hidden shadow-lg"
+            className="space-y-4"
           >
-            <iframe
-              src={getMapEmbedUrl()}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-              title="Office Location"
-              className="w-full h-full"
-            />
+            <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-lg">
+              <iframe
+                src={getMapEmbedUrl()}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Service Area"
+                className="w-full h-full"
+              />
+            </div>
+            <div className="bg-[#283878] text-white p-6 rounded-2xl shadow-lg text-center">
+              <p className="text-lg font-semibold">
+                Serving Chicago and surrounding suburbs
+              </p>
+            </div>
           </motion.div>
         </div>
 
