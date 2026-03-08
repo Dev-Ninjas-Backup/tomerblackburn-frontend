@@ -47,6 +47,8 @@ export default function PreviewPage() {
   const [zipCode, setZipCode] = useState(userInfo.zipCode);
   const [address, setAddress] = useState(userInfo.address);
   const [notes, setNotes] = useState(userInfo.notes);
+  const [desiredStartDate, setDesiredStartDate] = useState(userInfo.desiredStartDate || "");
+  const [buildingType, setBuildingType] = useState(userInfo.buildingType || "");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -271,6 +273,8 @@ export default function PreviewPage() {
         clientPhone: phone,
         projectAddress: address,
         zipCode,
+        desiredStartDate,
+        buildingType,
         basePrice,
         additionalItemsTotal: totalPrice - basePrice,
         totalAmount: totalPrice,
@@ -363,6 +367,8 @@ export default function PreviewPage() {
         zipCode,
         address,
         notes,
+        desiredStartDate,
+        buildingType,
       });
 
       router.push("/estimator/confirmation");
@@ -381,7 +387,7 @@ export default function PreviewPage() {
     }
   };
 
-  const isFormValid = fullName && email && phone && zipCode && address;
+  const isFormValid = fullName && email && phone && zipCode && address && desiredStartDate && buildingType;
   const additionalTotal = totalPrice - basePrice;
 
   // Calculate additional costs from selections
@@ -487,6 +493,37 @@ export default function PreviewPage() {
                   className="h-12 px-4"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Desired Start Date*
+                </label>
+                <Input
+                  type="date"
+                  value={desiredStartDate}
+                  onChange={(e) => setDesiredStartDate(e.target.value)}
+                  className="h-12 px-4"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Building Type*
+                </label>
+                <select
+                  value={buildingType}
+                  onChange={(e) => setBuildingType(e.target.value)}
+                  className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Building Type</option>
+                  <option value="Single Family">Single Family</option>
+                  <option value="Condo">Condo</option>
+                  <option value="Townhome">Townhome</option>
+                  <option value="Multi-Unit">Multi-Unit</option>
+                </select>
               </div>
             </div>
           </div>
