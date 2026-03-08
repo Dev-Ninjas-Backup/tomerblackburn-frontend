@@ -1,7 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Upload } from "lucide-react";
+import { Pencil, Trash2, Upload, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   useCompleteEstimatorPageData,
   useUpdateEstimatorPage,
@@ -65,10 +82,17 @@ export default function EstimatorTab() {
   const updateFeature = useUpdateWhyChooseUsFeature();
   const deleteFeature = useDeleteWhyChooseUsFeature();
 
-  const { data: nextSteps } = useNextSteps(false);
+  const { data: nextSteps } = useNextSteps(true);
   const createNextStep = useCreateNextStep();
   const updateNextStep = useUpdateNextStep();
   const deleteNextStep = useDeleteNextStep();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const { data: tips } = useTips();
   const createTip = useCreateTip();
@@ -224,6 +248,47 @@ export default function EstimatorTab() {
       position: tip.position,
       message: tip.message,
     });
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && nextSteps) {
+      const oldIndex = nextSteps.findIndex((step) => step.id === active.id);
+      const newIndex = nextSteps.findIndex((step) => step.id === over.id);
+
+      const reorderedSteps = arrayMove(nextSteps, oldIndex, newIndex);
+
+      // First pass: Set temporary step numbers to avoid unique constraint
+      for (let index = 0; index < reorderedSteps.length; index++) {
+        const step = reorderedSteps[index];
+        const tempStepNumber = 1000 + index;
+
+        try {
+          await updateNextStep.mutateAsync({
+            id: step.id,
+            payload: { stepNumber: tempStepNumber },
+          });
+        } catch (error) {
+          console.error(`Failed to set temp step number for ${step.id}`);
+        }
+      }
+
+      // Second pass: Set actual step numbers
+      for (let index = 0; index < reorderedSteps.length; index++) {
+        const step = reorderedSteps[index];
+        const newStepNumber = index + 1;
+
+        try {
+          await updateNextStep.mutateAsync({
+            id: step.id,
+            payload: { stepNumber: newStepNumber },
+          });
+        } catch (error) {
+          console.error(`Failed to update step ${step.id}`);
+        }
+      }
+    }
   };
 
   return (
@@ -673,44 +738,29 @@ export default function EstimatorTab() {
         </div>
         <div className="p-6 space-y-4">
           {nextSteps && nextSteps.length > 0 && (
-            <div className="space-y-3">
-              {nextSteps
-                .sort((a, b) => a.stepNumber - b.stepNumber)
-                .map((step) => (
-                  <div
-                    key={step.id}
-                    className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
-                        Step {step.stepNumber}: {step.title}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {step.description}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Status: {step.isActive ? "Active" : "Inactive"}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <button
-                        onClick={() => handleEditNextStep(step)}
-                        aria-label="Edit next step"
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteNextStep.mutate(step.id)}
-                        aria-label="Delete next step"
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={nextSteps.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {nextSteps
+                    .sort((a, b) => a.stepNumber - b.stepNumber)
+                    .map((step) => (
+                      <SortableNextStepItem
+                        key={step.id}
+                        step={step}
+                        onEdit={handleEditNextStep}
+                        onDelete={(id) => deleteNextStep.mutate(id)}
+                      />
+                    ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
 
           <div className="border-t border-gray-200 pt-5 mt-5 space-y-4">
@@ -915,6 +965,73 @@ export default function EstimatorTab() {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SortableNextStepItem({
+  step,
+  onEdit,
+  onDelete,
+}: {
+  step: any;
+  onEdit: (step: any) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: step.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-start gap-2 p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors bg-white"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="p-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="w-5 h-5" />
+      </button>
+      <div className="flex-1">
+        <p className="font-medium text-gray-900">
+          Step {step.stepNumber}: {step.title}
+        </p>
+        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Status: {step.isActive ? "Active" : "Inactive"}
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onEdit(step)}
+          aria-label="Edit next step"
+          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete(step.id)}
+          aria-label="Delete next step"
+          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
