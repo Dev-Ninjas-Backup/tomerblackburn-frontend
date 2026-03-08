@@ -11,6 +11,10 @@ import {
   FileSpreadsheet,
   Paperclip,
   Search,
+  Archive,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import {
   useSubmissions,
@@ -27,6 +31,9 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { searchSubmission } from "@/utils/search";
 import { useMemo } from "react";
 import { TableSkeleton } from "@/components/shared/TableSkeleton";
+import { submissionService } from "@/services/submission.service";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -42,6 +49,10 @@ const SubmissionsPage = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [sortField, setSortField] = useState<"date" | "name" | "total" | "status">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [dateFilter, setDateFilter] = useState<"" | "30" | "60" | "90">("");
+  const queryClient = useQueryClient();
 
   // Fetch all data when searching, paginated data otherwise
   const { data: allResponse, isLoading: isLoadingAll } = useAllSubmissions(
@@ -58,6 +69,30 @@ const SubmissionsPage = () => {
   const updateStatusMutation = useUpdateSubmissionStatus();
   const exportMutation = useExportSubmissions();
   const exportByIds = useExportSubmissionsByIds();
+  const archiveMutation = useMutation({
+    mutationFn: submissionService.archiveMany,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      toast.success("Submissions archived successfully");
+      setSelectedIds([]);
+    },
+    onError: () => {
+      toast.error("Failed to archive submissions");
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: submissionService.deleteMany,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+      toast.success("Submissions deleted successfully");
+      setSelectedIds([]);
+    },
+    onError: () => {
+      toast.error("Failed to delete submissions");
+    },
+  });
+
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
     null,
   );
@@ -68,12 +103,33 @@ const SubmissionsPage = () => {
 
   const filteredSubmissions = useMemo(() => {
     if (!submissions) return [];
-    if (!debouncedSearch) return submissions;
+    let result = [...submissions];
+    
+    if (debouncedSearch) {
+      result = result.filter((submission) =>
+        searchSubmission(submission, debouncedSearch),
+      );
+    }
 
-    return submissions.filter((submission) =>
-      searchSubmission(submission, debouncedSearch),
-    );
-  }, [submissions, debouncedSearch]);
+    // Client-side sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortField === "name") {
+        comparison = a.clientName.localeCompare(b.clientName);
+      } else if (sortField === "total") {
+        comparison = a.totalAmount - b.totalAmount;
+      } else if (sortField === "status") {
+        comparison = a.status.localeCompare(b.status);
+      } else {
+        comparison = new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+      }
+      
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [submissions, debouncedSearch, sortField, sortOrder]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this submission?")) {
@@ -111,6 +167,32 @@ const SubmissionsPage = () => {
     if (selectedIds.length > 0) {
       exportByIds.mutate(selectedIds);
     }
+  };
+
+  const handleArchiveSelected = () => {
+    if (selectedIds.length > 0 && confirm(`Archive ${selectedIds.length} submission(s)?`)) {
+      archiveMutation.mutate(selectedIds);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length > 0 && confirm(`Delete ${selectedIds.length} submission(s)? This cannot be undone.`)) {
+      bulkDeleteMutation.mutate(selectedIds);
+    }
+  };
+
+  const toggleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const getSortIcon = (field: typeof sortField) => {
+    if (sortField !== field) return <ArrowUpDown size={14} className="inline ml-1" />;
+    return sortOrder === "asc" ? <ArrowUp size={14} className="inline ml-1" /> : <ArrowDown size={14} className="inline ml-1" />;
   };
 
   const handleExportSingle = (id: string) => {
@@ -203,19 +285,51 @@ const SubmissionsPage = () => {
                   <option value="COMPLETED">Completed</option>
                   <option value="CANCELLED">Cancelled</option>
                 </select>
+                <select
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value as "" | "30" | "60" | "90")}
+                  className="border rounded px-3 py-2 text-sm"
+                  title="Filter by date"
+                  aria-label="Filter by date"
+                >
+                  <option value="">All Time</option>
+                  <option value="30">Last 30 Days</option>
+                  <option value="60">Last 60 Days</option>
+                  <option value="90">Last 90 Days</option>
+                </select>
               </div>
 
               {/* Export Buttons Group */}
               <div className="flex flex-col sm:flex-row gap-2 md:shrink-0">
                 {selectedIds.length > 0 && (
-                  <Button
-                    onClick={handleExportSelected}
-                    disabled={exportByIds.isPending}
-                    className="flex items-center justify-center gap-2 bg-[#2D4A8F] hover:bg-[#1B2A5A]"
-                  >
-                    <Download size={18} />
-                    Export ({selectedIds.length})
-                  </Button>
+                  <>
+                    <Button
+                      onClick={handleArchiveSelected}
+                      disabled={archiveMutation.isPending}
+                      variant="outline"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <Archive size={18} />
+                      Archive ({selectedIds.length})
+                    </Button>
+                    <Button
+                      onClick={handleBulkDelete}
+                      disabled={bulkDeleteMutation.isPending}
+                      variant="outline"
+                      className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 size={18} />
+                      Delete ({selectedIds.length})
+                    </Button>
+                    <Button
+                      onClick={handleExportSelected}
+                      disabled={exportByIds.isPending}
+                      className="flex items-center justify-center gap-2 bg-[#2D4A8F] hover:bg-[#1B2A5A]"
+                    >
+                      <Download size={18} />
+                      Export ({selectedIds.length})
+                    </Button>
+                  </>
                 )}
                 <Button
                   onClick={handleExport}
@@ -250,23 +364,23 @@ const SubmissionsPage = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Submission #
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Client
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100" onClick={() => toggleSort("name")}>
+                  Client {getSortIcon("name")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Service
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Total Amount
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100" onClick={() => toggleSort("total")}>
+                  Total Amount {getSortIcon("total")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Media
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100" onClick={() => toggleSort("status")}>
+                  Status {getSortIcon("status")}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100" onClick={() => toggleSort("date")}>
+                  Date {getSortIcon("date")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions

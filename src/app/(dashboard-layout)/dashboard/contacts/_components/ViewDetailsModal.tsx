@@ -10,6 +10,8 @@ import {
   Calendar,
   MessageSquare,
   Home,
+  Image,
+  Video,
 } from "lucide-react";
 import { ContactSubmission } from "@/types/contact.types";
 import { format } from "date-fns";
@@ -181,6 +183,39 @@ export const ViewDetailsModal = ({
               {contact.message}
             </p>
           </div>
+
+          {/* Media */}
+          {contact.contactMedia && contact.contactMedia.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 uppercase mb-4">
+                Photos & Videos
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {contact.contactMedia.map((media) => (
+                  <a
+                    key={media.id}
+                    href={media.fileInstance.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative group aspect-square rounded-lg overflow-hidden bg-gray-200 hover:opacity-90 transition-opacity"
+                  >
+                    {media.mediaType === "PHOTO" ? (
+                      <img
+                        src={media.fileInstance.url}
+                        alt={media.fileInstance.originalFilename}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                        <Video size={32} className="text-gray-600" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
