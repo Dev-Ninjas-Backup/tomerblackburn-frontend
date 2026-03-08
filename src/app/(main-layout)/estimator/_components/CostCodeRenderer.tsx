@@ -210,10 +210,8 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   const renderCostCode = (costCode: CostCode, isNested = false) => {
     const selection = getSelection(costCode.id);
     const isEnabled = selection?.isEnabled || false;
-    const bgColor =
-      QUESTION_TYPE_COLORS[
-        costCode.questionType as keyof typeof QUESTION_TYPE_COLORS
-      ] || "bg-gray-50";
+    // Simplified color system: only two visual states
+    const bgColor = costCode.isIncludedInBase ? "bg-green-50" : "bg-blue-50";
     const sizeClass = isNested ? "p-2.5 rounded-md" : "p-3 rounded-lg mb-2";
 
     if (costCode.questionType === "RED") return null;
@@ -228,11 +226,11 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
-          {costCode.isIncludedInBase && (
-            <p className="text-xs text-green-600 mt-1">
-              Included in base price
-            </p>
-          )}
+          <p className={`text-xs mt-1 font-medium ${
+            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+          }`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          </p>
           {renderChildren(costCode.id)}
         </div>
       );
@@ -248,6 +246,11 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 {costCode.name}
               </p>
               {formatDescription(costCode.description)}
+              <p className={`text-xs mt-1 font-medium ${
+                costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+              }`}>
+                {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+              </p>
             </div>
             <button
               type="button"
@@ -277,6 +280,11 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
+          <p className={`text-xs mt-1 font-medium ${
+            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+          }`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          </p>
           <div className="flex items-center gap-2 mt-1.5">
             <Input
               type="number"
@@ -305,6 +313,11 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
+          <p className={`text-xs mt-1 font-medium ${
+            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+          }`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          </p>
           <select
             value={selection?.selectedOptionId || ""}
             onChange={(e) => {
@@ -320,8 +333,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               .map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.optionName.replace(/_/g, " ")}
-                  {Number(option.priceModifier) > 0 &&
-                    ` (+$${Number(option.priceModifier).toLocaleString()})`}
                 </option>
               ))}
           </select>
@@ -336,8 +347,10 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
           {formatDescription(costCode.description)}
-          <p className="text-xs text-purple-600 mt-1">
-            Calculated automatically
+          <p className={`text-xs mt-1 font-medium ${
+            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+          }`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
           </p>
         </div>
       );

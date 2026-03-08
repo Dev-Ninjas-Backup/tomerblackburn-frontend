@@ -92,6 +92,7 @@ const CostCodeModal = ({
     parentCostCodeId: "",
     showWhenParentValue: "",
     nestedInputType: "NONE",
+    excludeFromExport: false,
   });
 
   useEffect(() => {
@@ -130,6 +131,7 @@ const CostCodeModal = ({
         parentCostCodeId: data.parentCostCodeId || "",
         showWhenParentValue: data.showWhenParentValue || "",
         nestedInputType: data.nestedInputType || "NONE",
+        excludeFromExport: data.excludeFromExport ?? false,
       });
       setSelectedServiceId(data.serviceId || "");
 
@@ -166,6 +168,7 @@ const CostCodeModal = ({
         parentCostCodeId: "",
         showWhenParentValue: "",
         nestedInputType: "NONE",
+        excludeFromExport: false,
       });
       setSelectedProjectType("");
       setSelectedCategory("");
@@ -847,6 +850,30 @@ const CostCodeModal = ({
                   aria-label="Active status"
                 />
                 <label className="text-sm font-medium">Active</label>
+              </div>
+
+              <div className="col-span-2">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.excludeFromExport ?? false}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        excludeFromExport: e.target.checked,
+                      })
+                    }
+                    className="mr-2"
+                    title="Branch only - do not export to Buildertrend"
+                    aria-label="Branch only"
+                  />
+                  <label className="text-sm font-medium">
+                    Branch only (do not export to Buildertrend)
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  Use for questions that only control follow-up questions (e.g. &quot;Relocating Plumbing?&quot;). They appear in the estimator but are not included in the Excel export.
+                </p>
               </div>
             </div>
           </div>
