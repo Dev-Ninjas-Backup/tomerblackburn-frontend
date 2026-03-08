@@ -48,6 +48,8 @@ export interface CostCode {
   parentCostCodeId?: string;
   showWhenParentValue?: string;
   nestedInputType?: 'QUANTITY' | 'DROPDOWN' | 'CUSTOM_PRICE' | 'NONE';
+  /** If true, question is for branching only: shown in estimator, excluded from Buildertrend/Excel export */
+  excludeFromExport?: boolean;
   createdAt: string;
   updatedAt: string;
   category?: CostCodeCategory;
@@ -79,6 +81,7 @@ export interface CreateCostCodeDto {
   parentCostCodeId?: string;
   showWhenParentValue?: string;
   nestedInputType?: 'QUANTITY' | 'DROPDOWN' | 'CUSTOM_PRICE' | 'NONE';
+  excludeFromExport?: boolean;
 }
 
 export interface UpdateCostCodeDto extends Partial<CreateCostCodeDto> {}
