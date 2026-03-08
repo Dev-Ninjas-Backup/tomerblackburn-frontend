@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, MailOpen, Trash2, Eye, FileSpreadsheet } from "lucide-react";
+import { Mail, MailOpen, Trash2, Eye, FileSpreadsheet, Paperclip } from "lucide-react";
 import { ContactSubmission } from "@/types/contact.types";
 import {
   useMarkAsRead,
@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useContacts";
 import { format } from "date-fns";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { MediaGalleryModal } from "@/components/dashboard/MediaGalleryModal";
 
 interface ContactsTableProps {
   contacts: ContactSubmission[];
@@ -44,6 +45,7 @@ export const ContactsTable = ({
     contactId: string;
     contactName: string;
   }>({ isOpen: false, contactId: "", contactName: "" });
+  const [mediaModal, setMediaModal] = useState<ContactSubmission | null>(null);
 
   const markAsRead = useMarkAsRead();
   const markAsUnread = useMarkAsUnread();
@@ -141,6 +143,9 @@ export const ContactsTable = ({
                   Phone
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Media
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   City
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -181,6 +186,22 @@ export const ContactsTable = ({
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {contact.phone}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {contact.contactMedia && contact.contactMedia.length > 0 ? (
+                      <button
+                        onClick={() => setMediaModal(contact)}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-900"
+                        title="View media files"
+                      >
+                        <Paperclip size={16} />
+                        <span className="text-xs">
+                          {contact.contactMedia.length}
+                        </span>
+                      </button>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {contact.city}
@@ -316,6 +337,16 @@ export const ContactsTable = ({
         contactName={deleteModal.contactName}
         isDeleting={deleteContact.isPending}
       />
+
+      {/* Media Gallery Modal */}
+      {mediaModal && (
+        <MediaGalleryModal
+          isOpen={!!mediaModal}
+          onClose={() => setMediaModal(null)}
+          media={mediaModal.contactMedia || []}
+          submissionNumber={`${mediaModal.firstName} ${mediaModal.lastName}`}
+        />
+      )}
     </div>
   );
 };
