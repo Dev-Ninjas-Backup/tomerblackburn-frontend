@@ -106,4 +106,25 @@ export const contactService = {
     });
     return response.data;
   },
+
+  // Add media to contact submission
+  addMedia: async (
+    contactId: string,
+    fileInstanceId: string,
+    mediaType: "PHOTO" | "VIDEO",
+    description?: string
+  ) => {
+    const response = await api.post(`/contact-us/${contactId}/media`, {
+      fileInstanceId,
+      mediaType,
+      description,
+    });
+    return response.data;
+  },
+
+  // Remove media from contact submission
+  removeMedia: async (mediaId: string) => {
+    const response = await api.delete(`/contact-us/media/${mediaId}`);
+    return response.data;
+  },
 };

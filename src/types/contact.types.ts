@@ -13,6 +13,17 @@ export interface ContactSubmission {
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
+  contactMedia?: Array<{
+    id: string;
+    mediaType: "PHOTO" | "VIDEO";
+    fileInstance: {
+      id: string;
+      url: string;
+      filename: string;
+      originalFilename: string;
+      mimeType: string;
+    };
+  }>;
 }
 
 export interface ContactsResponse {
