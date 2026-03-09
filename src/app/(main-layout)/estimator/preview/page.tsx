@@ -335,11 +335,12 @@ export default function PreviewPage() {
       // Submit to API
       const response = await submissionService.create(submissionData);
       const submissionId = response.data.data?.id;
+      const submissionNumber = response.data.data?.submissionNumber;
       const pdfUrl = response.data.data?.pdfUrl || null;
 
       // Save submission data to store
-      if (submissionId) {
-        setSubmissionData(submissionId, pdfUrl);
+      if (submissionId && submissionNumber) {
+        setSubmissionData(submissionId, submissionNumber, pdfUrl);
       }
 
       // Add media files to submission if any
@@ -509,10 +510,11 @@ export default function PreviewPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label htmlFor="buildingType" className="block text-sm font-medium text-gray-900 mb-2">
                   Building Type*
                 </label>
                 <select
+                  id="buildingType"
                   value={buildingType}
                   onChange={(e) => setBuildingType(e.target.value)}
                   className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"

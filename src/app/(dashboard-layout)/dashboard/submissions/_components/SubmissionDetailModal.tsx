@@ -118,6 +118,36 @@ const SubmissionDetailModal = ({
           </div>
         </div>
 
+        {(submission.desiredStartDate || submission.buildingType) && (
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            {submission.desiredStartDate && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Desired Start Date
+                </h3>
+                <p className="text-sm font-medium">
+                  {new Date(submission.desiredStartDate).toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                </p>
+              </div>
+            )}
+            {submission.buildingType && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Building Type
+                </h3>
+                <p className="text-sm font-medium">{submission.buildingType}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="bg-blue-50 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-gray-900 mb-3">Pricing Summary</h3>
           <div className="space-y-2 text-sm">
