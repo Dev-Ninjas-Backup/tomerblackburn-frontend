@@ -97,12 +97,14 @@ export const useRegeneratePdf = () => {
 
 export const useExportSubmissions = () => {
   return useMutation({
-    mutationFn: submissionService.exportToExcel,
-    onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
+    mutationFn: async (status?: SubmissionStatus) => {
+      return await submissionService.exportToExcel(status);
+    },
+    onSuccess: (data: { blob: Blob; filename: string }) => {
+      const url = window.URL.createObjectURL(data.blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `submissions-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+      link.download = data.filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -117,12 +119,14 @@ export const useExportSubmissions = () => {
 
 export const useExportSubmissionsByIds = () => {
   return useMutation({
-    mutationFn: submissionService.exportByIds,
-    onSuccess: (blob) => {
-      const url = window.URL.createObjectURL(blob);
+    mutationFn: async (ids: string[]) => {
+      return await submissionService.exportByIds(ids);
+    },
+    onSuccess: (data: { blob: Blob; filename: string }) => {
+      const url = window.URL.createObjectURL(data.blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `submissions-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+      link.download = data.filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

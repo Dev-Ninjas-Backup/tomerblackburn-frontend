@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useCostCodeCategories, useDeleteCostCodeCategory } from '@/hooks/useCostManagement';
 import CostCodeCategoryModal from '../_components/CostCodeCategoryModal';
 
@@ -12,6 +13,7 @@ const CostCodeCategoriesTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCreate = () => {
     setModalMode('create');
@@ -35,6 +37,15 @@ const CostCodeCategoriesTab = () => {
     return <div className="text-center py-8">Loading...</div>;
   }
 
+  const filteredCategories = categories?.filter((item) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.slug.toLowerCase().includes(query) ||
+      item.stepNumber.toString().includes(query)
+    );
+  });
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -43,6 +54,19 @@ const CostCodeCategoriesTab = () => {
           <Plus size={18} className="mr-2" />
           Add Category
         </Button>
+      </div>
+
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Input
+            type="text"
+            placeholder="Search by name, slug, or step number..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-12"
+          />
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -58,7 +82,14 @@ const CostCodeCategoriesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories?.map((item) => (
+            {filteredCategories?.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  No categories found
+                </td>
+              </tr>
+            ) : (
+              filteredCategories?.map((item) => (
               <tr key={item.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.slug}</td>
@@ -78,7 +109,8 @@ const CostCodeCategoriesTab = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+              ))
+            )}
           </tbody>
         </table>
       </div>

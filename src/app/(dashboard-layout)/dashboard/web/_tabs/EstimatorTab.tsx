@@ -291,6 +291,47 @@ export default function EstimatorTab() {
     }
   };
 
+  const handleFeatureDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = whyChooseUsFeatures.findIndex((f) => f.id === active.id);
+      const newIndex = whyChooseUsFeatures.findIndex((f) => f.id === over.id);
+
+      const reorderedFeatures = arrayMove(whyChooseUsFeatures, oldIndex, newIndex);
+
+      // First pass: Set temporary order numbers
+      for (let index = 0; index < reorderedFeatures.length; index++) {
+        const feature = reorderedFeatures[index];
+        const tempOrder = 1000 + index;
+
+        try {
+          await updateFeature.mutateAsync({
+            id: feature.id,
+            payload: { order: tempOrder },
+          });
+        } catch (error) {
+          console.error(`Failed to set temp order for ${feature.id}`);
+        }
+      }
+
+      // Second pass: Set actual order numbers
+      for (let index = 0; index < reorderedFeatures.length; index++) {
+        const feature = reorderedFeatures[index];
+        const newOrder = index + 1;
+
+        try {
+          await updateFeature.mutateAsync({
+            id: feature.id,
+            payload: { order: newOrder },
+          });
+        } catch (error) {
+          console.error(`Failed to update feature ${feature.id}`);
+        }
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Main Page Section */}
@@ -558,51 +599,29 @@ export default function EstimatorTab() {
         </div>
         <div className="p-6 space-y-4">
           {whyChooseUsFeatures.length > 0 && (
-            <div className="space-y-3">
-              {whyChooseUsFeatures.map((feature) => (
-                <div
-                  key={feature.id}
-                  className="flex items-start justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                >
-                  <div className="flex items-start gap-3 flex-1">
-                    {feature.icon?.url && (
-                      <img
-                        src={feature.icon.url}
-                        alt={feature.title}
-                        className="w-12 h-12 rounded object-cover"
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleFeatureDragEnd}
+            >
+              <SortableContext
+                items={whyChooseUsFeatures.map((f) => f.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {whyChooseUsFeatures
+                    .sort((a, b) => a.order - b.order)
+                    .map((feature) => (
+                      <SortableFeatureItem
+                        key={feature.id}
+                        feature={feature}
+                        onEdit={handleEditFeature}
+                        onDelete={(id) => deleteFeature.mutate(id)}
                       />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">
-                        {feature.title}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {feature.description}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Order: {feature.order}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEditFeature(feature)}
-                      aria-label="Edit feature"
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteFeature.mutate(feature.id)}
-                      aria-label="Delete feature"
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                    ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
 
           <div className="border-t border-gray-200 pt-5 mt-5 space-y-4">
@@ -1028,6 +1047,78 @@ function SortableNextStepItem({
         <button
           onClick={() => onDelete(step.id)}
           aria-label="Delete next step"
+          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SortableFeatureItem({
+  feature,
+  onEdit,
+  onDelete,
+}: {
+  feature: WhyChooseUsFeature;
+  onEdit: (feature: WhyChooseUsFeature) => void;
+  onDelete: (id: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: feature.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-start gap-2 p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors bg-white"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="p-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="w-5 h-5" />
+      </button>
+      <div className="flex items-start gap-3 flex-1">
+        {feature.icon?.url && (
+          <img
+            src={feature.icon.url}
+            alt={feature.title}
+            className="w-12 h-12 rounded object-cover"
+          />
+        )}
+        <div className="flex-1">
+          <p className="font-medium text-gray-900">{feature.title}</p>
+          <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
+          <p className="text-xs text-gray-400 mt-1">Order: {feature.order}</p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onEdit(feature)}
+          aria-label="Edit feature"
+          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete(feature.id)}
+          aria-label="Delete feature"
           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
         >
           <Trash2 className="w-4 h-4" />
