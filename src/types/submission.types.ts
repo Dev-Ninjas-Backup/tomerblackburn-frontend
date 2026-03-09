@@ -35,6 +35,8 @@ export interface Submission {
   clientPhone: string;
   projectAddress: string;
   zipCode?: string;
+  desiredStartDate?: string;
+  buildingType?: string;
   basePrice: number;
   additionalItemsTotal: number;
   totalAmount: number;

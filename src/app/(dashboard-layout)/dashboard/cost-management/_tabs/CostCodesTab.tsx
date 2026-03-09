@@ -76,25 +76,20 @@ const CostCodesTab = () => {
     }
   };
 
-  // Build tree: parents first, then their children nested under them
+  // Build tree: parents first, then their children nested under them recursively
   const buildTree = () => {
     if (!costCodes) return [];
-    const parents = costCodes.filter((c) => !c.parentCostCodeId);
-    const result: { item: any; isChild: boolean }[] = [];
-    parents.forEach((parent) => {
-      result.push({ item: parent, isChild: false });
-      costCodes
-        .filter((c) => c.parentCostCodeId === parent.id)
-        .forEach((child) => result.push({ item: child, isChild: true }));
-    });
-    // Also add any children whose parent isn't in current list
-    costCodes
-      .filter(
-        (c) =>
-          c.parentCostCodeId &&
-          !costCodes.find((p) => p.id === c.parentCostCodeId),
-      )
-      .forEach((c) => result.push({ item: c, isChild: true }));
+    const result: { item: any; depth: number }[] = [];
+    
+    const addWithChildren = (parentId: string | null, depth: number) => {
+      const children = costCodes.filter((c) => c.parentCostCodeId === parentId);
+      children.forEach((child) => {
+        result.push({ item: child, depth });
+        addWithChildren(child.id, depth + 1);
+      });
+    };
+    
+    addWithChildren(null, 0);
     return result;
   };
 
@@ -311,14 +306,14 @@ const CostCodesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {treeRows.map(({ item, isChild }) => (
-              <tr key={item.id} className={isChild ? "bg-gray-50" : ""}>
+            {treeRows.map(({ item, depth }) => (
+              <tr key={item.id} className={depth > 0 ? "bg-gray-50" : ""}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <span className={isChild ? "pl-6" : ""}>{item.code}</span>
+                  <span style={{ paddingLeft: `${depth * 24}px` }}>{item.code}</span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
-                  {isChild && (
-                    <span className="text-gray-400 mr-1">↳</span>
+                  {depth > 0 && (
+                    <span className="text-gray-400 mr-1">{"↳".repeat(depth)}</span>
                   )}
                   {item.name}
                 </td>
@@ -344,12 +339,12 @@ const CostCodesTab = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
-                      isChild
+                      depth > 0
                         ? "bg-purple-100 text-purple-800"
                         : "bg-blue-100 text-blue-800"
                     }`}
                   >
-                    {isChild ? "Child" : "Parent"}
+                    {depth > 0 ? `Child (L${depth})` : "Parent"}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

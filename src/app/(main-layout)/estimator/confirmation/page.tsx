@@ -22,7 +22,7 @@ interface WhatHappensNextData {
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { serviceId, totalPrice, resetEstimator, submissionId, pdfUrl } =
+  const { serviceId, totalPrice, resetEstimator, submissionId, submissionNumber, pdfUrl } =
     useEstimatorStore();
   const [nextSteps, setNextSteps] = useState<WhatHappensNextData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,12 +50,6 @@ export default function ConfirmationPage() {
 
     fetchNextSteps();
   }, []);
-
-  const estimateNumber = `EST-${new Date().getFullYear()}-${Math.floor(
-    Math.random() * 1000,
-  )
-    .toString()
-    .padStart(3, "0")}`;
 
   const handleStartNew = () => {
     resetEstimator();
@@ -116,7 +110,7 @@ export default function ConfirmationPage() {
               <div className="flex justify-between items-center pb-4 border-b">
                 <span className="text-gray-600">Estimate Number:</span>
                 <span className="font-bold text-[#283878]">
-                  {estimateNumber}
+                  {submissionNumber || 'Processing...'}
                 </span>
               </div>
               <div className="flex justify-between items-center">

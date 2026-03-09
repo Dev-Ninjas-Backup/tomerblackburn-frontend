@@ -1,18 +1,20 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { Bell, User, LogOut, Settings } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useAuthStore } from '@/store/authStore'
-import { useNotifications, useMarkNotificationAsRead } from '@/hooks/useNotifications'
-import { useSiteSettings } from '@/hooks/useSiteSettings'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { formatDistanceToNow } from 'date-fns'
-import { formatRole } from '@/utils/formatRole'
+import React, { useState } from "react";
+import { Bell, LogOut, Settings } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "@/store/authStore";
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
+} from "@/hooks/useNotifications";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { formatDistanceToNow } from "date-fns";
+import { formatRole } from "@/utils/formatRole";
 
 interface NavbarProps {
-  title: string
+  title: string;
 }
 
 export const Navbar = ({ title }: NavbarProps) => {
@@ -21,10 +23,9 @@ export const Navbar = ({ title }: NavbarProps) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { user, logout, fetchCurrentUser } = useAuthStore();
   const { data: notifications = [], refetch } = useNotifications(20);
-  const { data: settings } = useSiteSettings();
-  const markAsRead = useMarkNotificationAsRead();
+  const markAsReadMutation = useMarkNotificationAsRead();
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Fetch fresh user data on mount
   React.useEffect(() => {
@@ -33,23 +34,23 @@ export const Navbar = ({ title }: NavbarProps) => {
 
   const handleNotificationClick = async (notification: any) => {
     if (!notification.isRead) {
-      await markAsRead.mutateAsync(notification.id);
+      await markAsReadMutation.mutateAsync(notification.id);
       refetch();
     }
-    
+
     setIsNotificationOpen(false);
-    
-    if (notification.entityType === 'submission') {
-      router.push('/dashboard/submissions');
-    } else if (notification.entityType === 'contact_us') {
-      router.push('/dashboard/contacts');
+
+    if (notification.entityType === "submission") {
+      router.push("/dashboard/submissions");
+    } else if (notification.entityType === "contact_us") {
+      router.push("/dashboard/contacts");
     }
   };
 
   const getNotificationIcon = (entityType: string) => {
-    if (entityType === 'submission') return '📋';
-    if (entityType === 'contact_us') return '✉️';
-    return '🔔';
+    if (entityType === "submission") return "📋";
+    if (entityType === "contact_us") return "✉️";
+    return "🔔";
   };
 
   const handleLogout = () => {
@@ -58,26 +59,9 @@ export const Navbar = ({ title }: NavbarProps) => {
   };
 
   return (
-    <>
-      {/* CTA Banner */}
-      {settings?.ctaBannerEnabled && (
-        <Link href="/estimator">
-          <div className="bg-[#283878] text-white py-2 px-4 text-xs hover:bg-[#1f2d5f] transition-colors cursor-pointer">
-            <div className="flex justify-center items-center gap-2">
-              <span className="font-medium">
-                {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
-              </span>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </div>
-        </Link>
-      )}
-
-      <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-      
+
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
         <div className="relative">
@@ -90,7 +74,7 @@ export const Navbar = ({ title }: NavbarProps) => {
             <Bell size={20} className="text-gray-700" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs rounded-full flex items-center justify-center px-1">
-                {unreadCount > 9 ? '9+' : unreadCount}
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </motion.button>
@@ -112,7 +96,9 @@ export const Navbar = ({ title }: NavbarProps) => {
                   className="absolute right-0 top-14 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[500px] overflow-hidden flex flex-col"
                 >
                   <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Notifications
+                    </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {unreadCount} unread
                     </p>
@@ -121,7 +107,10 @@ export const Navbar = ({ title }: NavbarProps) => {
                   <div className="overflow-y-auto flex-1">
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-gray-500">
-                        <Bell size={32} className="mx-auto mb-2 text-gray-300" />
+                        <Bell
+                          size={32}
+                          className="mx-auto mb-2 text-gray-300"
+                        />
                         <p className="text-sm">No notifications</p>
                       </div>
                     ) : (
@@ -130,19 +119,29 @@ export const Navbar = ({ title }: NavbarProps) => {
                           key={notification.id}
                           onClick={() => handleNotificationClick(notification)}
                           className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 transition-colors ${
-                            !notification.isRead ? 'bg-blue-50' : ''
+                            !notification.isRead ? "bg-blue-50" : ""
                           }`}
                         >
                           <div className="flex items-start gap-3">
-                            <span className="text-2xl">{getNotificationIcon(notification.entityType)}</span>
+                            <span className="text-2xl">
+                              {getNotificationIcon(notification.entityType)}
+                            </span>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm ${
-                                !notification.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'
-                              }`}>
-                                {notification.description || `${notification.action} ${notification.entityType}`}
+                              <p
+                                className={`text-sm ${
+                                  !notification.isRead
+                                    ? "font-semibold text-gray-900"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {notification.description ||
+                                  `${notification.action} ${notification.entityType}`}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
-                                {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                {formatDistanceToNow(
+                                  new Date(notification.createdAt),
+                                  { addSuffix: true },
+                                )}
                               </p>
                             </div>
                             {!notification.isRead && (
@@ -169,7 +168,9 @@ export const Navbar = ({ title }: NavbarProps) => {
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="text-left hidden lg:block">
-              <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
+              <p className="text-sm font-medium text-gray-900">
+                {user?.name || "User"}
+              </p>
               <p className="text-xs text-gray-500">{formatRole(user?.role)}</p>
             </div>
           </button>
@@ -192,8 +193,12 @@ export const Navbar = ({ title }: NavbarProps) => {
                 >
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {user?.email}
+                    </p>
                     <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
                       {formatRole(user?.role)}
                     </span>
@@ -225,6 +230,5 @@ export const Navbar = ({ title }: NavbarProps) => {
         </div>
       </div>
     </header>
-    </>
-  )
-}
+  );
+};

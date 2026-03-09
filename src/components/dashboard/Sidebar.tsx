@@ -35,11 +35,9 @@ const menuItems = [
     label: "Cost Codes",
     href: "/dashboard/cost-management",
   },
-  // { icon: Bath, label: "Bathroom Types", href: "/dashboard/bathroom-types" },
-  // { icon: DollarSign, label: "Cost Codes", href: "/dashboard/cost-codes" },
   { icon: FileText, label: "Submissions", href: "/dashboard/submissions" },
-  { icon: Globe, label: "Web", href: "/dashboard/web" },
   { icon: Users, label: "All Contacts", href: "/dashboard/contacts" },
+  { icon: Globe, label: "Web", href: "/dashboard/web" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 

@@ -51,14 +51,39 @@ export const submissionService = {
       params,
       responseType: 'blob',
     });
-    return response.data;
+    
+    let filename = `submissions-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    try {
+      const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition'];
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename[^;=\n]*=(['"]?)(.+?)\1(?:;|$)/i);
+        if (matches && matches[2]) {
+          filename = matches[2];
+        }
+      }
+    } catch (e) {
+      console.error('Failed to extract filename:', e);
+    }
+    
+    return { blob: response.data, filename };
   },
 
   exportByIds: async (ids: string[]) => {
+    const submissions = await Promise.all(
+      ids.map(id => submissionService.getById(id).then(res => res.data.data))
+    );
+    
     const response = await axios.post(`${API_URL}/submissions/export`, { ids }, {
       responseType: 'blob',
     });
-    return response.data;
+    
+    const date = new Date().toISOString().split('T')[0];
+    const filename = submissions.length === 1
+      ? `${submissions[0].submissionNumber}_${date}.xlsx`
+      : `${submissions.map(s => s.submissionNumber).join('_')}_${date}.xlsx`;
+    
+    return { blob: response.data, filename };
   },
 
   archiveMany: async (ids: string[]) => {

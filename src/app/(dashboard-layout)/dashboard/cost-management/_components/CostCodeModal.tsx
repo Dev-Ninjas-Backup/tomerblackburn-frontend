@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   useCreateCostCode,
   useUpdateCostCode,
@@ -282,98 +283,64 @@ const CostCodeModal = ({
               <label className="block text-sm font-medium mb-1">
                 Project Type *
               </label>
-              <select
+              <SearchableSelect
+                options={projectTypes?.map((pt) => ({ value: pt.id, label: pt.name })) || []}
                 value={selectedProjectType}
-                onChange={(e) => {
-                  setSelectedProjectType(e.target.value);
+                onChange={(value) => {
+                  setSelectedProjectType(value);
                   setSelectedCategory("");
                   setFormData({ ...formData, serviceId: "" });
                 }}
-                className="w-full border rounded px-3 py-2"
+                placeholder="Select Project Type"
                 required
-                title="Select project type"
-                aria-label="Select project type"
-              >
-                <option value="">Select Project Type</option>
-                {projectTypes?.map((pt) => (
-                  <option key={pt.id} value={pt.id}>
-                    {pt.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Service Category *
               </label>
-              <select
+              <SearchableSelect
+                options={serviceCategories?.map((sc) => ({ value: sc.id, label: sc.name })) || []}
                 value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
+                onChange={(value) => {
+                  setSelectedCategory(value);
                   setFormData({ ...formData, serviceId: "" });
                 }}
-                className="w-full border rounded px-3 py-2"
+                placeholder="Select Category"
                 required
                 disabled={!selectedProjectType}
-                title="Select service category"
-                aria-label="Select service category"
-              >
-                <option value="">Select Category</option>
-                {serviceCategories?.map((sc) => (
-                  <option key={sc.id} value={sc.id}>
-                    {sc.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Service *
               </label>
-              <select
-                value={formData.serviceId}
-                onChange={(e) => {
-                  setFormData({ ...formData, serviceId: e.target.value });
-                  setSelectedServiceId(e.target.value);
+              <SearchableSelect
+                options={services?.map((s) => ({ value: s.id, label: s.name })) || []}
+                value={formData.serviceId || ""}
+                onChange={(value) => {
+                  setFormData({ ...formData, serviceId: value });
+                  setSelectedServiceId(value);
                 }}
-                className="w-full border rounded px-3 py-2"
+                placeholder="Select Service"
                 required
                 disabled={!selectedCategory}
-                title="Select service"
-                aria-label="Select service"
-              >
-                <option value="">Select Service</option>
-                {services?.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
                 Category *
               </label>
-              <select
+              <SearchableSelect
+                options={categories.map((cat) => ({ value: cat.id, label: cat.name })) || []}
                 value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData({ ...formData, categoryId: e.target.value })
-                }
-                className="w-full border rounded px-3 py-2"
+                onChange={(value) => setFormData({ ...formData, categoryId: value })}
+                placeholder="Select Category"
                 required
-                title="Select category"
-                aria-label="Select category"
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
