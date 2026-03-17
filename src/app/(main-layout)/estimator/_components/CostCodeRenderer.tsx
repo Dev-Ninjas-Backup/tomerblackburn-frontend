@@ -5,6 +5,7 @@ interface CostCode {
   id: string;
   code: string;
   name: string;
+  elies?: string;
   description?: string;
   clientPrice: number;
   unitType: string;
@@ -81,7 +82,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       ) {
         autoAddedRef.current.add(costCode.id);
         onSelectionChange(costCode.id, {
-          costCodeName: costCode.name,
+          costCodeName: costCode.elies || costCode.name,
           unitPrice: costCode.clientPrice,
           isEnabled: true,
           quantity: 1,
@@ -122,7 +123,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   const handleToggle = (costCode: CostCode, enabled: boolean) => {
     if (enabled) {
       onSelectionChange(costCode.id, {
-        costCodeName: costCode.name,
+        costCodeName: costCode.elies || costCode.name,
         unitPrice: costCode.clientPrice,
         isEnabled: true,
         quantity: costCode.requiresQuantity ? 1 : undefined,
@@ -140,7 +141,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     const option = costCode.options?.find((o) => o.id === optionId);
     if (option) {
       onSelectionChange(costCode.id, {
-        costCodeName: costCode.name,
+        costCodeName: costCode.elies || costCode.name,
         selectedOptionId: optionId,
         unitPrice: Number(option.priceModifier),
         isEnabled: true,
@@ -160,7 +161,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     }
     if (!selection) {
       onSelectionChange(costCode.id, {
-        costCodeName: costCode.name,
+        costCodeName: costCode.elies || costCode.name,
         unitPrice: costCode.clientPrice,
         isEnabled: true,
         userInputValue: value,
@@ -226,10 +227,14 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
-          <p className={`text-xs mt-1 font-medium ${
-            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-          }`}>
-            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          <p
+            className={`text-xs mt-1 font-medium ${
+              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+            }`}
+          >
+            {costCode.isIncludedInBase
+              ? "Included in Base Price"
+              : "Additional Upgrade"}
           </p>
           {renderChildren(costCode.id)}
         </div>
@@ -246,10 +251,14 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 {costCode.name}
               </p>
               {formatDescription(costCode.description)}
-              <p className={`text-xs mt-1 font-medium ${
-                costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-              }`}>
-                {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+              <p
+                className={`text-xs mt-1 font-medium ${
+                  costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+                }`}
+              >
+                {costCode.isIncludedInBase
+                  ? "Included in Base Price"
+                  : "Additional Upgrade"}
               </p>
             </div>
             <button
@@ -273,17 +282,24 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     }
 
     // GREEN / YELLOW - Number input
-    if (costCode.questionType === "GREEN" || costCode.questionType === "YELLOW") {
+    if (
+      costCode.questionType === "GREEN" ||
+      costCode.questionType === "YELLOW"
+    ) {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <p className="text-sm font-medium text-gray-800 mb-1.5">
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
-          <p className={`text-xs mt-1 font-medium ${
-            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-          }`}>
-            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          <p
+            className={`text-xs mt-1 font-medium ${
+              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+            }`}
+          >
+            {costCode.isIncludedInBase
+              ? "Included in Base Price"
+              : "Additional Upgrade"}
           </p>
           <div className="flex items-center gap-2 mt-1.5">
             <Input
@@ -313,10 +329,14 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.name}
           </p>
           {formatDescription(costCode.description)}
-          <p className={`text-xs mt-1 font-medium ${
-            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-          }`}>
-            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          <p
+            className={`text-xs mt-1 font-medium ${
+              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+            }`}
+          >
+            {costCode.isIncludedInBase
+              ? "Included in Base Price"
+              : "Additional Upgrade"}
           </p>
           <select
             value={selection?.selectedOptionId || ""}
@@ -324,7 +344,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               if (e.target.value) handleOptionChange(costCode, e.target.value);
               else onSelectionRemove(costCode.id);
             }}
-            className="w-full rounded border-gray-300 p-2.5 border text-sm mt-1 min-h-[44px]"
+            className="w-full rounded border-gray-300 p-2.5 border text-sm mt-1 min-h-11"
             aria-label={`Select ${costCode.name}`}
           >
             <option value="">Select option</option>
@@ -347,10 +367,14 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
           {formatDescription(costCode.description)}
-          <p className={`text-xs mt-1 font-medium ${
-            costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-          }`}>
-            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+          <p
+            className={`text-xs mt-1 font-medium ${
+              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
+            }`}
+          >
+            {costCode.isIncludedInBase
+              ? "Included in Base Price"
+              : "Additional Upgrade"}
           </p>
         </div>
       );

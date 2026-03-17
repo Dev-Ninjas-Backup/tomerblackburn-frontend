@@ -9,17 +9,17 @@ export const FloatingPriceCard = () => {
     useEstimatorStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Calculate additional costs from selections
+  // Calculate additional costs from selections (exclude items with 0 or null price)
   const additionalCosts = [
     ...step1Selections
-      .filter((s) => s.isEnabled)
+      .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
         name: s.costCodeName || `Step 1 Item`,
         cost: Number(s.unitPrice) * (s.quantity || 1),
       })),
     ...step2Selections
-      .filter((s) => s.isEnabled)
+      .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
         name: s.costCodeName || `Step 2 Item`,

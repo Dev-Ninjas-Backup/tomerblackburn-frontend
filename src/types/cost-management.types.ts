@@ -33,6 +33,7 @@ export interface CostCode {
   serviceId?: string;
   code: string;
   name: string;
+  elies?: string;
   description?: string;
   basePrice: number;
   markup: number;
@@ -66,6 +67,7 @@ export interface CreateCostCodeDto {
   serviceId?: string;
   code: string;
   name: string;
+  elies?: string;
   description?: string;
   basePrice: number;
   markup?: number;

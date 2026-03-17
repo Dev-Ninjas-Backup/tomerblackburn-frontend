@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Filter, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Filter, X, ChevronUp, ChevronDown } from "lucide-react";
 import {
   useCostCodes,
   useDeleteCostCode,
@@ -31,11 +31,20 @@ interface CostCodeFilters {
   isIncludedInBase?: boolean;
 }
 
+type SortField = 'code' | 'name' | 'service' | 'category' | 'questionType' | 'basePrice' | 'step' | 'status';
+type SortOrder = 'asc' | 'desc';
+
 const CostCodesTab = () => {
   const { data: categories } = useCostCodeCategories();
   const { data: services } = useServices();
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<CostCodeFilters>({});
+  
+  // Pagination & Sorting states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortField, setSortField] = useState<SortField>('code');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   const { data: costCodes, isLoading } = useCostCodes(filters);
   const deleteMutation = useDeleteCostCode();
@@ -76,24 +85,105 @@ const CostCodesTab = () => {
     }
   };
 
-  // Build tree: parents first, then their children nested under them recursively
-  const buildTree = () => {
-    if (!costCodes) return [];
+  // Sort and paginate logic
+  const { paginatedTreeRows, totalPages, totalParents } = useMemo(() => {
+    if (!costCodes) return { paginatedTreeRows: [], totalPages: 0, totalParents: 0 };
+
+    // Get only parent cost codes
+    const parents = costCodes.filter((c) => !c.parentCostCodeId);
+
+    // Sort parents
+    const sortedParents = [...parents].sort((a, b) => {
+      let aVal: any, bVal: any;
+
+      switch (sortField) {
+        case 'code':
+          aVal = a.code;
+          bVal = b.code;
+          break;
+        case 'name':
+          aVal = a.name;
+          bVal = b.name;
+          break;
+        case 'service':
+          aVal = a.service?.name || '';
+          bVal = b.service?.name || '';
+          break;
+        case 'category':
+          aVal = a.category?.name || '';
+          bVal = b.category?.name || '';
+          break;
+        case 'questionType':
+          aVal = a.questionType;
+          bVal = b.questionType;
+          break;
+        case 'basePrice':
+          aVal = a.basePrice;
+          bVal = b.basePrice;
+          break;
+        case 'step':
+          aVal = a.step;
+          bVal = b.step;
+          break;
+        case 'status':
+          aVal = a.isActive ? 1 : 0;
+          bVal = b.isActive ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aVal === 'string') {
+        return sortOrder === 'asc' 
+          ? aVal.localeCompare(bVal) 
+          : bVal.localeCompare(aVal);
+      }
+      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+
+    // Calculate pagination for parents only
+    const totalParentsCount = sortedParents.length;
+    const totalPagesCount = pageSize === -1 ? 1 : Math.ceil(totalParentsCount / pageSize);
+    const startIdx = pageSize === -1 ? 0 : (currentPage - 1) * pageSize;
+    const endIdx = pageSize === -1 ? totalParentsCount : startIdx + pageSize;
+    const paginatedParents = sortedParents.slice(startIdx, endIdx);
+
+    // Build tree with paginated parents and all their children
     const result: { item: any; depth: number }[] = [];
     
-    const addWithChildren = (parentId: string | null, depth: number) => {
+    const addWithChildren = (parentId: string, depth: number) => {
       const children = costCodes.filter((c) => c.parentCostCodeId === parentId);
       children.forEach((child) => {
         result.push({ item: child, depth });
         addWithChildren(child.id, depth + 1);
       });
     };
-    
-    addWithChildren(null, 0);
-    return result;
+
+    paginatedParents.forEach((parent) => {
+      result.push({ item: parent, depth: 0 });
+      addWithChildren(parent.id, 1);
+    });
+
+    return { 
+      paginatedTreeRows: result, 
+      totalPages: totalPagesCount,
+      totalParents: totalParentsCount 
+    };
+  }, [costCodes, currentPage, pageSize, sortField, sortOrder]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
   };
 
-  const treeRows = buildTree();
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ChevronUp size={14} className="opacity-30" />;
+    return sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+  };
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -273,32 +363,80 @@ const CostCodesTab = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Code
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('code')}
+              >
+                <div className="flex items-center gap-1">
+                  Code
+                  <SortIcon field="code" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Name
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center gap-1">
+                  Name
+                  <SortIcon field="name" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Service
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('service')}
+              >
+                <div className="flex items-center gap-1">
+                  Service
+                  <SortIcon field="service" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Category
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('category')}
+              >
+                <div className="flex items-center gap-1">
+                  Category
+                  <SortIcon field="category" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Question Type
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('questionType')}
+              >
+                <div className="flex items-center gap-1">
+                  Question Type
+                  <SortIcon field="questionType" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Base Price
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('basePrice')}
+              >
+                <div className="flex items-center gap-1">
+                  Base Price
+                  <SortIcon field="basePrice" />
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Step
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('step')}
+              >
+                <div className="flex items-center gap-1">
+                  Step
+                  <SortIcon field="step" />
+                </div>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Status
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  <SortIcon field="status" />
+                </div>
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                 Actions
@@ -306,7 +444,7 @@ const CostCodesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {treeRows.map(({ item, depth }) => (
+            {paginatedTreeRows.map(({ item, depth }) => (
               <tr key={item.id} className={depth > 0 ? "bg-gray-50" : ""}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   <span style={{ paddingLeft: `${depth * 24}px` }}>{item.code}</span>
@@ -376,6 +514,78 @@ const CostCodesTab = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-6 flex items-center justify-between bg-white px-6 py-4 rounded-lg shadow">
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-700">
+            Showing {pageSize === -1 ? totalParents : Math.min((currentPage - 1) * pageSize + 1, totalParents)} to{' '}
+            {pageSize === -1 ? totalParents : Math.min(currentPage * pageSize, totalParents)} of {totalParents} parents
+          </span>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-700">Show:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border rounded px-3 py-1 text-sm"
+              aria-label="Select page size"
+              title="Select page size"
+            >
+              <option value={-1}>All</option>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+              <option value={40}>40</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        {pageSize !== -1 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              First
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-700 px-4">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              Last
+            </Button>
+          </div>
+        )}
       </div>
 
       <CostCodeModal
