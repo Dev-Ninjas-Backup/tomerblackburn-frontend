@@ -78,6 +78,7 @@ const CostCodeModal = ({
     categoryId: "",
     code: "",
     name: "",
+    elies: "",
     description: "",
     basePrice: 0,
     markup: 0,
@@ -117,6 +118,7 @@ const CostCodeModal = ({
         serviceId: data.serviceId || "",
         code: data.code,
         name: data.name,
+        elies: data.elies || "",
         description: data.description || "",
         basePrice: data.basePrice,
         markup: data.markup || 0,
@@ -154,6 +156,7 @@ const CostCodeModal = ({
         serviceId: "",
         code: "",
         name: "",
+        elies: "",
         description: "",
         basePrice: 0,
         markup: 0,
@@ -262,7 +265,7 @@ const CostCodeModal = ({
 
   return (
     <div className="fixed inset-0 z-9999 flex items-start justify-center bg-black/50 overflow-y-auto p-4">
-      <div className="bg-white rounded-lg w-full max-w-2xl p-6 my-8">
+      <div className="bg-white rounded-lg w-full max-w-3xl p-6 my-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
             {mode === "create" ? "Create" : "Edit"} Cost Code
@@ -284,7 +287,12 @@ const CostCodeModal = ({
                 Project Type *
               </label>
               <SearchableSelect
-                options={projectTypes?.map((pt) => ({ value: pt.id, label: pt.name })) || []}
+                options={
+                  projectTypes?.map((pt) => ({
+                    value: pt.id,
+                    label: pt.name,
+                  })) || []
+                }
                 value={selectedProjectType}
                 onChange={(value) => {
                   setSelectedProjectType(value);
@@ -301,7 +309,12 @@ const CostCodeModal = ({
                 Service Category *
               </label>
               <SearchableSelect
-                options={serviceCategories?.map((sc) => ({ value: sc.id, label: sc.name })) || []}
+                options={
+                  serviceCategories?.map((sc) => ({
+                    value: sc.id,
+                    label: sc.name,
+                  })) || []
+                }
                 value={selectedCategory}
                 onChange={(value) => {
                   setSelectedCategory(value);
@@ -318,7 +331,9 @@ const CostCodeModal = ({
                 Service *
               </label>
               <SearchableSelect
-                options={services?.map((s) => ({ value: s.id, label: s.name })) || []}
+                options={
+                  services?.map((s) => ({ value: s.id, label: s.name })) || []
+                }
                 value={formData.serviceId || ""}
                 onChange={(value) => {
                   setFormData({ ...formData, serviceId: value });
@@ -335,9 +350,16 @@ const CostCodeModal = ({
                 Category *
               </label>
               <SearchableSelect
-                options={categories.map((cat) => ({ value: cat.id, label: cat.name })) || []}
+                options={
+                  categories.map((cat) => ({
+                    value: cat.id,
+                    label: cat.name,
+                  })) || []
+                }
                 value={formData.categoryId}
-                onChange={(value) => setFormData({ ...formData, categoryId: value })}
+                onChange={(value) =>
+                  setFormData({ ...formData, categoryId: value })
+                }
                 placeholder="Select Category"
                 required
               />
@@ -368,6 +390,24 @@ const CostCodeModal = ({
                 className="w-full border rounded px-3 py-2"
                 placeholder="e.g., Floor Tile Installation"
                 required
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">
+                Name Alias{" "}
+                <span className="text-xs text-gray-500">
+                  (Used in floating summary for better display)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.elies || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, elies: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                placeholder="Alternative name for display in summary"
               />
             </div>
 
@@ -839,7 +879,9 @@ const CostCodeModal = ({
                   </label>
                 </div>
                 <p className="text-xs text-gray-500 mt-1 ml-6">
-                  Use for questions that only control follow-up questions (e.g. &quot;Relocating Plumbing?&quot;). They appear in the estimator but are not included in the Excel export.
+                  Use for questions that only control follow-up questions (e.g.
+                  &quot;Relocating Plumbing?&quot;). They appear in the
+                  estimator but are not included in the Excel export.
                 </p>
               </div>
             </div>
