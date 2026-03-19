@@ -10,11 +10,11 @@ import { useTips } from "@/hooks/useTips";
 import {
   Upload,
   X,
-  Image as ImageIcon,
   Video as VideoIcon,
 } from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 import { uploadService } from "@/services/upload.service";
+import { buildingTypeService, BuildingType } from "@/services/building-type.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
 
 interface UploadedFile {
@@ -47,10 +47,21 @@ export default function PreviewPage() {
   const [zipCode, setZipCode] = useState(userInfo.zipCode);
   const [address, setAddress] = useState(userInfo.address);
   const [notes, setNotes] = useState(userInfo.notes);
-  const [desiredStartDate, setDesiredStartDate] = useState(userInfo.desiredStartDate || "");
+  const [desiredStartDate, setDesiredStartDate] = useState(
+    userInfo.desiredStartDate || "",
+  );
   const [buildingType, setBuildingType] = useState(userInfo.buildingType || "");
+  const [buildingTypeId, setBuildingTypeId] = useState(userInfo.buildingTypeId || "");
+  const [buildingTypes, setBuildingTypes] = useState<BuildingType[]>([]);
+  const [buildingTypeFieldValues, setBuildingTypeFieldValues] = useState<Record<string, string>>({});
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    buildingTypeService.getActive().then((res) => {
+      setBuildingTypes(res.data.data || []);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!serviceId) {
@@ -170,7 +181,8 @@ export default function PreviewPage() {
         );
 
         // Save photo ID to store - get current state first
-        const currentPhotoIds = useEstimatorStore.getState().userInfo.photoIds || [];
+        const currentPhotoIds =
+          useEstimatorStore.getState().userInfo.photoIds || [];
         setUserInfo({
           photoIds: [...currentPhotoIds, uploaded.id],
         });
@@ -228,7 +240,8 @@ export default function PreviewPage() {
         );
 
         // Save video ID to store - get current state first
-        const currentVideoIds = useEstimatorStore.getState().userInfo.videoIds || [];
+        const currentVideoIds =
+          useEstimatorStore.getState().userInfo.videoIds || [];
         setUserInfo({
           videoIds: [...currentVideoIds, uploaded.id],
         });
@@ -248,15 +261,28 @@ export default function PreviewPage() {
       const currentUserInfo = useEstimatorStore.getState().userInfo;
       if (file.type === "image") {
         setUserInfo({
-          photoIds: (currentUserInfo.photoIds || []).filter((photoId) => photoId !== id),
+          photoIds: (currentUserInfo.photoIds || []).filter(
+            (photoId) => photoId !== id,
+          ),
         });
       } else {
         setUserInfo({
-          videoIds: (currentUserInfo.videoIds || []).filter((videoId) => videoId !== id),
+          videoIds: (currentUserInfo.videoIds || []).filter(
+            (videoId) => videoId !== id,
+          ),
         });
       }
     }
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const selectedBuildingType = buildingTypes.find((bt) => bt.id === buildingTypeId);
+
+  const handleBuildingTypeChange = (id: string) => {
+    setBuildingTypeId(id);
+    const bt = buildingTypes.find((b) => b.id === id);
+    setBuildingType(bt?.name || "");
+    setBuildingTypeFieldValues({});
   };
 
   const handleSubmit = async () => {
@@ -265,6 +291,10 @@ export default function PreviewPage() {
     setIsSubmitting(true);
 
     try {
+      const fieldValuesArray = selectedBuildingType?.fields
+        .filter((f) => buildingTypeFieldValues[f.id])
+        .map((f) => ({ fieldId: f.id, value: buildingTypeFieldValues[f.id] })) || [];
+
       // Prepare submission data
       const submissionData = {
         serviceId,
@@ -275,6 +305,8 @@ export default function PreviewPage() {
         zipCode,
         desiredStartDate,
         buildingType,
+        buildingTypeId: buildingTypeId || undefined,
+        buildingTypeFieldValues: fieldValuesArray.length ? fieldValuesArray : undefined,
         basePrice,
         additionalItemsTotal: totalPrice - basePrice,
         totalAmount: totalPrice,
@@ -370,6 +402,7 @@ export default function PreviewPage() {
         notes,
         desiredStartDate,
         buildingType,
+        buildingTypeId,
       });
 
       router.push("/estimator/confirmation");
@@ -388,20 +421,27 @@ export default function PreviewPage() {
     }
   };
 
-  const isFormValid = fullName && email && phone && zipCode && address && desiredStartDate && buildingType;
+  const isFormValid =
+    fullName &&
+    email &&
+    phone &&
+    zipCode &&
+    address &&
+    desiredStartDate &&
+    buildingTypeId;
   const additionalTotal = totalPrice - basePrice;
 
-  // Calculate additional costs from selections
+  // Calculate additional costs from selections (exclude items with 0 or null price)
   const additionalCosts = [
     ...step1Selections
-      .filter((s) => s.isEnabled)
+      .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
         name: s.costCodeName || `Step 1 Item`,
         cost: Number(s.unitPrice) * (s.quantity || 1),
       })),
     ...step2Selections
-      .filter((s) => s.isEnabled)
+      .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
         name: s.costCodeName || `Step 2 Item`,
@@ -413,7 +453,8 @@ export default function PreviewPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <FloatingPriceCard />
 
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="lg:flex lg:justify-center">
+      <div className="px-4 w-full max-w-4xl lg:mr-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -510,23 +551,47 @@ export default function PreviewPage() {
               </div>
 
               <div>
-                <label htmlFor="buildingType" className="block text-sm font-medium text-gray-900 mb-2">
+                <label
+                  htmlFor="buildingType"
+                  className="block text-sm font-medium text-gray-900 mb-2"
+                >
                   Building Type*
                 </label>
                 <select
                   id="buildingType"
-                  value={buildingType}
-                  onChange={(e) => setBuildingType(e.target.value)}
+                  value={buildingTypeId}
+                  onChange={(e) => handleBuildingTypeChange(e.target.value)}
                   className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"
                   required
                 >
                   <option value="">Select Building Type</option>
-                  <option value="Single Family">Single Family</option>
-                  <option value="Condo">Condo</option>
-                  <option value="Townhome">Townhome</option>
-                  <option value="Multi-Unit">Multi-Unit</option>
+                  {buildingTypes.map((bt) => (
+                    <option key={bt.id} value={bt.id}>{bt.name}</option>
+                  ))}
                 </select>
               </div>
+
+              {/* Dynamic fields for selected building type */}
+              {selectedBuildingType?.fields.map((field) => (
+                <div key={field.id}>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    {field.label}{field.isRequired ? "*" : ""}
+                  </label>
+                  <Input
+                    type={field.fieldType === "number" ? "number" : "text"}
+                    value={buildingTypeFieldValues[field.id] || ""}
+                    onChange={(e) =>
+                      setBuildingTypeFieldValues((prev) => ({
+                        ...prev,
+                        [field.id]: e.target.value,
+                      }))
+                    }
+                    placeholder={field.placeholder || `Enter ${field.label}`}
+                    className="h-12 px-4"
+                    required={field.isRequired}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -707,9 +772,14 @@ export default function PreviewPage() {
                     <p className="text-gray-600 mb-3">Additional Items:</p>
                     <div className="space-y-2 pl-4">
                       {additionalCosts.map((cost) => (
-                        <div key={cost.id} className="flex justify-between text-sm">
+                        <div
+                          key={cost.id}
+                          className="flex justify-between text-sm"
+                        >
                           <span className="text-gray-600">{cost.name}:</span>
-                          <span className="font-medium">+${cost.cost.toLocaleString()}</span>
+                          <span className="font-medium">
+                            +${cost.cost.toLocaleString()}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -719,7 +789,10 @@ export default function PreviewPage() {
                     <div className="flex justify-between text-lg">
                       <span className="text-gray-600">Additions Total:</span>
                       <span className="font-semibold">
-                        ${additionalCosts.reduce((sum, c) => sum + c.cost, 0).toLocaleString()}
+                        $
+                        {additionalCosts
+                          .reduce((sum, c) => sum + c.cost, 0)
+                          .toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -742,17 +815,17 @@ export default function PreviewPage() {
 
           {/* Submit Button */}
           <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <div className="flex gap-4">
+            <div className="flex sm:flex-row flex-col-reverse justify-between items-center gap-4">
               <Button
                 onClick={() => router.back()}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg rounded-full px-8"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg rounded-full px-8 w-full sm:w-auto"
               >
                 ← Back
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={!isFormValid || isSubmitting}
-                className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 sm:text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed w-full"
               >
                 {isSubmitting ? "Submitting..." : "Submit Estimate Budget →"}
               </Button>
@@ -763,6 +836,9 @@ export default function PreviewPage() {
             </p>
           </div>
         </motion.div>
+      </div>
+      {/* Spacer for floating card on desktop */}
+      <div className="hidden lg:block lg:w-80 lg:shrink-0" />
       </div>
     </div>
   );

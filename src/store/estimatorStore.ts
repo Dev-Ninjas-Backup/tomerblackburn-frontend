@@ -23,6 +23,7 @@ interface UserInfo {
   notes: string
   desiredStartDate?: string
   buildingType?: string
+  buildingTypeId?: string
   photoIds: string[]
   videoIds: string[]
 }

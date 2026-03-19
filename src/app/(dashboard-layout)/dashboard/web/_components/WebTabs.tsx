@@ -13,6 +13,7 @@ const tabs = [
   "About Us",
   "Portfolio",
   "Estimator",
+  "Building Types",
   "Terms of Service",
   "Privacy Policy",
 ];

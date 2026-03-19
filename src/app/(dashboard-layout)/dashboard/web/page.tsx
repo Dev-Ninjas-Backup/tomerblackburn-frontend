@@ -7,6 +7,7 @@ import { HomeTab } from "./_tabs/HomeTab";
 import { AboutTab } from "./_tabs/AboutTab";
 import { PortfolioTabNew } from "./_tabs/PortfolioTabNew";
 import EstimatorTab from "./_tabs/EstimatorTab";
+import BuildingTypesTab from "./_tabs/BuildingTypesTab";
 import { TermsTab } from "./_tabs/TermsTab";
 import { PrivacyTab } from "./_tabs/PrivacyTab";
 
@@ -23,6 +24,8 @@ const WebPage = () => {
         return <PortfolioTabNew />;
       case "Estimator":
         return <EstimatorTab />;
+      case "Building Types":
+        return <BuildingTypesTab />;
       case "Terms of Service":
         return <TermsTab />;
       case "Privacy Policy":
