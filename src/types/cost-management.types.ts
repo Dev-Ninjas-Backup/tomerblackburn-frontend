@@ -34,6 +34,7 @@ export interface CostCode {
   code: string;
   name: string;
   elies?: string;
+  tips?: string[];
   description?: string;
   basePrice: number;
   markup: number;
@@ -68,6 +69,7 @@ export interface CreateCostCodeDto {
   code: string;
   name: string;
   elies?: string;
+  tips?: string[];
   description?: string;
   basePrice: number;
   markup?: number;

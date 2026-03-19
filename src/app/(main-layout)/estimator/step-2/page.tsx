@@ -57,8 +57,9 @@ export default function Step2Page() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <FloatingPriceCard />
-      
-      <div className="container mx-auto px-4 max-w-4xl">
+
+      <div className="lg:flex lg:justify-center">
+      <div className="px-4 w-full max-w-4xl lg:mr-4">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -115,6 +116,9 @@ export default function Step2Page() {
             </Button>
           </div>
         </motion.div>
+      </div>
+      {/* Spacer for floating card on desktop */}
+      <div className="hidden lg:block lg:w-80 lg:shrink-0" />
       </div>
     </div>
   )

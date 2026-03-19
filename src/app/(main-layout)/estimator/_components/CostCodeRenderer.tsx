@@ -1,11 +1,13 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Lightbulb, X as XIcon } from "lucide-react";
 
 interface CostCode {
   id: string;
   code: string;
   name: string;
   elies?: string;
+  tips?: string[];
   description?: string;
   clientPrice: number;
   unitType: string;
@@ -52,6 +54,89 @@ interface CostCodeRendererProps {
   ) => void;
   onSelectionRemove: (costCodeId: string) => void;
 }
+
+const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={`Tips for ${label}`}
+        className={`relative flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200 ${
+          open
+            ? "bg-[#283878] text-white shadow-lg shadow-[#283878]/40 scale-110"
+            : "bg-[#283878]/10 text-[#283878] hover:bg-[#283878]/20 hover:scale-110 hover:shadow-md hover:shadow-[#283878]/20"
+        }`}
+      >
+        <Lightbulb className="w-3.5 h-3.5" />
+        {/* Pulse ring — only when closed */}
+        {!open && (
+          <span className="absolute inset-0 rounded-full animate-ping bg-[#283878]/20 pointer-events-none" />
+        )}
+      </button>
+
+      {/* Popover panel */}
+      <div
+        className={`absolute right-0 top-8 z-50 w-64 transition-all duration-250 origin-top-right ${
+          open
+            ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="bg-white rounded-xl overflow-hidden shadow-2xl shadow-[#283878]/15 border border-[#283878]/12">
+          {/* Header */}
+          <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#283878]">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                <Lightbulb className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-xs font-semibold text-white tracking-wide">Pro Tips</span>
+              <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-medium">
+                {tips.length}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors"
+              aria-label="Close tips"
+            >
+              <XIcon className="w-3 h-3 text-white" />
+            </button>
+          </div>
+
+          {/* Tips list */}
+          <ul className="px-3.5 py-3 space-y-2.5">
+            {tips.map((tip, i) => (
+              <li key={i} className="flex gap-2.5 items-start">
+                <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full bg-[#283878] text-white text-[9px] font-bold flex items-center justify-center">
+                  {i + 1}
+                </span>
+                <span className="text-xs text-gray-600 leading-relaxed">{tip}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Footer accent line */}
+          <div className="h-0.5 bg-gradient-to-r from-[#283878] via-[#4064b8] to-transparent" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const QUESTION_TYPE_COLORS = {
   WHITE: "bg-gray-50",
@@ -221,20 +306,15 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "WHITE") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <p
-            className={`${isNested ? "text-sm" : "text-sm"} font-medium text-gray-800`}
-          >
-            {costCode.name}
-          </p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
+            {costCode.tips && costCode.tips.length > 0 && (
+              <TipsPopover tips={costCode.tips} label={costCode.name} />
+            )}
+          </div>
           {formatDescription(costCode.description)}
-          <p
-            className={`text-xs mt-1 font-medium ${
-              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-            }`}
-          >
-            {costCode.isIncludedInBase
-              ? "Included in Base Price"
-              : "Additional Upgrade"}
+          <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
           </p>
           {renderChildren(costCode.id)}
         </div>
@@ -247,18 +327,15 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-800">
-                {costCode.name}
-              </p>
+              <div className="flex items-start gap-2">
+                <p className="text-sm font-medium text-gray-800 flex-1">{costCode.name}</p>
+                {costCode.tips && costCode.tips.length > 0 && (
+                  <TipsPopover tips={costCode.tips} label={costCode.name} />
+                )}
+              </div>
               {formatDescription(costCode.description)}
-              <p
-                className={`text-xs mt-1 font-medium ${
-                  costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-                }`}
-              >
-                {costCode.isIncludedInBase
-                  ? "Included in Base Price"
-                  : "Additional Upgrade"}
+              <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+                {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
               </p>
             </div>
             <button
@@ -288,18 +365,15 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     ) {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <p className="text-sm font-medium text-gray-800 mb-1.5">
-            {costCode.name}
-          </p>
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
+            {costCode.tips && costCode.tips.length > 0 && (
+              <TipsPopover tips={costCode.tips} label={costCode.name} />
+            )}
+          </div>
           {formatDescription(costCode.description)}
-          <p
-            className={`text-xs mt-1 font-medium ${
-              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-            }`}
-          >
-            {costCode.isIncludedInBase
-              ? "Included in Base Price"
-              : "Additional Upgrade"}
+          <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
           </p>
           <div className="flex items-center gap-2 mt-1.5">
             <Input
@@ -309,7 +383,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               onChange={(e) =>
                 handleQuantityInput(costCode, e.target.value, selection)
               }
-              placeholder="Enter amount"
+              placeholder="Enter value"
               className="w-full sm:w-40 p-5 h-10 text-sm"
             />
             <span className="text-xs text-gray-500">
@@ -325,18 +399,15 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "ORANGE" && costCode.options) {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <p className="text-sm font-medium text-gray-800 mb-1.5">
-            {costCode.name}
-          </p>
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
+            {costCode.tips && costCode.tips.length > 0 && (
+              <TipsPopover tips={costCode.tips} label={costCode.name} />
+            )}
+          </div>
           {formatDescription(costCode.description)}
-          <p
-            className={`text-xs mt-1 font-medium ${
-              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-            }`}
-          >
-            {costCode.isIncludedInBase
-              ? "Included in Base Price"
-              : "Additional Upgrade"}
+          <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
           </p>
           <select
             value={selection?.selectedOptionId || ""}
@@ -365,16 +436,15 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "PURPLE") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
+            {costCode.tips && costCode.tips.length > 0 && (
+              <TipsPopover tips={costCode.tips} label={costCode.name} />
+            )}
+          </div>
           {formatDescription(costCode.description)}
-          <p
-            className={`text-xs mt-1 font-medium ${
-              costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"
-            }`}
-          >
-            {costCode.isIncludedInBase
-              ? "Included in Base Price"
-              : "Additional Upgrade"}
+          <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+            {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
           </p>
         </div>
       );
