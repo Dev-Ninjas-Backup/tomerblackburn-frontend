@@ -2,7 +2,16 @@
 
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Filter, X, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Filter,
+  X,
+  ChevronUp,
+  ChevronDown,
+  Search,
+} from "lucide-react";
 import {
   useCostCodes,
   useDeleteCostCode,
@@ -31,20 +40,29 @@ interface CostCodeFilters {
   isIncludedInBase?: boolean;
 }
 
-type SortField = 'code' | 'name' | 'service' | 'category' | 'questionType' | 'basePrice' | 'step' | 'status';
-type SortOrder = 'asc' | 'desc';
+type SortField =
+  | "code"
+  | "name"
+  | "service"
+  | "category"
+  | "questionType"
+  | "basePrice"
+  | "step"
+  | "status";
+type SortOrder = "asc" | "desc";
 
 const CostCodesTab = () => {
   const { data: categories } = useCostCodeCategories();
   const { data: services } = useServices();
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<CostCodeFilters>({});
-  
+
   // Pagination & Sorting states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [sortField, setSortField] = useState<SortField>('code');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [sortField, setSortField] = useState<SortField>("code");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: costCodes, isLoading } = useCostCodes(filters);
   const deleteMutation = useDeleteCostCode();
@@ -87,45 +105,80 @@ const CostCodesTab = () => {
 
   // Sort and paginate logic
   const { paginatedTreeRows, totalPages, totalParents } = useMemo(() => {
-    if (!costCodes) return { paginatedTreeRows: [], totalPages: 0, totalParents: 0 };
+    if (!costCodes)
+      return { paginatedTreeRows: [], totalPages: 0, totalParents: 0 };
 
-    // Get only parent cost codes
-    const parents = costCodes.filter((c) => !c.parentCostCodeId);
+    // Search filter: match against code, name, elies, service, category
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = (c: any) => {
+      if (!query) return true;
+      return (
+        c.code?.toLowerCase().includes(query) ||
+        c.name?.toLowerCase().includes(query) ||
+        c.elies?.toLowerCase().includes(query) ||
+        c.service?.name?.toLowerCase().includes(query) ||
+        c.category?.name?.toLowerCase().includes(query)
+      );
+    };
+
+    // When searching: show any matching item (parent or child) regardless of tree
+    // When not searching: show only parents and paginate them
+    let parents: any[];
+    if (query) {
+      // Collect parents that match OR have children that match
+      const matchingIds = new Set(
+        costCodes.filter(matchesSearch).map((c) => c.id),
+      );
+      // Walk up to find root parents of matching items
+      const getRootParent = (c: any): any => {
+        if (!c.parentCostCodeId) return c;
+        const parent = costCodes.find((p) => p.id === c.parentCostCodeId);
+        return parent ? getRootParent(parent) : c;
+      };
+      const rootParentIds = new Set(
+        costCodes.filter(matchesSearch).map((c) => getRootParent(c).id),
+      );
+      parents = costCodes.filter(
+        (c) => !c.parentCostCodeId && rootParentIds.has(c.id),
+      );
+    } else {
+      parents = costCodes.filter((c) => !c.parentCostCodeId);
+    }
 
     // Sort parents
     const sortedParents = [...parents].sort((a, b) => {
       let aVal: any, bVal: any;
 
       switch (sortField) {
-        case 'code':
+        case "code":
           aVal = a.code;
           bVal = b.code;
           break;
-        case 'name':
+        case "name":
           aVal = a.name;
           bVal = b.name;
           break;
-        case 'service':
-          aVal = a.service?.name || '';
-          bVal = b.service?.name || '';
+        case "service":
+          aVal = a.service?.name || "";
+          bVal = b.service?.name || "";
           break;
-        case 'category':
-          aVal = a.category?.name || '';
-          bVal = b.category?.name || '';
+        case "category":
+          aVal = a.category?.name || "";
+          bVal = b.category?.name || "";
           break;
-        case 'questionType':
+        case "questionType":
           aVal = a.questionType;
           bVal = b.questionType;
           break;
-        case 'basePrice':
+        case "basePrice":
           aVal = a.basePrice;
           bVal = b.basePrice;
           break;
-        case 'step':
+        case "step":
           aVal = a.step;
           bVal = b.step;
           break;
-        case 'status':
+        case "status":
           aVal = a.isActive ? 1 : 0;
           bVal = b.isActive ? 1 : 0;
           break;
@@ -133,24 +186,25 @@ const CostCodesTab = () => {
           return 0;
       }
 
-      if (typeof aVal === 'string') {
-        return sortOrder === 'asc' 
-          ? aVal.localeCompare(bVal) 
+      if (typeof aVal === "string") {
+        return sortOrder === "asc"
+          ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
-      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+      return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
     });
 
     // Calculate pagination for parents only
     const totalParentsCount = sortedParents.length;
-    const totalPagesCount = pageSize === -1 ? 1 : Math.ceil(totalParentsCount / pageSize);
+    const totalPagesCount =
+      pageSize === -1 ? 1 : Math.ceil(totalParentsCount / pageSize);
     const startIdx = pageSize === -1 ? 0 : (currentPage - 1) * pageSize;
     const endIdx = pageSize === -1 ? totalParentsCount : startIdx + pageSize;
     const paginatedParents = sortedParents.slice(startIdx, endIdx);
 
     // Build tree with paginated parents and all their children
     const result: { item: any; depth: number }[] = [];
-    
+
     const addWithChildren = (parentId: string, depth: number) => {
       const children = costCodes.filter((c) => c.parentCostCodeId === parentId);
       children.forEach((child) => {
@@ -164,25 +218,30 @@ const CostCodesTab = () => {
       addWithChildren(parent.id, 1);
     });
 
-    return { 
-      paginatedTreeRows: result, 
+    return {
+      paginatedTreeRows: result,
       totalPages: totalPagesCount,
-      totalParents: totalParentsCount 
+      totalParents: totalParentsCount,
     };
-  }, [costCodes, currentPage, pageSize, sortField, sortOrder]);
+  }, [costCodes, currentPage, pageSize, sortField, sortOrder, searchQuery]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder('asc');
+      setSortOrder("asc");
     }
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ChevronUp size={14} className="opacity-30" />;
-    return sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+    if (sortField !== field)
+      return <ChevronUp size={14} className="opacity-30" />;
+    return sortOrder === "asc" ? (
+      <ChevronUp size={14} />
+    ) : (
+      <ChevronDown size={14} />
+    );
   };
 
   if (isLoading) {
@@ -191,18 +250,50 @@ const CostCodesTab = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">Cost Codes</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6 bg-white p-4 rounded-lg shadow">
+        <h2 className="text-xl font-semibold shrink-0">Cost Codes</h2>
+
+        {/* Search - full width */}
+        <div className="relative flex-1">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search code, name, service..."
+            className="w-full pl-9 pr-8 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Filter button + clear */}
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-2"
           >
             <Filter size={16} />
-            Filters
+            <span className="hidden sm:inline">Filters</span>
             {activeFilterCount > 0 && (
-              <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1">
+              <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-0.5">
                 {activeFilterCount}
               </span>
             )}
@@ -211,25 +302,25 @@ const CostCodesTab = () => {
             <Button
               variant="ghost"
               onClick={clearFilters}
-              className="text-gray-500"
+              className="text-gray-500 px-2"
             >
-              <X size={16} className="mr-1" />
-              Clear
+              <X size={16} />
             </Button>
           )}
+          <Button
+            onClick={handleCreate}
+            className="bg-[#2d4a8f] hover:bg-[#243a73]"
+          >
+            <Plus size={18} className="mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Add Cost Code</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-[#2d4a8f] hover:bg-[#243a73]"
-        >
-          <Plus size={18} className="mr-2" />
-          Add Cost Code
-        </Button>
       </div>
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-white shadow-md rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="bg-white shadow rounded-lg p-4 mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Category</label>
             <select
@@ -359,67 +450,67 @@ const CostCodesTab = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('code')}
+                onClick={() => handleSort("code")}
               >
                 <div className="flex items-center gap-1">
                   Code
                   <SortIcon field="code" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('name')}
+                onClick={() => handleSort("name")}
               >
                 <div className="flex items-center gap-1">
                   Name
                   <SortIcon field="name" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('service')}
+                onClick={() => handleSort("service")}
               >
                 <div className="flex items-center gap-1">
                   Service
                   <SortIcon field="service" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('category')}
+                onClick={() => handleSort("category")}
               >
                 <div className="flex items-center gap-1">
                   Category
                   <SortIcon field="category" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('questionType')}
+                onClick={() => handleSort("questionType")}
               >
                 <div className="flex items-center gap-1">
                   Question Type
                   <SortIcon field="questionType" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('basePrice')}
+                onClick={() => handleSort("basePrice")}
               >
                 <div className="flex items-center gap-1">
                   Base Price
                   <SortIcon field="basePrice" />
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('step')}
+                onClick={() => handleSort("step")}
               >
                 <div className="flex items-center gap-1">
                   Step
@@ -429,9 +520,9 @@ const CostCodesTab = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Type
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort("status")}
               >
                 <div className="flex items-center gap-1">
                   Status
@@ -447,11 +538,15 @@ const CostCodesTab = () => {
             {paginatedTreeRows.map(({ item, depth }) => (
               <tr key={item.id} className={depth > 0 ? "bg-gray-50" : ""}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <span style={{ paddingLeft: `${depth * 24}px` }}>{item.code}</span>
+                  <span style={{ paddingLeft: `${depth * 24}px` }}>
+                    {item.code}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   {depth > 0 && (
-                    <span className="text-gray-400 mr-1">{"↳".repeat(depth)}</span>
+                    <span className="text-gray-400 mr-1">
+                      {"↳".repeat(depth)}
+                    </span>
                   )}
                   {item.name}
                 </td>
@@ -517,11 +612,18 @@ const CostCodesTab = () => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="mt-6 flex items-center justify-between bg-white px-6 py-4 rounded-lg shadow">
-        <div className="flex items-center gap-4">
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-4 sm:px-6 py-4 rounded-lg shadow">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-gray-700">
-            Showing {pageSize === -1 ? totalParents : Math.min((currentPage - 1) * pageSize + 1, totalParents)} to{' '}
-            {pageSize === -1 ? totalParents : Math.min(currentPage * pageSize, totalParents)} of {totalParents} parents
+            Showing{" "}
+            {pageSize === -1
+              ? totalParents
+              : Math.min((currentPage - 1) * pageSize + 1, totalParents)}{" "}
+            –{" "}
+            {pageSize === -1
+              ? totalParents
+              : Math.min(currentPage * pageSize, totalParents)}{" "}
+            of {totalParents}
           </span>
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-700">Show:</label>
@@ -531,7 +633,7 @@ const CostCodesTab = () => {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="border rounded px-3 py-1 text-sm"
+              className="border rounded px-2 py-1 text-sm"
               aria-label="Select page size"
               title="Select page size"
             >
@@ -548,7 +650,7 @@ const CostCodesTab = () => {
         </div>
 
         {pageSize !== -1 && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-wrap">
             <Button
               variant="outline"
               size="sm"
@@ -563,10 +665,10 @@ const CostCodesTab = () => {
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              Previous
+              Prev
             </Button>
-            <span className="text-sm text-gray-700 px-4">
-              Page {currentPage} of {totalPages}
+            <span className="text-sm text-gray-700 px-2">
+              {currentPage} / {totalPages}
             </span>
             <Button
               variant="outline"

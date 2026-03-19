@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
@@ -79,6 +79,7 @@ const CostCodeModal = ({
     code: "",
     name: "",
     elies: "",
+    tips: [],
     description: "",
     basePrice: 0,
     markup: 0,
@@ -119,6 +120,7 @@ const CostCodeModal = ({
         code: data.code,
         name: data.name,
         elies: data.elies || "",
+        tips: data.tips || [],
         description: data.description || "",
         basePrice: data.basePrice,
         markup: data.markup || 0,
@@ -157,6 +159,7 @@ const CostCodeModal = ({
         code: "",
         name: "",
         elies: "",
+        tips: [],
         description: "",
         basePrice: 0,
         markup: 0,
@@ -409,6 +412,52 @@ const CostCodeModal = ({
                 className="w-full border rounded px-3 py-2"
                 placeholder="Alternative name for display in summary"
               />
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">
+                Tips{" "}
+                <span className="text-xs text-gray-500">
+                  (Helpful hints shown to users during estimation)
+                </span>
+              </label>
+              <div className="space-y-2">
+                {(formData.tips || []).map((tip, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={tip}
+                      onChange={(e) => {
+                        const newTips = [...(formData.tips || [])];
+                        newTips[idx] = e.target.value;
+                        setFormData({ ...formData, tips: newTips });
+                      }}
+                      className="flex-1 border rounded px-3 py-2 text-sm"
+                      placeholder={`Tip ${idx + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTips = (formData.tips || []).filter((_, i) => i !== idx);
+                        setFormData({ ...formData, tips: newTips });
+                      }}
+                      className="text-red-500 hover:text-red-700 p-1"
+                      title="Remove tip"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({ ...formData, tips: [...(formData.tips || []), ""] })
+                  }
+                  className="flex items-center gap-1.5 text-sm text-[#2d4a8f] hover:text-[#243a73] font-medium mt-1"
+                >
+                  <Plus size={15} /> Add Tip
+                </button>
+              </div>
             </div>
 
             <div className="col-span-2">

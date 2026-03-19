@@ -18,6 +18,7 @@ export interface SubmissionItem {
     id: string;
     code: string;
     name: string;
+    elies?: string;
     description?: string;
   };
   selectedOption?: {
@@ -37,6 +38,22 @@ export interface Submission {
   zipCode?: string;
   desiredStartDate?: string;
   buildingType?: string;
+  buildingTypeId?: string;
+  buildingTypeFieldValues?: Array<{
+    id: string;
+    fieldId: string;
+    value: string;
+    field?: {
+      id: string;
+      label: string;
+      fieldType: string;
+    };
+  }>;
+  buildingTypeRef?: {
+    id: string;
+    name: string;
+    fields: Array<{ id: string; label: string; fieldType: string }>;
+  };
   basePrice: number;
   additionalItemsTotal: number;
   totalAmount: number;

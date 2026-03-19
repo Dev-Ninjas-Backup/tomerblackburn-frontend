@@ -197,80 +197,107 @@ const Header = () => {
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
-
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <nav className="md:hidden py-4 border-t animate-in slide-in-from-top-5 duration-300">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`block py-2 ${
-                    isActive(link.href)
-                      ? "text-[#283878] font-semibold"
-                      : "text-gray-600 hover:text-[#283878]"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-
-              {/* Mobile User Menu */}
-              <div className="border-t mt-4 pt-4">
-                {isAuthenticated ? (
-                  <>
-                    <div className="px-2 py-3 mb-2 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#283878] text-white flex items-center justify-center font-semibold">
-                          {user?.name?.charAt(0).toUpperCase() || "U"}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {user?.name}
-                          </p>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {formatRole(user?.role)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/dashboard"
-                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="flex items-center gap-3 py-2 text-red-600 hover:text-red-700 w-full"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
-                    </button>
-                  </>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-3 py-2 text-gray-700 hover:text-[#283878]"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                )}
-              </div>
-            </nav>
-          )}
         </div>
       </header>
+
+      {/* Mobile Sidebar Drawer */}
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsMenuOpen(false)}
+      />
+
+      {/* Drawer panel */}
+      <div
+        className={`fixed top-0 left-0 z-[70] h-full w-72 bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out md:hidden ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-[#283878]">
+          <div className="relative w-20 h-20">
+            <Image
+              src={settings?.logoImage?.url || "/images/BBurnBuilders_logo.svg"}
+              alt={settings?.siteTitle || "BBurn Builders Logo"}
+              fill
+              className="object-contain brightness-0 invert"
+            />
+          </div>
+          <button
+            aria-label="Close menu"
+            onClick={() => setIsMenuOpen(false)}
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          >
+            <X size={18} className="text-white" />
+          </button>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex-1 overflow-y-auto px-4 py-5">
+          <div className="space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  isActive(link.href)
+                    ? "bg-[#283878] text-white shadow-sm"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-[#283878]"
+                }`}
+              >
+                {link.label}
+                {isActive(link.href) && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </nav>
+
+        {/* User section at bottom */}
+        <div className="border-t border-gray-100 px-4 py-4">
+          {isAuthenticated ? (
+            <>
+              <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-gray-50 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-[#283878] text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{formatRole(user?.role)}</p>
+                </div>
+              </div>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-100 hover:text-[#283878] transition-colors mb-1"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+              <button
+                onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#283878] text-white rounded-xl text-sm font-medium hover:bg-[#2d3f6c] transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Login</span>
+            </Link>
+          )}
+        </div>
+      </div>
     </>
   );
 };

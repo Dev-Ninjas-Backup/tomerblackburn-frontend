@@ -119,30 +119,34 @@ const SubmissionDetailModal = ({
         </div>
 
         {(submission.desiredStartDate || submission.buildingType) && (
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="space-y-4 mb-6">
             {submission.desiredStartDate && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Desired Start Date
-                </h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Desired Start Date</h3>
                 <p className="text-sm font-medium">
                   {new Date(submission.desiredStartDate).toLocaleDateString(
                     "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
+                    { year: "numeric", month: "long", day: "numeric" }
                   )}
                 </p>
               </div>
             )}
             {submission.buildingType && (
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Building Type
-                </h3>
-                <p className="text-sm font-medium">{submission.buildingType}</p>
+                <h3 className="font-semibold text-gray-900 mb-3">Building Type</h3>
+                <p className="text-sm font-bold text-[#2d4a8f] mb-3">
+                  {submission.buildingTypeRef?.name || submission.buildingType}
+                </p>
+                {submission.buildingTypeFieldValues && submission.buildingTypeFieldValues.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-gray-200 pt-3">
+                    {submission.buildingTypeFieldValues.map((fv) => (
+                      <div key={fv.id} className="bg-white rounded-md px-3 py-2 border border-gray-100">
+                        <p className="text-xs text-gray-500 mb-0.5">{fv.field?.label || "Field"}</p>
+                        <p className="text-sm font-semibold text-gray-900">{fv.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -201,11 +205,11 @@ const SubmissionDetailModal = ({
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {submission.submissionItems
-                      .filter((item) => item.isEnabled)
+                      .filter((item) => item.isEnabled && Number(item.unitPrice) > 0)
                       .map((item) => (
                         <tr key={item.id}>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {item.itemName || item.costCode?.name || "-"}
+                            {item.costCode?.elies || item.itemName || item.costCode?.name || "-"}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
                             {item.selectedOptionName ||
