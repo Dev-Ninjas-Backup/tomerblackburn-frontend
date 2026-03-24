@@ -159,19 +159,23 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   useEffect(() => {
     costCodes.forEach((costCode) => {
       if (
-        costCode.questionType === "WHITE" &&
-        !costCode.isIncludedInBase &&
-        !costCode.parentCostCodeId &&
         !selections.find((s) => s.costCodeId === costCode.id) &&
         !autoAddedRef.current.has(costCode.id)
       ) {
-        autoAddedRef.current.add(costCode.id);
-        onSelectionChange(costCode.id, {
-          costCodeName: costCode.elies || costCode.name,
-          unitPrice: costCode.clientPrice,
-          isEnabled: true,
-          quantity: 1,
-        });
+        // WHITE non-base: auto-add
+        if (
+          costCode.questionType === "WHITE" &&
+          !costCode.isIncludedInBase &&
+          !costCode.parentCostCodeId
+        ) {
+          autoAddedRef.current.add(costCode.id);
+          onSelectionChange(costCode.id, {
+            costCodeName: costCode.elies || costCode.name,
+            unitPrice: costCode.clientPrice,
+            isEnabled: true,
+            quantity: 1,
+          });
+        }
       }
     });
   }, [costCodes, selections, onSelectionChange]);
@@ -201,7 +205,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.showWhenParentValue === "true")
       return parentSelection.isEnabled === true;
     if (costCode.showWhenParentValue === "ANY")
-      return !!parentSelection.selectedOptionId;
+      return !!parentSelection.quantity || !!parentSelection.selectedOptionId;
     return parentSelection.selectedOptionId === costCode.showWhenParentValue;
   };
 
@@ -358,11 +362,45 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       );
     }
 
-    // GREEN / YELLOW - Number input
-    if (
-      costCode.questionType === "GREEN" ||
-      costCode.questionType === "YELLOW"
-    ) {
+    // YELLOW - Toggle (same as BLUE but nested)
+    if (costCode.questionType === "YELLOW") {
+      return (
+        <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-2">
+                <p className="text-sm font-medium text-gray-800 flex-1">{costCode.name}</p>
+                {costCode.tips && costCode.tips.length > 0 && (
+                  <TipsPopover tips={costCode.tips} label={costCode.name} />
+                )}
+              </div>
+              {formatDescription(costCode.description)}
+              <p className={`text-xs mt-1 font-medium ${costCode.isIncludedInBase ? "text-green-600" : "text-blue-600"}`}>
+                {costCode.isIncludedInBase ? "Included in Base Price" : "Additional Upgrade"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleToggle(costCode, !isEnabled)}
+              className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#283878] focus:ring-offset-2 ${
+                isEnabled ? "bg-[#283878]" : "bg-gray-300"
+              }`}
+              role="switch"
+              aria-checked={isEnabled ? "true" : "false"}
+              aria-label={`Toggle ${costCode.name}`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${isEnabled ? "translate-x-5" : "translate-x-0.5"}`}
+              />
+            </button>
+          </div>
+          {isEnabled && renderChildren(costCode.id)}
+        </div>
+      );
+    }
+
+    // GREEN - Number input
+    if (costCode.questionType === "GREEN") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -432,8 +470,23 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       );
     }
 
-    // PURPLE - Calculated
+    // PURPLE - Inherits parent quantity, not user-facing
     if (costCode.questionType === "PURPLE") {
+      const parentSelection = costCode.parentCostCodeId
+        ? getSelection(costCode.parentCostCodeId)
+        : undefined;
+      const inheritedQty = parentSelection?.quantity ?? 1;
+      // Auto-add to selections with inherited quantity
+      if (!selection && inheritedQty > 0) {
+        onSelectionChange(costCode.id, {
+          costCodeName: costCode.elies || costCode.name,
+          unitPrice: costCode.clientPrice,
+          isEnabled: true,
+          quantity: inheritedQty,
+        });
+      } else if (selection && selection.quantity !== inheritedQty) {
+        onSelectionChange(costCode.id, { quantity: inheritedQty });
+      }
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start justify-between gap-2">
