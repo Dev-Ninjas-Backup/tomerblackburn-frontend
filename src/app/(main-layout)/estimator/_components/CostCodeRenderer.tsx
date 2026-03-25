@@ -90,7 +90,7 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label 
 
       {/* Popover panel */}
       <div
-        className={`absolute right-0 top-8 z-50 w-64 transition-all duration-250 origin-top-right ${
+        className={`absolute left-0 top-8 z-50 w-64 transition-all duration-250 origin-top-left ${
           open
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
@@ -310,7 +310,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "WHITE") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-1.5">
             <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
@@ -331,8 +331,8 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2">
-                <p className="text-sm font-medium text-gray-800 flex-1">{costCode.name}</p>
+              <div className="flex items-start gap-1.5">
+                <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
                 {costCode.tips && costCode.tips.length > 0 && (
                   <TipsPopover tips={costCode.tips} label={costCode.name} />
                 )}
@@ -368,8 +368,8 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2">
-                <p className="text-sm font-medium text-gray-800 flex-1">{costCode.name}</p>
+              <div className="flex items-start gap-1.5">
+                <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
                 {costCode.tips && costCode.tips.length > 0 && (
                   <TipsPopover tips={costCode.tips} label={costCode.name} />
                 )}
@@ -403,7 +403,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "GREEN") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <div className="flex items-start justify-between gap-2 mb-1.5">
+          <div className="flex items-start gap-1.5 mb-1.5">
             <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
@@ -437,7 +437,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     if (costCode.questionType === "ORANGE" && costCode.options) {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <div className="flex items-start justify-between gap-2 mb-1.5">
+          <div className="flex items-start gap-1.5 mb-1.5">
             <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
@@ -489,7 +489,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       }
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-1.5">
             <p className="text-sm font-medium text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
