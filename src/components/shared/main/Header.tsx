@@ -21,10 +21,15 @@ import { formatRole } from "@/utils/formatRole";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
   const { isAuthenticated, user, logout, fetchCurrentUser } = useAuthStore();
   const { data: settings } = useSiteSettings();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch fresh user data on mount
   React.useEffect(() => {
@@ -32,6 +37,8 @@ const Header = () => {
       fetchCurrentUser();
     }
   }, [isAuthenticated, fetchCurrentUser]);
+
+  const loggedIn = mounted && isAuthenticated;
 
   const handleLogout = () => {
     logout();
@@ -58,8 +65,18 @@ const Header = () => {
               <span className="font-medium">
                 {settings?.ctaBannerText || "Get Your Free Live Estimate Now!"}
               </span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </div>
           </div>
@@ -117,7 +134,7 @@ const Header = () => {
 
             {/* User Menu */}
             <div className="hidden md:flex items-center relative">
-              {isAuthenticated ? (
+              {loggedIn ? (
                 <>
                   <button
                     aria-label="User account"
@@ -203,15 +220,17 @@ const Header = () => {
       {/* Mobile Sidebar Drawer */}
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        className={`fixed inset-0 z-60 bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
+          isMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setIsMenuOpen(false)}
       />
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 left-0 z-[70] h-full w-72 bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 left-0 z-70 h-full w-72 bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out md:hidden ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -259,15 +278,19 @@ const Header = () => {
 
         {/* User section at bottom */}
         <div className="border-t border-gray-100 px-4 py-4">
-          {isAuthenticated ? (
+          {loggedIn ? (
             <>
               <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-gray-50 rounded-xl">
                 <div className="w-10 h-10 rounded-full bg-[#283878] text-white flex items-center justify-center font-semibold text-sm shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{formatRole(user?.role)}</p>
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {formatRole(user?.role)}
+                  </p>
                 </div>
               </div>
               <Link
@@ -279,7 +302,10 @@ const Header = () => {
                 <span>Dashboard</span>
               </Link>
               <button
-                onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
                 className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
               >
                 <LogOut className="h-4 w-4" />

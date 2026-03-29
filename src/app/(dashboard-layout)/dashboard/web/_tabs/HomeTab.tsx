@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RichTextEditor } from "../_components/RichTextEditor";
+import { RichTextEditor } from "@/components/Editor";
 import { ServiceSection } from "../_components/ServiceSection";
 import {
   useCompleteHomePageData,
@@ -171,7 +171,7 @@ export const HomeTab = () => {
 
       <div className="space-y-6">
         {/* Hero Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Hero Section
@@ -276,7 +276,7 @@ export const HomeTab = () => {
         </div>
 
         {/* Mission Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="bg-linear-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Mission Section
@@ -314,7 +314,7 @@ export const HomeTab = () => {
         </div>
 
         {/* Services Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="bg-linear-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Services</h2>

@@ -1,0 +1,320 @@
+/* ============================================
+   RICH TEXT EDITOR — WRAPPER
+   ============================================ */
+.rich-text-editor-wrapper {
+  width: 100%;
+  overflow: visible;
+}
+
+.rich-text-editor-wrapper .quill {
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/* ============================================
+   STICKY TOOLBAR
+   ============================================ */
+.rich-text-editor-wrapper .ql-toolbar {
+  border-bottom: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   SCROLLABLE EDITOR BODY
+   ============================================ */
+.rich-text-editor-wrapper .ql-container {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  font-family: inherit;
+  overflow-y: auto;
+  max-height: 600px;
+  min-height: 400px;
+}
+
+.rich-text-editor-wrapper .ql-editor {
+  color: #111827;
+  font-size: 1rem;
+  line-height: 1.6;
+  min-height: 400px;
+  padding: 1rem;
+}
+
+.rich-text-editor-wrapper .ql-editor.ql-blank::before {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ============================================
+   TOOLBAR BUTTONS & COLORS
+   ============================================ */
+.rich-text-editor-wrapper .ql-toolbar button {
+  transition: color 150ms, background-color 150ms;
+}
+
+.rich-text-editor-wrapper .ql-toolbar button:hover,
+.rich-text-editor-wrapper .ql-toolbar button.ql-active {
+  color: #283878;
+}
+
+.rich-text-editor-wrapper .ql-stroke { stroke: #4b5563; }
+.rich-text-editor-wrapper .ql-toolbar button:hover .ql-stroke,
+.rich-text-editor-wrapper .ql-toolbar button.ql-active .ql-stroke { stroke: #283878; }
+
+.rich-text-editor-wrapper .ql-fill { fill: #4b5563; }
+.rich-text-editor-wrapper .ql-toolbar button:hover .ql-fill,
+.rich-text-editor-wrapper .ql-toolbar button.ql-active .ql-fill { fill: #283878; }
+
+.rich-text-editor-wrapper .ql-picker-label { color: #4b5563; }
+.rich-text-editor-wrapper .ql-picker-label:hover { color: #283878; }
+
+/* ============================================
+   DROPDOWN Z-INDEX FIX
+   ============================================ */
+.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  z-index: 9999 !important;
+  position: absolute;
+}
+
+/* ============================================
+   FOCUS STATE
+   ============================================ */
+.rich-text-editor-wrapper .quill:focus-within {
+  box-shadow: 0 0 0 2px rgb(40 56 120 / 0.3);
+  border-color: #283878;
+}
+
+/* ============================================
+   DISABLED STATE
+   ============================================ */
+.rich-text-editor-wrapper .ql-container.ql-disabled { background-color: #f9fafb; }
+.rich-text-editor-wrapper .ql-editor.ql-disabled { cursor: not-allowed; }
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+.rich-text-editor-wrapper .ql-container {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+.rich-text-editor-wrapper .ql-container::-webkit-scrollbar { width: 0.4rem; }
+.rich-text-editor-wrapper .ql-container::-webkit-scrollbar-track { background-color: #f3f4f6; }
+.rich-text-editor-wrapper .ql-container::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 9999px; }
+.rich-text-editor-wrapper .ql-container::-webkit-scrollbar-thumb:hover { background-color: #9ca3af; }
+
+/* ============================================
+   FONT LABELS
+   ============================================ */
+.ql-snow .ql-picker.ql-font .ql-picker-label::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item::before { content: 'Sans Serif'; font-family: sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="sans-serif"]::before { content: 'Sans Serif'; font-family: sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="serif"]::before { content: 'Serif'; font-family: serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="monospace"]::before { content: 'Monospace'; font-family: monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before { content: 'Arial'; font-family: Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="georgia"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before { content: 'Georgia'; font-family: Georgia, serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="trebuchet-ms"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="trebuchet-ms"]::before { content: 'Trebuchet MS'; font-family: 'Trebuchet MS', sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="verdana"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="verdana"]::before { content: 'Verdana'; font-family: Verdana, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="courier-new"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="courier-new"]::before { content: 'Courier New'; font-family: 'Courier New', monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before { content: 'Times New Roman'; font-family: 'Times New Roman', serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="impact"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="impact"]::before { content: 'Impact'; font-family: Impact, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="comic-sans-ms"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="comic-sans-ms"]::before { content: 'Comic Sans MS'; font-family: 'Comic Sans MS', cursive; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="tahoma"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="tahoma"]::before { content: 'Tahoma'; font-family: Tahoma, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="palatino"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="palatino"]::before { content: 'Palatino'; font-family: Palatino, serif; }
+
+/* Apply fonts in editor */
+.ql-font-arial { font-family: Arial, sans-serif; }
+.ql-font-georgia { font-family: Georgia, serif; }
+.ql-font-trebuchet-ms { font-family: 'Trebuchet MS', sans-serif; }
+.ql-font-verdana { font-family: Verdana, sans-serif; }
+.ql-font-courier-new { font-family: 'Courier New', monospace; }
+.ql-font-times-new-roman { font-family: 'Times New Roman', serif; }
+.ql-font-impact { font-family: Impact, sans-serif; }
+.ql-font-comic-sans-ms { font-family: 'Comic Sans MS', cursive; }
+.ql-font-tahoma { font-family: Tahoma, sans-serif; }
+.ql-font-palatino { font-family: Palatino, serif; }
+.ql-font-sans-serif { font-family: sans-serif; }
+.ql-font-serif { font-family: serif; }
+.ql-font-monospace { font-family: monospace; }
+
+/* ============================================
+   SIZE LABELS
+   ============================================ */
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before { content: 'Normal'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="8px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before { content: '8px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="10px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="10px"]::before { content: '10px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before { content: '12px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before { content: '14px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before { content: '16px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before { content: '18px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="20px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="20px"]::before { content: '20px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before { content: '24px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="28px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="28px"]::before { content: '28px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="32px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="32px"]::before { content: '32px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before { content: '36px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="48px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="48px"]::before { content: '48px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="64px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="64px"]::before { content: '64px'; }
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="72px"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="72px"]::before { content: '72px'; }
+
+/* Apply sizes */
+.ql-size-8px { font-size: 8px !important; }
+.ql-size-10px { font-size: 10px !important; }
+.ql-size-12px { font-size: 12px !important; }
+.ql-size-14px { font-size: 14px !important; }
+.ql-size-16px { font-size: 16px !important; }
+.ql-size-18px { font-size: 18px !important; }
+.ql-size-20px { font-size: 20px !important; }
+.ql-size-24px { font-size: 24px !important; }
+.ql-size-28px { font-size: 28px !important; }
+.ql-size-32px { font-size: 32px !important; }
+.ql-size-36px { font-size: 36px !important; }
+.ql-size-48px { font-size: 48px !important; }
+.ql-size-64px { font-size: 64px !important; }
+.ql-size-72px { font-size: 72px !important; }
+
+/* ============================================
+   EDITOR PREVIEW STYLES
+   ============================================ */
+.editor-preview-container {
+  width: 100%;
+}
+
+.editor-preview-container .ql-editor {
+  font-family: inherit;
+  color: #111827;
+  font-size: 1rem;
+  line-height: 1.6;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.editor-preview-container .ql-editor * { margin: 0; padding: 0; }
+
+.editor-preview-container .ql-editor p { margin-bottom: 0.6em; line-height: 1.6; }
+
+.editor-preview-container .ql-editor h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.4em; line-height: 1.2; }
+.editor-preview-container .ql-editor h2 { font-size: 1.6em; font-weight: bold; margin-bottom: 0.4em; line-height: 1.3; }
+.editor-preview-container .ql-editor h3 { font-size: 1.35em; font-weight: bold; margin-bottom: 0.4em; line-height: 1.4; }
+.editor-preview-container .ql-editor h4 { font-size: 1.15em; font-weight: bold; margin-bottom: 0.4em; }
+.editor-preview-container .ql-editor h5 { font-size: 1em; font-weight: bold; margin-bottom: 0.4em; }
+.editor-preview-container .ql-editor h6 { font-size: 0.9em; font-weight: bold; margin-bottom: 0.4em; }
+
+.editor-preview-container .ql-editor ul,
+.editor-preview-container .ql-editor ol { padding-left: 1.5em; margin-bottom: 0.6em; }
+.editor-preview-container .ql-editor ul { list-style-type: disc; list-style-position: outside; }
+.editor-preview-container .ql-editor ol { list-style-type: decimal; list-style-position: outside; }
+.editor-preview-container .ql-editor li { margin-bottom: 0.25em; line-height: 1.6; display: list-item; list-style: inherit; padding-left: 0.25em; }
+.editor-preview-container .ql-editor ul ul { list-style-type: circle; }
+.editor-preview-container .ql-editor ul ul ul { list-style-type: square; }
+
+.editor-preview-container .ql-editor strong { font-weight: bold; }
+.editor-preview-container .ql-editor em { font-style: italic; }
+.editor-preview-container .ql-editor u { text-decoration: underline; }
+.editor-preview-container .ql-editor s { text-decoration: line-through; }
+
+.editor-preview-container .ql-editor blockquote {
+  border-left: 4px solid #cbd5e0;
+  padding-left: 1em;
+  margin-left: 0;
+  margin-bottom: 0.6em;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.editor-preview-container .ql-editor pre {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  padding: 1em;
+  border-radius: 0.375rem;
+  margin-bottom: 0.6em;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+}
+
+.editor-preview-container .ql-editor a { color: #283878; text-decoration: underline; }
+.editor-preview-container .ql-editor a:hover { color: #1f2d5c; }
+
+.editor-preview-container .ql-editor img { max-width: 100%; height: auto; margin-bottom: 0.6em; border-radius: 0.375rem; }
+
+.editor-preview-container .ql-editor .ql-align-center { text-align: center; }
+.editor-preview-container .ql-editor .ql-align-right { text-align: right; }
+.editor-preview-container .ql-editor .ql-align-justify { text-align: justify; }
+
+.editor-preview-container .ql-editor .ql-indent-1 { padding-left: 3em; }
+.editor-preview-container .ql-editor .ql-indent-2 { padding-left: 6em; }
+.editor-preview-container .ql-editor .ql-indent-3 { padding-left: 9em; }
+.editor-preview-container .ql-editor .ql-indent-4 { padding-left: 12em; }
+.editor-preview-container .ql-editor .ql-indent-5 { padding-left: 15em; }
+
+.editor-preview-container .ql-editor iframe { max-width: 100%; margin-bottom: 0.6em; border-radius: 0.375rem; }
+.editor-preview-container .ql-editor sub { vertical-align: sub; font-size: 0.75em; }
+.editor-preview-container .ql-editor sup { vertical-align: super; font-size: 0.75em; }
+
+/* Font classes for preview */
+.ql-font-arial { font-family: Arial, sans-serif; }
+.ql-font-georgia { font-family: Georgia, serif; }
+.ql-font-trebuchet-ms { font-family: 'Trebuchet MS', sans-serif; }
+.ql-font-verdana { font-family: Verdana, sans-serif; }
+.ql-font-courier-new { font-family: 'Courier New', monospace; }
+.ql-font-times-new-roman { font-family: 'Times New Roman', serif; }
+.ql-font-impact { font-family: Impact, sans-serif; }
+.ql-font-comic-sans-ms { font-family: 'Comic Sans MS', cursive; }
+.ql-font-tahoma { font-family: Tahoma, sans-serif; }
+.ql-font-palatino { font-family: Palatino, serif; }
+.ql-font-sans-serif { font-family: sans-serif; }
+.ql-font-serif { font-family: serif; }
+.ql-font-monospace { font-family: monospace; }
