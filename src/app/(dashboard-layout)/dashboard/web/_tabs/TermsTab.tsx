@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RichTextEditor } from "../_components/RichTextEditor";
+import { RichTextEditor } from "@/components/Editor";
 import { useTermsOfService, useSaveTermsOfService } from "@/hooks/useLegal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,7 +91,7 @@ export const TermsTab = () => {
             <FileText className="w-4 h-4" />
             Terms Content
           </Label>
-          <div className="border border-gray-300 rounded-lg overflow-hidden">
+          <div className="border border-gray-300 rounded-lg">
             <RichTextEditor
               value={body}
               onChange={setBody}

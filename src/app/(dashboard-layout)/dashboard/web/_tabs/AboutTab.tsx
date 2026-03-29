@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { RichTextEditor } from "../_components/RichTextEditor";
+import { RichTextEditor } from "@/components/Editor";
 import { useAboutUsData, useUpdateAboutUs } from "@/hooks/useAboutUs";
 import { uploadService } from "@/services/upload.service";
 import { Loader2 } from "lucide-react";

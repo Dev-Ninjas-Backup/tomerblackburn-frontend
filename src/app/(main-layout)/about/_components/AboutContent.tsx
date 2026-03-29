@@ -5,6 +5,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import ImageWithFallback from "@/components/ui/image-with-fallback";
 import Link from "next/link";
+import { EditorPreview } from "@/components/Editor";
 
 interface AboutContentProps {
   aboutUsData?: {
@@ -67,8 +68,9 @@ const AboutContent = ({ aboutUsData }: AboutContentProps) => {
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-gray-600 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
+            >
+              <EditorPreview content={description} bare />
+            </motion.div>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}

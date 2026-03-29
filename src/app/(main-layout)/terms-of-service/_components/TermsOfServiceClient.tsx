@@ -2,6 +2,8 @@
 
 import { FileCheck, Calendar, AlertCircle } from "lucide-react";
 import { TermsOfService } from "@/types/legal.types";
+import { EditorPreview } from "@/components/Editor";
+import { TableOfContents } from "@/components/TableOfContents";
 
 interface TermsOfServiceClientProps {
   termsOfService: TermsOfService | null;
@@ -33,41 +35,53 @@ export function TermsOfServiceClient({
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-linear-to-r from-green-600 to-green-700 rounded-lg p-8 text-white shadow-lg mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <FileCheck className="w-10 h-10" />
-            <h1 className="text-3xl md:text-4xl font-bold">
-              {termsOfService.title}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 text-green-100">
-            <Calendar className="w-4 h-4" />
-            <p>
-              Effective Date:{" "}
-              {new Date(termsOfService.effectiveDate).toLocaleDateString(
-                "en-US",
-                {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                },
-              )}
-            </p>
+        <div className="bg-linear-to-r from-green-600 to-green-800 rounded-2xl p-8 md:p-12 text-white shadow-xl mb-8 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-10 blur-3xl"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-white/10 rounded-xl backdrop-blur-md">
+                <FileCheck className="w-10 h-10 text-green-50" />
+              </div>
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight">
+                {termsOfService.title}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 text-green-100/90 font-medium ml-1">
+              <Calendar className="w-4 h-4" />
+              <p>
+                Effective Date:{" "}
+                {new Date(termsOfService.effectiveDate).toLocaleDateString(
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  },
+                )}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 md:p-12">
-          <div
-            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-green-600 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700"
-            dangerouslySetInnerHTML={{ __html: termsOfService.body }}
-          />
+        {/* Layout with Main Content and TOC Sidebar */}
+        <div className="flex flex-col lg:flex-row gap-8 items-start relative">
+          {/* Main Content */}
+          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-14 w-full min-w-0 terms-content-wrapper transition-all duration-300">
+            <EditorPreview content={termsOfService.body} bare />
+          </div>
+
+          {/* Right Sidebar - Table of Contents */}
+          <div className="w-full lg:w-[320px] shrink-0 sticky top-28 self-start hidden lg:block">
+            <TableOfContents contentSelector=".terms-content-wrapper" />
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-600">
+        <div className="mt-12 text-center text-sm text-gray-400 font-medium">
           <p>
             Last updated:{" "}
             {new Date(termsOfService.updatedAt).toLocaleDateString("en-US", {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { EditorPreview } from "@/components/Editor";
 
 interface MissionSectionProps {
   homePageData?: {
@@ -15,7 +16,9 @@ interface MissionSectionProps {
 
 const MissionSection = ({ homePageData }: MissionSectionProps) => {
   const title = homePageData?.ourMissionTitle || "Our Mission";
-  const subTitle = homePageData?.ourMissionSubTitle || "BBurn Builders is here to change that. Our mission is to put the focus back where it belongs on client communication and satisfaction.";
+  const subTitle =
+    homePageData?.ourMissionSubTitle ||
+    "BBurn Builders is here to change that. Our mission is to put the focus back where it belongs on client communication and satisfaction.";
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -35,9 +38,10 @@ const MissionSection = ({ homePageData }: MissionSectionProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-gray-700 text-lg mb-8 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: subTitle }}
-        />
+          className="text-gray-700 text-3xl mb-8 leading-relaxed"
+        >
+          <EditorPreview content={subTitle} bare />
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
