@@ -127,31 +127,44 @@ export default function ChooseServicePage() {
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-6 mb-12">
-          {activeServices.map((service, index) => (
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+          }}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap justify-center gap-6 mb-12"
+        >
+          {activeServices.map((service) => (
             <motion.div
               key={service.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
+              variants={{
+                hidden: { opacity: 0, y: 40 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const },
+                },
+              }}
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
               onClick={() => handleSelect(service)}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className="w-full sm:w-72 bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:scale-102"
+              className="w-full sm:w-72 bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg"
             >
               <div className="relative h-48 overflow-hidden">
                 {service.imageFile?.url ? (
-                  <img
+                  <motion.img
                     src={service.imageFile.url}
                     alt={service.name}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-linear-to-br from-green-500 to-green-700 flex items-center justify-center">
                     <div className="text-white text-4xl font-bold opacity-20">
-                      {service.name
-                        .split(" ")
-                        .map((word) => word.charAt(0))
-                        .join("")}
+                      {service.name.split(" ").map((word) => word.charAt(0)).join("")}
                     </div>
                   </div>
                 )}
@@ -168,7 +181,7 @@ export default function ChooseServicePage() {
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0 }}
