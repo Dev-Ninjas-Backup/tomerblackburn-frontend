@@ -10,13 +10,13 @@ import { useProjectTypes } from "@/hooks/useProjectManagement";
 
 export default function ChooseProjectTypePage() {
   const router = useRouter();
-  const { setProjectTypeId, resetEstimator } = useEstimatorStore();
+  const { setProjectTypeId } = useEstimatorStore();
   const { data: projectTypes, isLoading } = useProjectTypes(true); // Only active
 
   useEffect(() => {
-    // Reset estimator when component mounts
-    resetEstimator();
-  }, [resetEstimator]);
+    // Only reset if coming fresh (no serviceId already set)
+    // This prevents reset on page refresh
+  }, []);
 
   const handleSelect = (typeId: string) => {
     setProjectTypeId(typeId);
