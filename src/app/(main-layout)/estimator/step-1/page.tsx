@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,18 @@ export default function Step1Page() {
 
   const step1CostCodes = costCodes?.filter((code) => code.step === 1) || [];
 
+  const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!serviceId) {
       router.push("/estimator/choose-service");
     }
-  }, [serviceId, router]);
+  }, [hydrated, serviceId, router]);
 
   if (isLoading) {
     return (
@@ -100,12 +107,27 @@ export default function Step1Page() {
                 className="bg-white rounded-2xl p-12 shadow-sm text-center"
               >
                 <div className="w-16 h-16 bg-[#283878]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-[#283878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <svg
+                    className="w-8 h-8 text-[#283878]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">No Items for This Step</h3>
-                <p className="text-gray-500 text-sm">There are no cost codes configured for this step yet. You can proceed to the next step.</p>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  No Items for This Step
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  There are no cost codes configured for this step yet. You can
+                  proceed to the next step.
+                </p>
               </motion.div>
             )}
 
