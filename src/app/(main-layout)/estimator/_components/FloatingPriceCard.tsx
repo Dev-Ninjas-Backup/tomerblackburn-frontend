@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useEstimatorStore } from "@/store/estimatorStore";
-import { DollarSign, X, ChevronRight, ChevronLeft } from "lucide-react";
+import { X, ChevronRight, ChevronLeft } from "lucide-react";
 
 export const FloatingPriceCard = () => {
   const { totalPrice, basePrice, step1Selections, step2Selections } =
@@ -40,16 +40,26 @@ export const FloatingPriceCard = () => {
         <button
           onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
           className="absolute -left-8 top-4 bg-[#283878] text-white p-1.5 rounded-l-lg shadow-lg hover:bg-[#1f2d5c] transition-colors"
-          aria-label={isDesktopCollapsed ? "Show price summary" : "Hide price summary"}
-          title={isDesktopCollapsed ? "Show price summary" : "Hide price summary"}
+          aria-label={
+            isDesktopCollapsed ? "Show price summary" : "Hide price summary"
+          }
+          title={
+            isDesktopCollapsed ? "Show price summary" : "Hide price summary"
+          }
         >
-          {isDesktopCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          {isDesktopCollapsed ? (
+            <ChevronLeft size={16} />
+          ) : (
+            <ChevronRight size={16} />
+          )}
         </button>
 
         {/* Card Panel */}
         <div
           className={`bg-[#283878] text-white rounded-l-2xl shadow-2xl transition-all duration-300 ease-in-out overflow-hidden ${
-            isDesktopCollapsed ? "w-0 opacity-0 pointer-events-none" : "w-80 opacity-100"
+            isDesktopCollapsed
+              ? "w-0 opacity-0 pointer-events-none"
+              : "w-80 opacity-100"
           }`}
         >
           <div className="p-6 w-80">
@@ -76,7 +86,9 @@ export const FloatingPriceCard = () => {
 
                 {additionalCosts.length > 0 && (
                   <>
-                    <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
+                    <div className="text-gray-300 mt-3 mb-2">
+                      Additional Items:
+                    </div>
                     <div className="max-h-40 overflow-y-auto space-y-2 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/50">
                       {additionalCosts.map((cost, index) => (
                         <div
@@ -116,15 +128,15 @@ export const FloatingPriceCard = () => {
 
       {/* Mobile - Slide from Right */}
       <div className="lg:hidden">
-        {/* Toggle Button - vertically centered */}
+        {/* Toggle Button */}
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className={`fixed bottom-1/2 translate-y-1/2 z-50 bg-[#283878] text-white p-4 rounded-l-xl shadow-lg transition-all duration-300 ${
-            isMobileOpen ? "right-80" : "right-0"
-          }`}
+          className="fixed top-1/2 -translate-y-1/2 right-0 z-50 bg-[#283878] text-white shadow-lg rounded-l-xl px-3 py-4 flex flex-col items-center gap-1"
           aria-label="Toggle price summary"
         >
-          {isMobileOpen ? <X size={24} /> : <DollarSign size={24} />}
+          <span className="text-[9px] font-semibold tracking-wide uppercase leading-none text-white/80 [writing-mode:vertical-rl] rotate-180">
+            Price Summary
+          </span>
         </button>
 
         {/* Overlay */}

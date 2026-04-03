@@ -771,9 +771,9 @@ export default function PreviewPage() {
                   <div className="border-t pt-3">
                     <p className="text-gray-600 mb-3">Additional Items:</p>
                     <div className="space-y-2 pl-4">
-                      {additionalCosts.map((cost) => (
+                      {additionalCosts.map((cost, index) => (
                         <div
-                          key={cost.id}
+                          key={`${cost.id}-${index}`}
                           className="flex justify-between text-sm"
                         >
                           <span className="text-gray-600">{cost.name}:</span>
