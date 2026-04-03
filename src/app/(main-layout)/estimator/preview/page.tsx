@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { useTips } from "@/hooks/useTips";
-import {
-  Upload,
-  X,
-  Video as VideoIcon,
-} from "lucide-react";
+import { Upload, X, Video as VideoIcon } from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 import { uploadService } from "@/services/upload.service";
-import { buildingTypeService, BuildingType } from "@/services/building-type.service";
+import {
+  buildingTypeService,
+  BuildingType,
+} from "@/services/building-type.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
 
 interface UploadedFile {
@@ -51,19 +50,33 @@ export default function PreviewPage() {
     userInfo.desiredStartDate || "",
   );
   const [buildingType, setBuildingType] = useState(userInfo.buildingType || "");
-  const [buildingTypeId, setBuildingTypeId] = useState(userInfo.buildingTypeId || "");
+  const [buildingTypeId, setBuildingTypeId] = useState(
+    userInfo.buildingTypeId || "",
+  );
   const [buildingTypes, setBuildingTypes] = useState<BuildingType[]>([]);
-  const [buildingTypeFieldValues, setBuildingTypeFieldValues] = useState<Record<string, string>>({});
+  const [buildingTypeFieldValues, setBuildingTypeFieldValues] = useState<
+    Record<string, string>
+  >({});
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    buildingTypeService.getActive().then((res) => {
-      setBuildingTypes(res.data.data || []);
-    }).catch(() => {});
+    buildingTypeService
+      .getActive()
+      .then((res) => {
+        setBuildingTypes(res.data.data || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!serviceId) {
       router.push("/estimator/choose-service");
     }
@@ -126,6 +139,7 @@ export default function PreviewPage() {
       userInfo,
     });
   }, [
+    hydrated,
     serviceId,
     router,
     basePrice,
@@ -276,7 +290,9 @@ export default function PreviewPage() {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const selectedBuildingType = buildingTypes.find((bt) => bt.id === buildingTypeId);
+  const selectedBuildingType = buildingTypes.find(
+    (bt) => bt.id === buildingTypeId,
+  );
 
   const handleBuildingTypeChange = (id: string) => {
     setBuildingTypeId(id);
@@ -291,9 +307,13 @@ export default function PreviewPage() {
     setIsSubmitting(true);
 
     try {
-      const fieldValuesArray = selectedBuildingType?.fields
-        .filter((f) => buildingTypeFieldValues[f.id])
-        .map((f) => ({ fieldId: f.id, value: buildingTypeFieldValues[f.id] })) || [];
+      const fieldValuesArray =
+        selectedBuildingType?.fields
+          .filter((f) => buildingTypeFieldValues[f.id])
+          .map((f) => ({
+            fieldId: f.id,
+            value: buildingTypeFieldValues[f.id],
+          })) || [];
 
       // Prepare submission data
       const submissionData = {
@@ -306,7 +326,9 @@ export default function PreviewPage() {
         desiredStartDate,
         buildingType,
         buildingTypeId: buildingTypeId || undefined,
-        buildingTypeFieldValues: fieldValuesArray.length ? fieldValuesArray : undefined,
+        buildingTypeFieldValues: fieldValuesArray.length
+          ? fieldValuesArray
+          : undefined,
         basePrice,
         additionalItemsTotal: totalPrice - basePrice,
         totalAmount: totalPrice,
@@ -454,391 +476,394 @@ export default function PreviewPage() {
       <FloatingPriceCard />
 
       <div className="lg:flex lg:justify-center">
-      <div className="px-4 w-full max-w-4xl lg:mr-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          {/* User Information */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Information
-            </h2>
+        <div className="px-4 w-full max-w-4xl lg:mr-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            {/* User Information */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Your Information
+              </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Full Name*
-                </label>
-                <Input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Email Address*
-                </label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Phone Number*
-                </label>
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(773) 555-0123"
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Zip Code*
-                </label>
-                <Input
-                  type="text"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="60614"
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Project Address*
-                </label>
-                <Input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="example address"
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Desired Start Date*
-                </label>
-                <Input
-                  type="date"
-                  value={desiredStartDate}
-                  onChange={(e) => setDesiredStartDate(e.target.value)}
-                  className="h-12 px-4"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="buildingType"
-                  className="block text-sm font-medium text-gray-900 mb-2"
-                >
-                  Building Type*
-                </label>
-                <select
-                  id="buildingType"
-                  value={buildingTypeId}
-                  onChange={(e) => handleBuildingTypeChange(e.target.value)}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"
-                  required
-                >
-                  <option value="">Select Building Type</option>
-                  {buildingTypes.map((bt) => (
-                    <option key={bt.id} value={bt.id}>{bt.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dynamic fields for selected building type */}
-              {selectedBuildingType?.fields.map((field) => (
-                <div key={field.id}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
                   <label className="block text-sm font-medium text-gray-900 mb-2">
-                    {field.label}{field.isRequired ? "*" : ""}
+                    Full Name*
                   </label>
                   <Input
-                    type={field.fieldType === "number" ? "number" : "text"}
-                    value={buildingTypeFieldValues[field.id] || ""}
-                    onChange={(e) =>
-                      setBuildingTypeFieldValues((prev) => ({
-                        ...prev,
-                        [field.id]: e.target.value,
-                      }))
-                    }
-                    placeholder={field.placeholder || `Enter ${field.label}`}
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="John Doe"
                     className="h-12 px-4"
-                    required={field.isRequired}
+                    required
                   />
                 </div>
-              ))}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Email Address*
+                  </label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    className="h-12 px-4"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Phone Number*
+                  </label>
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="(773) 555-0123"
+                    className="h-12 px-4"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Zip Code*
+                  </label>
+                  <Input
+                    type="text"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    placeholder="60614"
+                    className="h-12 px-4"
+                    required
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Project Address*
+                  </label>
+                  <Input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="example address"
+                    className="h-12 px-4"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Desired Start Date*
+                  </label>
+                  <Input
+                    type="date"
+                    value={desiredStartDate}
+                    onChange={(e) => setDesiredStartDate(e.target.value)}
+                    className="h-12 px-4"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="buildingType"
+                    className="block text-sm font-medium text-gray-900 mb-2"
+                  >
+                    Building Type*
+                  </label>
+                  <select
+                    id="buildingType"
+                    value={buildingTypeId}
+                    onChange={(e) => handleBuildingTypeChange(e.target.value)}
+                    className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select Building Type</option>
+                    {buildingTypes.map((bt) => (
+                      <option key={bt.id} value={bt.id}>
+                        {bt.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dynamic fields for selected building type */}
+                {selectedBuildingType?.fields.map((field) => (
+                  <div key={field.id}>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">
+                      {field.label}
+                      {field.isRequired ? "*" : ""}
+                    </label>
+                    <Input
+                      type={field.fieldType === "number" ? "number" : "text"}
+                      value={buildingTypeFieldValues[field.id] || ""}
+                      onChange={(e) =>
+                        setBuildingTypeFieldValues((prev) => ({
+                          ...prev,
+                          [field.id]: e.target.value,
+                        }))
+                      }
+                      placeholder={field.placeholder || `Enter ${field.label}`}
+                      className="h-12 px-4"
+                      required={field.isRequired}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Project Notes */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Project Notes (optional)
-            </h2>
-            <p className="text-gray-600 mb-4 text-sm">
-              Share any additional details, preferences, or questions about your
-              project
-            </p>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="example address"
-              className="w-full min-h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#283878] focus:border-transparent"
-            />
-          </div>
+            {/* Project Notes */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Project Notes (optional)
+              </h2>
+              <p className="text-gray-600 mb-4 text-sm">
+                Share any additional details, preferences, or questions about
+                your project
+              </p>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="example address"
+                className="w-full min-h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#283878] focus:border-transparent"
+              />
+            </div>
 
-          {/* Upload Photos & Videos */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Upload Photos & Videos
-            </h2>
-            <p className="text-gray-600 mb-6 text-sm">
-              Help us understand your space better (Max 10 photos, 2 videos)
-            </p>
+            {/* Upload Photos & Videos */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Upload Photos & Videos
+              </h2>
+              <p className="text-gray-600 mb-6 text-sm">
+                Help us understand your space better (Max 10 photos, 2 videos)
+              </p>
 
-            <div className="space-y-6">
-              {/* Photos Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Photos (
-                  {uploadedFiles.filter((f) => f.type === "image").length}/10)
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    id="photo-upload"
-                    disabled={
-                      uploadedFiles.filter((f) => f.type === "image").length >=
-                      10
-                    }
-                  />
-                  <label htmlFor="photo-upload" className="cursor-pointer">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                    <p className="text-sm text-gray-600 mb-1">
-                      Click to upload images
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG, JPEG (Max 10MB each)
-                    </p>
+              <div className="space-y-6">
+                {/* Photos Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-3">
+                    Upload Photos (
+                    {uploadedFiles.filter((f) => f.type === "image").length}/10)
                   </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      id="photo-upload"
+                      disabled={
+                        uploadedFiles.filter((f) => f.type === "image")
+                          .length >= 10
+                      }
+                    />
+                    <label htmlFor="photo-upload" className="cursor-pointer">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+                      <p className="text-sm text-gray-600 mb-1">
+                        Click to upload images
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, JPEG (Max 10MB each)
+                      </p>
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              {/* Videos Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Upload Videos (
-                  {uploadedFiles.filter((f) => f.type === "video").length}/2)
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
-                  <input
-                    type="file"
-                    accept="video/*"
-                    multiple
-                    onChange={handleVideoUpload}
-                    className="hidden"
-                    id="video-upload"
-                    disabled={
-                      uploadedFiles.filter((f) => f.type === "video").length >=
-                      2
-                    }
-                  />
-                  <label htmlFor="video-upload" className="cursor-pointer">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
-                    <p className="text-sm text-gray-600 mb-1">
-                      Click to upload videos
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      MP4, MOV (Max 50MB each)
-                    </p>
+                {/* Videos Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-3">
+                    Upload Videos (
+                    {uploadedFiles.filter((f) => f.type === "video").length}/2)
                   </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#283878] transition-colors cursor-pointer">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      multiple
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      id="video-upload"
+                      disabled={
+                        uploadedFiles.filter((f) => f.type === "video")
+                          .length >= 2
+                      }
+                    />
+                    <label htmlFor="video-upload" className="cursor-pointer">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-3" />
+                      <p className="text-sm text-gray-600 mb-1">
+                        Click to upload videos
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        MP4, MOV (Max 50MB each)
+                      </p>
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              {/* Uploaded Files Preview */}
-              {uploadedFiles.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {uploadedFiles.map((file) => (
-                    <div key={file.id} className="relative group">
-                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                        {file.type === "image" ? (
-                          <img
-                            src={file.preview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <VideoIcon className="w-12 h-12 text-gray-400" />
-                          </div>
-                        )}
-
-                        {/* Progress Overlay */}
-                        {!file.uploaded && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin mb-2"></div>
-                              <p className="text-white text-sm font-medium">
-                                {file.progress}%
-                              </p>
+                {/* Uploaded Files Preview */}
+                {uploadedFiles.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {uploadedFiles.map((file) => (
+                      <div key={file.id} className="relative group">
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                          {file.type === "image" ? (
+                            <img
+                              src={file.preview}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <VideoIcon className="w-12 h-12 text-gray-400" />
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
 
-                      {/* Remove Button */}
-                      <button
-                        onClick={() => handleRemoveFile(file.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Remove file"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-
-                      {/* File Type Badge */}
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {file.type === "image" ? "Photo" : "Video"}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {tips && tips.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm font-semibold text-blue-900 mb-2">
-                    💡 Tips:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {tips
-                      .sort((a, b) => a.position - b.position)
-                      .map((tip) => (
-                        <li key={tip.id} className="text-sm text-blue-800">
-                          {tip.message}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Estimate Summary */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Estimate Summary
-            </h2>
-
-            <div className="space-y-3">
-              <div className="flex justify-between text-lg">
-                <span className="text-gray-600">Base Price:</span>
-                <span className="font-semibold">
-                  ${basePrice.toLocaleString()}
-                </span>
-              </div>
-
-              {additionalCosts.length > 0 && (
-                <>
-                  <div className="border-t pt-3">
-                    <p className="text-gray-600 mb-3">Additional Items:</p>
-                    <div className="space-y-2 pl-4">
-                      {additionalCosts.map((cost, index) => (
-                        <div
-                          key={`${cost.id}-${index}`}
-                          className="flex justify-between text-sm"
-                        >
-                          <span className="text-gray-600">{cost.name}:</span>
-                          <span className="font-medium">
-                            +${cost.cost.toLocaleString()}
-                          </span>
+                          {/* Progress Overlay */}
+                          {!file.uploaded && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin mb-2"></div>
+                                <p className="text-white text-sm font-medium">
+                                  {file.progress}%
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between text-lg">
-                      <span className="text-gray-600">Additions Total:</span>
-                      <span className="font-semibold">
-                        $
-                        {additionalCosts
-                          .reduce((sum, c) => sum + c.cost, 0)
-                          .toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
+                        {/* Remove Button */}
+                        <button
+                          onClick={() => handleRemoveFile(file.id)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove file"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
 
-              <div className="border-t-2 border-[#283878] pt-4">
-                <div className="flex justify-between text-2xl">
-                  <span className="font-bold text-gray-900">Total:</span>
-                  <span className="font-bold text-[#283878]">
-                    ${totalPrice.toLocaleString()}
+                        {/* File Type Badge */}
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          {file.type === "image" ? "Photo" : "Video"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {tips && tips.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-blue-900 mb-2">
+                      💡 Tips:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {tips
+                        .sort((a, b) => a.position - b.position)
+                        .map((tip) => (
+                          <li key={tip.id} className="text-sm text-blue-800">
+                            {tip.message}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Estimate Summary */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Estimate Summary
+              </h2>
+
+              <div className="space-y-3">
+                <div className="flex justify-between text-lg">
+                  <span className="text-gray-600">Base Price:</span>
+                  <span className="font-semibold">
+                    ${basePrice.toLocaleString()}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2 text-right">
-                  * Final price may vary based on site conditions
-                </p>
+
+                {additionalCosts.length > 0 && (
+                  <>
+                    <div className="border-t pt-3">
+                      <p className="text-gray-600 mb-3">Additional Items:</p>
+                      <div className="space-y-2 pl-4">
+                        {additionalCosts.map((cost, index) => (
+                          <div
+                            key={`${cost.id}-${index}`}
+                            className="flex justify-between text-sm"
+                          >
+                            <span className="text-gray-600">{cost.name}:</span>
+                            <span className="font-medium">
+                              +${cost.cost.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-3">
+                      <div className="flex justify-between text-lg">
+                        <span className="text-gray-600">Additions Total:</span>
+                        <span className="font-semibold">
+                          $
+                          {additionalCosts
+                            .reduce((sum, c) => sum + c.cost, 0)
+                            .toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="border-t-2 border-[#283878] pt-4">
+                  <div className="flex justify-between text-2xl">
+                    <span className="font-bold text-gray-900">Total:</span>
+                    <span className="font-bold text-[#283878]">
+                      ${totalPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-right">
+                    * Final price may vary based on site conditions
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <div className="flex sm:flex-row flex-col-reverse justify-between items-center gap-4">
-              <Button
-                onClick={() => router.back()}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg rounded-full px-8 w-full sm:w-auto"
-              >
-                ← Back
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={!isFormValid || isSubmitting}
-                className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 sm:text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed w-full"
-              >
-                {isSubmitting ? "Submitting..." : "Submit Estimate Budget →"}
-              </Button>
+            {/* Submit Button */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm">
+              <div className="flex sm:flex-row flex-col-reverse justify-between items-center gap-4">
+                <Button
+                  onClick={() => router.back()}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-6 text-lg rounded-full px-8 w-full sm:w-auto"
+                >
+                  ← Back
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!isFormValid || isSubmitting}
+                  className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 sm:text-lg rounded-full disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Estimate Budget →"}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 text-center mt-4">
+                By submitting, you agree to receive communication from BBurn
+                Builders regarding your estimate.
+              </p>
             </div>
-            <p className="text-xs text-gray-500 text-center mt-4">
-              By submitting, you agree to receive communication from BBurn
-              Builders regarding your estimate.
-            </p>
-          </div>
-        </motion.div>
-      </div>
-      {/* Spacer for floating card on desktop */}
-      <div className="hidden lg:block lg:w-80 lg:shrink-0" />
+          </motion.div>
+        </div>
+        {/* Spacer for floating card on desktop */}
+        <div className="hidden lg:block lg:w-80 lg:shrink-0" />
       </div>
     </div>
   );
