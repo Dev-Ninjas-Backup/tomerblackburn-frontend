@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { useCostCodes } from "@/hooks/useCostManagement";
@@ -20,14 +19,12 @@ export default function Step1Page() {
     removeCostCodeSelection,
   } = useEstimatorStore();
 
-  // Fetch cost codes for step 1
   const { data: costCodes, isLoading } = useCostCodes({
     serviceId: serviceId || undefined,
     includeOptions: true,
     includeCategory: true,
   });
 
-  // Filter cost codes for step 1
   const step1CostCodes = costCodes?.filter((code) => code.step === 1) || [];
 
   useEffect(() => {
@@ -35,14 +32,6 @@ export default function Step1Page() {
       router.push("/estimator/choose-service");
     }
   }, [serviceId, router]);
-
-  const handleNext = () => {
-    router.push("/estimator/step-2");
-  };
-
-  const handleCancel = () => {
-    router.push("/estimator/choose-service");
-  };
 
   if (isLoading) {
     return (
@@ -56,82 +45,88 @@ export default function Step1Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12 overflow-x-hidden">
       <FloatingPriceCard />
 
-      <div className="lg:flex lg:justify-center">
-      <div className="px-4 w-full max-w-4xl lg:mr-4">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[#283878]">
-              Step 1: Rough
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-[#283878] h-2 rounded-full"
-              style={{ width: "50%" }}
-            ></div>
-          </div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          {/* Render cost codes by category */}
-          {step1CostCodes.length > 0 ? (
-            <CostCodeRenderer
-              costCodes={step1CostCodes as any}
-              selections={step1Selections}
-              onSelectionChange={(costCodeId, selection) => {
-                const existing = step1Selections.find(
-                  (s) => s.costCodeId === costCodeId,
-                );
-                if (existing) {
-                  updateCostCodeSelection(1, costCodeId, selection);
-                } else {
-                  addCostCodeSelection(1, {
-                    costCodeId,
-                    unitPrice: selection.unitPrice || 0,
-                    ...selection,
-                  });
-                }
-              }}
-              onSelectionRemove={(costCodeId) => {
-                removeCostCodeSelection(1, costCodeId);
-              }}
-            />
-          ) : (
-            <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
-              <p className="text-gray-500">
-                No cost codes available for this step.
-              </p>
+      <div className="lg:flex lg:justify-center container mx-auto">
+        <div className="px-4 w-full max-w-4xl lg:mr-4">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-[#283878]">
+                Step 1: Rough
+              </span>
             </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            <Button
-              onClick={handleCancel}
-              variant="outline"
-              className="flex-1 py-6 text-lg rounded-full"
-            >
-              ← Back
-            </Button>
-            <Button
-              onClick={handleNext}
-              className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 text-lg rounded-full"
-            >
-              Next →
-            </Button>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-[#283878] h-2 rounded-full"
+                style={{ width: "50%" }}
+              ></div>
+            </div>
           </div>
-        </motion.div>
-      </div>
-      {/* Spacer for floating card on desktop */}
-      <div className="hidden lg:block lg:w-80 lg:shrink-0" />
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            {step1CostCodes.length > 0 ? (
+              <CostCodeRenderer
+                costCodes={step1CostCodes as any}
+                selections={step1Selections}
+                onSelectionChange={(costCodeId, selection) => {
+                  const existing = step1Selections.find(
+                    (s) => s.costCodeId === costCodeId,
+                  );
+                  if (existing) {
+                    updateCostCodeSelection(1, costCodeId, selection);
+                  } else {
+                    addCostCodeSelection(1, {
+                      costCodeId,
+                      unitPrice: selection.unitPrice || 0,
+                      ...selection,
+                    });
+                  }
+                }}
+                onSelectionRemove={(costCodeId) => {
+                  removeCostCodeSelection(1, costCodeId);
+                }}
+              />
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-2xl p-12 shadow-sm text-center"
+              >
+                <div className="w-16 h-16 bg-[#283878]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-[#283878]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">No Items for This Step</h3>
+                <p className="text-gray-500 text-sm">There are no cost codes configured for this step yet. You can proceed to the next step.</p>
+              </motion.div>
+            )}
+
+            <div className="flex gap-4">
+              <Button
+                onClick={() => router.push("/estimator/choose-service")}
+                variant="outline"
+                className="flex-1 py-6 text-lg rounded-full"
+              >
+                ← Back
+              </Button>
+              <Button
+                onClick={() => router.push("/estimator/step-2")}
+                className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white py-6 text-lg rounded-full"
+              >
+                Next →
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+        <div className="hidden lg:block lg:w-80 lg:shrink-0" />
       </div>
     </div>
   );

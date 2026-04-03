@@ -112,23 +112,38 @@ export default function ChooseProjectTypePage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {activeProjectTypes.map((type, index) => (
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+          }}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+        >
+          {activeProjectTypes.map((type) => (
             <motion.div
               key={type.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
+              variants={{
+                hidden: { opacity: 0, y: 40 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const },
+                },
+              }}
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
               onClick={() => handleSelect(type.id)}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className="w-full bg-white rounded-2xl overflow-hidden cursor-pointer transition-all hover:shadow-lg hover:scale-102"
+              className="w-full bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg"
             >
               <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
-                {/* Project type image */}
                 {type.image?.url ? (
-                  <img
+                  <motion.img
                     src={type.image.url}
                     alt={type.name}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -144,13 +159,12 @@ export default function ChooseProjectTypePage() {
                   {type.name}
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  {type.description ||
-                    `Complete ${type.name.toLowerCase()} services`}
+                  {type.description || `Complete ${type.name.toLowerCase()} services`}
                 </p>
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </div>
   );
