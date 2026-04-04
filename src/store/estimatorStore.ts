@@ -49,6 +49,8 @@ interface EstimatorState {
   submissionId: string | null
   submissionNumber: string | null
   pdfUrl: string | null
+  // Session
+  lastActivityAt: number | null
 }
 
 interface EstimatorStore extends EstimatorState {
@@ -96,6 +98,7 @@ const initialState: EstimatorState = {
   submissionId: null,
   submissionNumber: null,
   pdfUrl: null,
+  lastActivityAt: null,
 }
 
 export const useEstimatorStore = create<EstimatorStore>()(
@@ -104,36 +107,53 @@ export const useEstimatorStore = create<EstimatorStore>()(
       ...initialState,
 
       setProjectTypeId: (id) => {
-        set({ 
-          projectTypeId: id,
-          serviceCategoryId: null,
-          serviceId: null,
-          basePrice: 0,
-          totalPrice: 0,
-          step1Selections: [],
-          step2Selections: []
-        })
+        const current = get().projectTypeId;
+        if (current !== id) {
+          set({ 
+            projectTypeId: id,
+            serviceCategoryId: null,
+            serviceId: null,
+            basePrice: 0,
+            totalPrice: 0,
+            step1Selections: [],
+            step2Selections: []
+          })
+        } else {
+          set({ projectTypeId: id })
+        }
       },
 
       setServiceCategoryId: (id) => {
-        set({ 
-          serviceCategoryId: id,
-          serviceId: null,
-          basePrice: 0,
-          totalPrice: 0,
-          step1Selections: [],
-          step2Selections: []
-        })
+        const current = get().serviceCategoryId;
+        if (current !== id) {
+          set({ 
+            serviceCategoryId: id,
+            serviceId: null,
+            basePrice: 0,
+            totalPrice: 0,
+            step1Selections: [],
+            step2Selections: []
+          })
+        } else {
+          set({ serviceCategoryId: id })
+        }
       },
 
       setServiceId: (id, clientPrice) => {
-        set({ 
-          serviceId: id,
-          basePrice: clientPrice,
-          totalPrice: clientPrice,
-          step1Selections: [],
-          step2Selections: []
-        })
+        const currentServiceId = get().serviceId;
+        if (currentServiceId === id) {
+          set({ serviceId: id, basePrice: clientPrice, lastActivityAt: Date.now() })
+          get().calculateTotal()
+        } else {
+          set({
+            serviceId: id,
+            basePrice: clientPrice,
+            totalPrice: clientPrice,
+            step1Selections: [],
+            step2Selections: [],
+            lastActivityAt: Date.now()
+          })
+        }
       },
 
       addCostCodeSelection: (step, selection) => {

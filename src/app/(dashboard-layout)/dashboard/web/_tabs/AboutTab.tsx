@@ -126,6 +126,8 @@ export const AboutTab = () => {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); setImageUrl(""); setImageFile(null); }}
                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-red-50 transition z-10"
+                  title="Remove image"
+                  aria-label="Remove image"
                 >
                   <X className="w-3.5 h-3.5 text-gray-600" />
                 </button>
@@ -148,6 +150,8 @@ export const AboutTab = () => {
             type="file"
             accept="image/*"
             className="hidden"
+            title="Upload owner or team image"
+            aria-label="Upload owner or team image"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleImageUpload(file);
