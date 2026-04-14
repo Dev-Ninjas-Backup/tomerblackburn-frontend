@@ -438,7 +438,9 @@ const CostCodeModal = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const newTips = (formData.tips || []).filter((_, i) => i !== idx);
+                        const newTips = (formData.tips || []).filter(
+                          (_, i) => i !== idx,
+                        );
                         setFormData({ ...formData, tips: newTips });
                       }}
                       className="text-red-500 hover:text-red-700 p-1"
@@ -451,7 +453,10 @@ const CostCodeModal = ({
                 <button
                   type="button"
                   onClick={() =>
-                    setFormData({ ...formData, tips: [...(formData.tips || []), ""] })
+                    setFormData({
+                      ...formData,
+                      tips: [...(formData.tips || []), ""],
+                    })
                   }
                   className="flex items-center gap-1.5 text-sm text-[#2d4a8f] hover:text-[#243a73] font-medium mt-1"
                 >
@@ -471,7 +476,7 @@ const CostCodeModal = ({
                 }
                 className="w-full border rounded px-3 py-2"
                 placeholder="Detailed description..."
-                rows={2}
+                rows={5}
               />
             </div>
 
@@ -551,64 +556,73 @@ const CostCodeModal = ({
               <label className="block text-sm font-medium mb-1">
                 Unit Type
               </label>
-              <select
-                value={formData.unitType}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    unitType: e.target.value as UnitType,
-                  })
+              <SearchableSelect
+                options={[
+                  { value: "FIXED", label: "Fixed" },
+                  { value: "PER_SQFT", label: "Per Sq Ft" },
+                  { value: "PER_EACH", label: "Per Each" },
+                  { value: "PER_LOT", label: "Per Lot" },
+                  { value: "PER_SET", label: "Per Set" },
+                  { value: "PER_UPGRADE", label: "Per Upgrade" },
+                ]}
+                value={formData.unitType || ""}
+                onChange={(value) =>
+                  setFormData({ ...formData, unitType: value as UnitType })
                 }
-                className="w-full border rounded px-3 py-2"
-                title="Select unit type"
-                aria-label="Select unit type"
-              >
-                <option value="FIXED">Fixed</option>
-                <option value="PER_SQFT">Per Sq Ft</option>
-                <option value="PER_EACH">Per Each</option>
-                <option value="PER_LOT">Per Lot</option>
-                <option value="PER_SET">Per Set</option>
-                <option value="PER_UPGRADE">Per Upgrade</option>
-              </select>
+                placeholder="Select Unit Type"
+              />
             </div>
 
             <div className="col-span-2">
               <label className="block text-sm font-medium mb-1">
                 Question Type
               </label>
-              <select
-                value={formData.questionType}
-                onChange={(e) => {
-                  const newType = e.target.value as QuestionType;
-                  setFormData({
-                    ...formData,
-                    questionType: newType,
-                  });
-                  // Clear options if switching away from ORANGE
-                  if (newType !== "ORANGE") {
-                    setOptions([]);
-                  }
+              <SearchableSelect
+                options={[
+                  {
+                    value: "WHITE",
+                    label: "WHITE",
+                    subtitle: "Assumed scope (cannot be changed)",
+                  },
+                  {
+                    value: "BLUE",
+                    label: "BLUE",
+                    subtitle: "Yes/No Toggle (default: No)",
+                  },
+                  {
+                    value: "GREEN",
+                    label: "GREEN",
+                    subtitle: "Data Input (numbers only)",
+                  },
+                  {
+                    value: "ORANGE",
+                    label: "ORANGE",
+                    subtitle: "Dropdown list (preset options)",
+                  },
+                  {
+                    value: "PURPLE",
+                    label: "PURPLE",
+                    subtitle: "Uses data from previous questions",
+                  },
+                  {
+                    value: "YELLOW",
+                    label: "YELLOW",
+                    subtitle: "Conditional Yes/No (appears after previous Yes)",
+                  },
+                  {
+                    value: "RED",
+                    label: "RED",
+                    subtitle: "Inactive/Hidden (placeholder)",
+                  },
+                ]}
+                value={formData.questionType || ""}
+                onChange={(value) => {
+                  const newType = value as QuestionType;
+                  setFormData({ ...formData, questionType: newType });
+                  if (newType !== "ORANGE") setOptions([]);
                 }}
-                className="w-full border rounded px-3 py-2"
-                title="Select question type"
-                aria-label="Select question type"
-              >
-                <option value="WHITE">
-                  WHITE - Assumed scope (cannot be changed)
-                </option>
-                <option value="BLUE">BLUE - Yes/No Toggle (default: No)</option>
-                <option value="GREEN">GREEN - Data Input (numbers only)</option>
-                <option value="ORANGE">
-                  ORANGE - Dropdown list (preset options)
-                </option>
-                <option value="PURPLE">
-                  PURPLE - Uses data from previous questions
-                </option>
-                <option value="YELLOW">
-                  YELLOW - Conditional Yes/No (appears after previous Yes)
-                </option>
-                <option value="RED">RED - Inactive/Hidden (placeholder)</option>
-              </select>
+                placeholder="Select Question Type"
+              />
             </div>
 
             {/* Options Management for ORANGE type */}
@@ -770,25 +784,22 @@ const CostCodeModal = ({
                   <label className="block text-sm font-medium mb-1">
                     Parent Question
                   </label>
-                  <select
-                    value={formData.parentCostCodeId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        parentCostCodeId: e.target.value,
-                      })
+                  <SearchableSelect
+                    options={[
+                      { value: "", label: "None (Top-level question)" },
+                      ...(allCostCodes?.map((cc) => ({
+                        value: cc.id,
+                        label: cc.code,
+                        subtitle: cc.name,
+                      })) || []),
+                    ]}
+                    value={formData.parentCostCodeId || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, parentCostCodeId: value })
                     }
-                    className="w-full border rounded px-3 py-2"
-                    title="Select parent question"
+                    placeholder="None (Top-level question)"
                     disabled={!formData.serviceId}
-                  >
-                    <option value="">None (Top-level question)</option>
-                    {allCostCodes?.map((cc) => (
-                      <option key={cc.id} value={cc.id}>
-                        {cc.code} - {cc.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   <p className="text-xs text-gray-500 mt-1">
                     This question will appear after parent is answered
                   </p>
@@ -821,23 +832,23 @@ const CostCodeModal = ({
                   <label className="block text-sm font-medium mb-1">
                     Nested Input Type
                   </label>
-                  <select
-                    value={formData.nestedInputType}
-                    onChange={(e) =>
+                  <SearchableSelect
+                    options={[
+                      { value: "NONE", label: "None" },
+                      { value: "QUANTITY", label: "Quantity Input" },
+                      { value: "DROPDOWN", label: "Dropdown" },
+                      { value: "CUSTOM_PRICE", label: "Custom Price" },
+                    ]}
+                    value={formData.nestedInputType || "NONE"}
+                    onChange={(value) =>
                       setFormData({
                         ...formData,
-                        nestedInputType: e.target.value as any,
+                        nestedInputType: value as any,
                       })
                     }
-                    className="w-full border rounded px-3 py-2"
+                    placeholder="Select Nested Input Type"
                     disabled={!formData.parentCostCodeId}
-                    title="Type of nested input"
-                  >
-                    <option value="NONE">None</option>
-                    <option value="QUANTITY">Quantity Input</option>
-                    <option value="DROPDOWN">Dropdown</option>
-                    <option value="CUSTOM_PRICE">Custom Price</option>
-                  </select>
+                  />
                   <p className="text-xs text-gray-500 mt-1">
                     How user will interact with this nested question
                   </p>

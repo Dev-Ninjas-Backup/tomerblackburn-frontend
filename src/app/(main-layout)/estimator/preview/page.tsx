@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { useTips } from "@/hooks/useTips";
-import { Upload, X, Video as VideoIcon } from "lucide-react";
+import { useCostCodes } from "@/hooks/useCostManagement";
+import { useServicesByCategory } from "@/hooks/useProjectManagement";
+import { Upload, X, Video as VideoIcon, ChevronDown, CheckCircle2 } from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 import { uploadService } from "@/services/upload.service";
 import {
@@ -15,6 +17,7 @@ import {
   BuildingType,
 } from "@/services/building-type.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
+import { EstimatorBreadcrumb } from "../_components/EstimatorBreadcrumb";
 
 interface UploadedFile {
   id: string;
@@ -29,6 +32,7 @@ export default function PreviewPage() {
   const router = useRouter();
   const {
     serviceId,
+    serviceCategoryId,
     userInfo,
     setUserInfo,
     totalPrice,
@@ -39,6 +43,22 @@ export default function PreviewPage() {
   } = useEstimatorStore();
 
   const { data: tips } = useTips();
+  const { data: services } = useServicesByCategory(serviceCategoryId || undefined);
+  const serviceName = services?.find((s) => s.id === serviceId)?.name;
+  const { data: costCodes } = useCostCodes({
+    serviceId: serviceId || undefined,
+    includeCategory: true,
+  });
+
+  const [openSummaryCategories, setOpenSummaryCategories] = useState<Set<string>>(new Set());
+
+  const toggleSummaryCategory = useCallback((cat: string) => {
+    setOpenSummaryCategories((prev) => {
+      const next = new Set(prev);
+      next.has(cat) ? next.delete(cat) : next.add(cat);
+      return next;
+    });
+  }, []);
 
   const [fullName, setFullName] = useState(userInfo.fullName);
   const [email, setEmail] = useState(userInfo.email);
@@ -451,7 +471,15 @@ export default function PreviewPage() {
     address &&
     desiredStartDate &&
     buildingTypeId;
-  const additionalTotal = totalPrice - basePrice;
+
+  // Build a map of costCodeId -> category name
+  const costCodeCategoryMap = (costCodes || []).reduce(
+    (acc, cc) => {
+      acc[cc.id] = cc.category?.name || "Other";
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   // Calculate additional costs from selections (exclude items with 0 or null price)
   const additionalCosts = [
@@ -459,17 +487,29 @@ export default function PreviewPage() {
       .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
-        name: s.costCodeName || `Step 1 Item`,
+        name: s.costCodeName || "Step 1 Item",
         cost: Number(s.unitPrice) * (s.quantity || 1),
+        category: costCodeCategoryMap[s.costCodeId] || "Step 1",
       })),
     ...step2Selections
       .filter((s) => s.isEnabled && s.unitPrice && Number(s.unitPrice) > 0)
       .map((s) => ({
         id: s.costCodeId,
-        name: s.costCodeName || `Step 2 Item`,
+        name: s.costCodeName || "Step 2 Item",
         cost: Number(s.unitPrice) * (s.quantity || 1),
+        category: costCodeCategoryMap[s.costCodeId] || "Step 2",
       })),
   ];
+
+  // Group by category
+  const groupedAdditionalCosts = additionalCosts.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof additionalCosts>,
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -482,6 +522,17 @@ export default function PreviewPage() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
+            {/* Service Title */}
+            <div className="-mt-4 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {serviceName || "Estimate Preview"}
+              </h1>
+              <p className="text-sm text-gray-400 mt-0.5">Review your selections before submitting</p>
+            </div>
+
+            {/* Breadcrumb */}
+            <EstimatorBreadcrumb currentStep="preview" />
+
             {/* User Information */}
             <div className="bg-white rounded-2xl p-8 shadow-sm">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -784,54 +835,117 @@ export default function PreviewPage() {
               </h2>
 
               <div className="space-y-3">
-                <div className="flex justify-between text-lg">
-                  <span className="text-gray-600">Base Price:</span>
-                  <span className="font-semibold">
+                {/* Base Price */}
+                <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600 font-medium">Base Price</span>
+                  <span className="font-semibold text-gray-900">
                     ${basePrice.toLocaleString()}
                   </span>
                 </div>
 
-                {additionalCosts.length > 0 && (
-                  <>
-                    <div className="border-t pt-3">
-                      <p className="text-gray-600 mb-3">Additional Items:</p>
-                      <div className="space-y-2 pl-4">
-                        {additionalCosts.map((cost, index) => (
-                          <div
-                            key={`${cost.id}-${index}`}
-                            className="flex justify-between text-sm"
+                {/* Additional Items grouped by category */}
+                {Object.keys(groupedAdditionalCosts).length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1">
+                      Additional Items
+                    </p>
+                    {Object.entries(groupedAdditionalCosts).map(([categoryName, items]) => {
+                      const isOpen = openSummaryCategories.has(categoryName);
+                      const categoryTotal = items.reduce((sum, c) => sum + c.cost, 0);
+                      return (
+                        <div
+                          key={categoryName}
+                          className={`border rounded-xl overflow-hidden transition-colors ${
+                            isOpen ? "border-[#283878]/20" : "border-gray-200"
+                          }`}
+                        >
+                          {/* Category Header */}
+                          <button
+                            type="button"
+                            onClick={() => toggleSummaryCategory(categoryName)}
+                            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors group"
                           >
-                            <span className="text-gray-600">{cost.name}:</span>
-                            <span className="font-medium">
-                              +${cost.cost.toLocaleString()}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-800 group-hover:text-[#283878] transition-colors">
+                                {categoryName}
+                              </span>
+                              <span className="text-[11px] font-medium text-[#283878] bg-[#283878]/10 px-2 py-0.5 rounded-full">
+                                {items.length} item{items.length > 1 ? "s" : ""}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-semibold text-gray-700">
+                                +${categoryTotal.toLocaleString()}
+                              </span>
+                              <motion.div
+                                animate={{ rotate: isOpen ? 180 : 0 }}
+                                transition={{ duration: 0.22 }}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                                  isOpen
+                                    ? "bg-[#283878] text-white"
+                                    : "bg-gray-200 text-gray-500 group-hover:bg-[#283878]/10 group-hover:text-[#283878]"
+                                }`}
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </motion.div>
+                            </div>
+                          </button>
 
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg">
-                        <span className="text-gray-600">Additions Total:</span>
-                        <span className="font-semibold">
-                          $
-                          {additionalCosts
-                            .reduce((sum, c) => sum + c.cost, 0)
-                            .toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </>
+                          {/* Category Items */}
+                          <AnimatePresence initial={false}>
+                            {isOpen && (
+                              <motion.div
+                                key="items"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                style={{ overflow: "hidden" }}
+                              >
+                                <div className="px-4 py-3 space-y-2 border-t border-gray-100">
+                                  {items.map((cost, index) => (
+                                    <div
+                                      key={`${cost.id}-${index}`}
+                                      className="flex justify-between items-center text-sm"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                                        <span className="text-gray-600">{cost.name}</span>
+                                      </div>
+                                      <span className="font-medium text-gray-800 shrink-0 ml-4">
+                                        +${cost.cost.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
 
-                <div className="border-t-2 border-[#283878] pt-4">
-                  <div className="flex justify-between text-2xl">
-                    <span className="font-bold text-gray-900">Total:</span>
-                    <span className="font-bold text-[#283878]">
+                {/* Additions Total */}
+                {additionalCosts.length > 0 && (
+                  <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600 font-medium">Additions Total</span>
+                    <span className="font-semibold text-gray-900">
+                      +${additionalCosts.reduce((sum, c) => sum + c.cost, 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+
+                {/* Grand Total */}
+                <div className="border-t-2 border-[#283878] pt-4 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xl font-bold text-gray-900">Total</span>
+                    <span className="text-2xl font-bold text-[#283878]">
                       ${totalPrice.toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 text-right">
+                  <p className="text-xs text-gray-400 mt-2 text-right">
                     * Final price may vary based on site conditions
                   </p>
                 </div>
