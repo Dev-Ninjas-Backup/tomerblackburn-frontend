@@ -7,17 +7,23 @@ import { Button } from "@/components/ui/button";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { useCostCodes } from "@/hooks/useCostManagement";
+import { useServicesByCategory } from "@/hooks/useProjectManagement";
 import { CostCodeRenderer } from "../_components/CostCodeRenderer";
+import { EstimatorBreadcrumb } from "../_components/EstimatorBreadcrumb";
 
 export default function Step1Page() {
   const router = useRouter();
   const {
     serviceId,
+    serviceCategoryId,
     step1Selections,
     addCostCodeSelection,
     updateCostCodeSelection,
     removeCostCodeSelection,
   } = useEstimatorStore();
+
+  const { data: services } = useServicesByCategory(serviceCategoryId || undefined);
+  const serviceName = services?.find((s) => s.id === serviceId)?.name;
 
   const { data: costCodes, isLoading } = useCostCodes({
     serviceId: serviceId || undefined,
@@ -57,6 +63,17 @@ export default function Step1Page() {
 
       <div className="lg:flex lg:justify-center container mx-auto">
         <div className="px-4 w-full max-w-4xl lg:mr-4">
+          {/* Service Title */}
+          <div className="mb-5">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {serviceName || "Loading..."}
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">Rough work estimator</p>
+          </div>
+
+          {/* Breadcrumb */}
+          <EstimatorBreadcrumb currentStep="step-1" />
+
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">

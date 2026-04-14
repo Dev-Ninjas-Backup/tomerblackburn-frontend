@@ -1,0 +1,194 @@
+# 4-Piece (Four Piece) — Cost Code Entry Guide
+
+## How to Add Each Cost Code
+Dashboard → Cost Management → Cost Codes → **Add Cost Code**
+
+For all entries below:
+- **Project Type:** Bathroom Renovation
+- **Service Category:** Bathroom Renovation
+- **Service:** Four Piece
+- **Step:** 1 (Rough)
+- **Is Active:** ✅
+
+---
+
+## BASE COST CODES (Included in Base Price)
+
+---
+
+### 1. Site Preparation
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-SitePrep` |
+| **Name** | `Site Preparation` |
+| **Alias** | *(leave empty)* |
+| **Category** | Management |
+| **Question Type** | `WHITE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `250` |
+| **Markup** | `20` |
+| **Client Price** | `300` *(auto)* |
+| **Is Included In Base** | ✅ |
+| **Exclude From Export** | ❌ |
+| **Description** | `Create protective walkway from access point to work area - Protect flooring and adjacent surfaces - Set up staging area for materials and tools` |
+| **Tips** | `A clear space near the work area is required for storing tools, materials, and daily work` |
+
+---
+
+### 2. Demolition
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-Demo` |
+| **Name** | `Demolition` |
+| **Alias** | *(leave empty)* |
+| **Category** | Demolition |
+| **Question Type** | `WHITE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `1000` |
+| **Markup** | `20` |
+| **Client Price** | `1200` *(auto)* |
+| **Is Included In Base** | ✅ |
+| **Exclude From Export** | ❌ |
+| **Description** | `Uninstall and set aside agreed-upon items - Remove toilet - Remove tub, shower, and surrounds - Remove double vanity and sinks - Remove floor tile - Remove mirror(s) and bathroom accessories` |
+| **Tips** | `Additional costs may apply if multiple layers of flooring are found during demolition` |
+
+---
+
+### 3. Wall/Ceiling Tile Removal (Branch Question)
+
+> ⚠️ Branch question — NOT exported to Buildertrend.
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-WallTile-Branch` |
+| **Name** | `Is there any wall or ceiling tile being removed?` |
+| **Category** | Demolition |
+| **Question Type** | `BLUE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `0` |
+| **Markup** | `0` |
+| **Client Price** | `0` |
+| **Is Included In Base** | ❌ |
+| **Exclude From Export** | ✅ |
+| **Is Optional** | ✅ |
+
+---
+
+### 4. Plumbing
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-Plumbing` |
+| **Name** | `Plumbing` |
+| **Alias** | *(leave empty)* |
+| **Category** | Plumbing |
+| **Question Type** | `WHITE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `3500` |
+| **Markup** | `20` |
+| **Client Price** | `4200` *(auto)* |
+| **Is Included In Base** | ✅ |
+| **Exclude From Export** | ❌ |
+| **Description** | `Install and connect toilet in existing location - Install and connect double sink or vanity in existing location - Install alcove tub in existing location and connect to main drain - Install tub faucet and controls - Install copper piping for shower head and controls at tub - Install rough-in valve for standard shower in separate shower - Install shower drain in existing location and connect to main drain - Does not include repair or replacement of main drain lines if required` |
+| **Tips** | `Price assumes existing plumbing locations can be used for the new sink or vanity; relocation may add cost` |
+
+---
+
+### 5. Additional Plumbing (Branch Question)
+
+> ⚠️ Branch question — NOT exported.
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-Plumbing-Branch` |
+| **Name** | `Do you need any additional plumbing work beyond the scope listed above?` |
+| **Category** | Plumbing |
+| **Question Type** | `BLUE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `0` |
+| **Markup** | `0` |
+| **Client Price** | `0` |
+| **Is Included In Base** | ❌ |
+| **Exclude From Export** | ✅ |
+| **Is Optional** | ✅ |
+
+> Child upgrades (YELLOW, from Upgrade Options tab):
+> - Relocate Shower
+> - Handheld Shower Wand
+> - Body Sprays
+> - Steam Shower
+> - Change Tub Style (Alcove is included)
+> - Relocate Tub
+> - Relocate Toilet
+> - Convert to Wall-Hung Toilet
+> - Toilet with Built in Bidet (Washlet)
+> - Relocate Sink/Vanity
+> - Convert Single to Double Vanity
+> - Wall Mounted Faucets
+
+---
+
+### 6. Electric
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-Electric` |
+| **Name** | `Electric` |
+| **Alias** | *(leave empty)* |
+| **Category** | Electric |
+| **Question Type** | `WHITE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `600` |
+| **Markup** | `20` |
+| **Client Price** | `720` *(auto)* |
+| **Is Included In Base** | ✅ |
+| **Exclude From Export** | ❌ |
+| **Description** | `Replace vanity light fixture(s) in existing location - Replace ceiling light fixture in existing location - Update outlets and switches in bathroom` |
+| **Tips** | `Work beyond this scope will require additional electrician visits. See below.` |
+
+---
+
+### 7. Additional Electric (Branch Question)
+
+> ⚠️ Branch question — NOT exported.
+
+| Field | Value |
+|---|---|
+| **Code** | `4P-Electric-Branch` |
+| **Name** | `Do you need any additional electrical work beyond the scope listed above?` |
+| **Category** | Electric |
+| **Question Type** | `BLUE` |
+| **Unit Type** | `FIXED` |
+| **Base Price** | `0` |
+| **Markup** | `0` |
+| **Client Price** | `0` |
+| **Is Included In Base** | ❌ |
+| **Exclude From Export** | ✅ |
+| **Is Optional** | ✅ |
+
+> Child upgrades (YELLOW, from Upgrade Options tab):
+> - Add new outlets
+> - Relocate existing outlets or switches
+> - Add Vanity Light with switch
+> - Convert One Vanity Light into Two
+> - Add recessed lighting
+> - Add ceiling light fixture with new switch
+> - Install sconces instead of vanity light
+> - Install dimmer switches
+> - Install LED mirror
+> - Install heated floors
+
+---
+
+## KEY DIFFERENCES — ALL BATHROOM TYPES
+
+| Item | 2-Piece | 3-Piece Tub | 3-Piece Shower | 4-Piece |
+|---|---|---|---|---|
+| **Demo price** | $400/$480 | $700/$840 | $700/$840 | $1,000/$1,200 |
+| **Demo scope** | Toilet + vanity + floor | + tub/shower | + tub/shower | + tub + shower + double vanity |
+| **Plumbing price** | $600/$720 | $2,200/$2,640 | $2,200/$2,640 | $3,500/$4,200 |
+| **Plumbing scope** | Toilet + sink | + alcove tub | + shower drain | + tub + separate shower |
+| **Electric price** | $600/$720 | $600/$720 | $600/$720 | $600/$720 |
+| **Site Prep** | $250/$300 | $250/$300 | $250/$300 | $250/$300 |
