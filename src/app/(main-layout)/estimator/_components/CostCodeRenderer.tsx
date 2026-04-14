@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Lightbulb, X as XIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { Lightbulb, X as XIcon, ChevronDown, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CostCode {
   id: string;
@@ -53,6 +53,7 @@ interface CostCodeRendererProps {
   onSelectionRemove: (costCodeId: string) => void;
 }
 
+// ─── TipsPopover ────────────────────────────────────────────────────────────
 const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({
   tips,
   label,
@@ -131,6 +132,7 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({
   );
 };
 
+// ─── AnimatedChildren ────────────────────────────────────────────────────────
 const AnimatedChildren: React.FC<{
   show: boolean;
   children: React.ReactNode;
@@ -141,9 +143,7 @@ const AnimatedChildren: React.FC<{
   useEffect(() => {
     if (!ref.current) return;
     const el = ref.current;
-    const observer = new ResizeObserver(() => {
-      setHeight(el.scrollHeight);
-    });
+    const observer = new ResizeObserver(() => setHeight(el.scrollHeight));
     observer.observe(el);
     setHeight(el.scrollHeight);
     return () => observer.disconnect();
@@ -152,13 +152,8 @@ const AnimatedChildren: React.FC<{
   return (
     <motion.div
       initial={false}
-      animate={{
-        height: show ? height : 0,
-        opacity: show ? 1 : 0,
-      }}
-      onAnimationComplete={() => {
-        if (show) setHeight("auto");
-      }}
+      animate={{ height: show ? height : 0, opacity: show ? 1 : 0 }}
+      onAnimationComplete={() => { if (show) setHeight("auto"); }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ overflow: "hidden" }}
     >
@@ -167,14 +162,14 @@ const AnimatedChildren: React.FC<{
   );
 };
 
+// ─── UpgradeLabel ────────────────────────────────────────────────────────────
 const UpgradeLabel = ({ isIncludedInBase }: { isIncludedInBase: boolean }) => (
-  <p
-    className={`text-xs mt-1 ${isIncludedInBase ? "text-green-600 font-medium" : "text-[#283878]"}`}
-  >
+  <p className={`text-xs mt-1 ${isIncludedInBase ? "text-green-600 font-medium" : "text-[#283878]"}`}>
     {isIncludedInBase ? "✦ Included in Base Price" : "✦ Additional Upgrade"}
   </p>
 );
 
+// ─── Toggle ──────────────────────────────────────────────────────────────────
 const Toggle = ({
   isEnabled,
   onToggle,
@@ -198,6 +193,73 @@ const Toggle = ({
   </button>
 );
 
+// ─── CategoryAccordion ───────────────────────────────────────────────────────
+const CategoryAccordion: React.FC<{
+  categoryName: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  selectionCount: number;
+  children: React.ReactNode;
+}> = ({ categoryName, isOpen, onToggle, selectionCount, children }) => {
+  return (
+    <div
+      className={`bg-white rounded-xl shadow-sm overflow-hidden border transition-all duration-200 ${
+        isOpen ? "border-[#283878]/20" : "border-transparent"
+      }`}
+    >
+      {/* Accordion Header */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/80 transition-colors group"
+        aria-expanded={isOpen}
+      >
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-bold text-gray-900 group-hover:text-[#283878] transition-colors">
+            {categoryName}
+          </h2>
+          {selectionCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+              <CheckCircle2 className="w-3 h-3" />
+              {selectionCount} selected
+            </span>
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+            isOpen
+              ? "bg-[#283878] text-white"
+              : "bg-gray-100 text-gray-500 group-hover:bg-[#283878]/10 group-hover:text-[#283878]"
+          }`}
+        >
+          <ChevronDown className="w-4 h-4" />
+        </motion.div>
+      </button>
+
+      {/* Accordion Body */}
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="px-5 pb-5 space-y-2 border-t border-gray-100">
+              <div className="pt-4 space-y-2">{children}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── CostCodeRenderer ────────────────────────────────────────────────────────
 export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   costCodes,
   selections,
@@ -205,7 +267,71 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   onSelectionRemove,
 }) => {
   const autoAddedRef = useRef<Set<string>>(new Set());
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
+  const initializedRef = useRef(false);
 
+  // Group cost codes by category
+  const groupedCostCodes = costCodes
+    .filter((cc) => !cc.parentCostCodeId)
+    .reduce(
+      (acc, costCode) => {
+        const categoryName = costCode.category?.name || "Other";
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(costCode);
+        return acc;
+      },
+      {} as Record<string, CostCode[]>,
+    );
+
+  const categoryNames = Object.keys(groupedCostCodes);
+
+  // Initialize: open first category by default
+  useEffect(() => {
+    if (initializedRef.current || categoryNames.length === 0) return;
+    initializedRef.current = true;
+    setOpenCategories(new Set([categoryNames[0]]));
+  }, [categoryNames]);
+
+  // Auto-open categories that have selections
+  useEffect(() => {
+    if (selections.length === 0) return;
+    setOpenCategories((prev) => {
+      const next = new Set(prev);
+      categoryNames.forEach((catName) => {
+        const catCodes = groupedCostCodes[catName] || [];
+        const hasSelection = catCodes.some((cc) =>
+          selections.find((s) => s.costCodeId === cc.id),
+        );
+        if (hasSelection) next.add(catName);
+      });
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selections.length]);
+
+  const toggleCategory = useCallback((categoryName: string) => {
+    setOpenCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryName)) {
+        next.delete(categoryName);
+      } else {
+        next.add(categoryName);
+      }
+      return next;
+    });
+  }, []);
+
+  // Count active selections per category
+  const getSelectionCount = (catCodes: CostCode[]) =>
+    catCodes.filter((cc) =>
+      selections.find(
+        (s) =>
+          s.costCodeId === cc.id &&
+          (s.isEnabled || s.selectedOptionId || s.userInputValue),
+      ),
+    ).length;
+
+  // ── Auto-add logic ──────────────────────────────────────────────────────
   useEffect(() => {
     costCodes.forEach((costCode) => {
       if (
@@ -225,7 +351,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             quantity: 1,
           });
         }
-        // PURPLE: auto-add with parent's quantity
         if (costCode.questionType === "PURPLE" && costCode.parentCostCodeId) {
           const parentSelection = selections.find(
             (s) => s.costCodeId === costCode.parentCostCodeId,
@@ -253,28 +378,16 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
           parentSelection &&
           existing.quantity !== parentSelection.quantity
         ) {
-          onSelectionChange(costCode.id, {
-            quantity: parentSelection.quantity,
-          });
+          onSelectionChange(costCode.id, { quantity: parentSelection.quantity });
         }
       }
     });
   }, [costCodes, selections, onSelectionChange]);
 
-  const groupedCostCodes = costCodes
-    .filter((cc) => !cc.parentCostCodeId)
-    .reduce(
-      (acc, costCode) => {
-        const categoryName = costCode.category?.name || "Other";
-        if (!acc[categoryName]) acc[categoryName] = [];
-        acc[categoryName].push(costCode);
-        return acc;
-      },
-      {} as Record<string, CostCode[]>,
-    );
-
+  // ── Helpers ─────────────────────────────────────────────────────────────
   const getSelection = (costCodeId: string) =>
     selections.find((s) => s.costCodeId === costCodeId);
+
   const getChildQuestions = (parentId: string) =>
     costCodes.filter((cc) => cc.parentCostCodeId === parentId);
 
@@ -336,10 +449,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         quantity: numValue,
       });
     } else {
-      onSelectionChange(costCode.id, {
-        userInputValue: value,
-        quantity: numValue,
-      });
+      onSelectionChange(costCode.id, { userInputValue: value, quantity: numValue });
     }
   };
 
@@ -381,9 +491,6 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
     const selection = getSelection(costCode.id);
     const isEnabled = selection?.isEnabled || false;
     const bgColor = costCode.isIncludedInBase ? "bg-green-50" : "bg-blue-50";
-    const titleColor = costCode.isIncludedInBase
-      ? "text-green-700"
-      : "text-gray-800";
     const sizeClass = isNested
       ? "p-3 rounded-lg border-l-4 border-[#283878] bg-white/80 ml-2"
       : "p-3 rounded-lg mb-2";
@@ -394,9 +501,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5">
-            <p className="text-sm font-semibold ${titleColor}">
-              {costCode.name}
-            </p>
+            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -408,42 +513,13 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       );
     }
 
-    if (costCode.questionType === "BLUE") {
+    if (costCode.questionType === "BLUE" || costCode.questionType === "YELLOW") {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-1.5">
-                <p className="text-sm font-semibold ${titleColor}">
-                  {costCode.name}
-                </p>
-                {costCode.tips && costCode.tips.length > 0 && (
-                  <TipsPopover tips={costCode.tips} label={costCode.name} />
-                )}
-              </div>
-              {formatDescription(costCode.description)}
-              <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
-            </div>
-            <Toggle
-              isEnabled={isEnabled}
-              onToggle={() => handleToggle(costCode, !isEnabled)}
-              label={costCode.name}
-            />
-          </div>
-          {renderChildren(costCode.id, isEnabled)}
-        </div>
-      );
-    }
-
-    if (costCode.questionType === "YELLOW") {
-      return (
-        <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-1.5">
-                <p className="text-sm font-semibold ${titleColor}">
-                  {costCode.name}
-                </p>
+                <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
                 {costCode.tips && costCode.tips.length > 0 && (
                   <TipsPopover tips={costCode.tips} label={costCode.name} />
                 )}
@@ -466,9 +542,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5 mb-1.5">
-            <p className="text-sm font-semibold ${titleColor}">
-              {costCode.name}
-            </p>
+            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -480,9 +554,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               type="number"
               min="1"
               value={selection?.userInputValue || ""}
-              onChange={(e) =>
-                handleQuantityInput(costCode, e.target.value, selection)
-              }
+              onChange={(e) => handleQuantityInput(costCode, e.target.value, selection)}
               placeholder="Enter value"
               className="w-full sm:w-40 p-5 h-10 text-sm border-[#283878]/40 focus:border-[#283878] focus:ring-[#283878]"
             />
@@ -499,9 +571,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5 mb-1.5">
-            <p className="text-sm font-semibold ${titleColor}">
-              {costCode.name}
-            </p>
+            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -535,9 +605,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5">
-            <p className="text-sm font-semibold ${titleColor}">
-              {costCode.name}
-            </p>
+            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -552,19 +620,24 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {Object.entries(groupedCostCodes).map(
-        ([categoryName, categoryCostCodes]) => (
-          <div key={categoryName} className="bg-white rounded-xl p-5 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              {categoryName}
-            </h2>
-            <div className="space-y-2">
-              {categoryCostCodes.map((cc) => renderCostCode(cc))}
-            </div>
-          </div>
-        ),
-      )}
+    <div className="space-y-3">
+      {categoryNames.map((categoryName) => {
+        const catCodes = groupedCostCodes[categoryName];
+        const isOpen = openCategories.has(categoryName);
+        const selectionCount = getSelectionCount(catCodes);
+
+        return (
+          <CategoryAccordion
+            key={categoryName}
+            categoryName={categoryName}
+            isOpen={isOpen}
+            onToggle={() => toggleCategory(categoryName)}
+            selectionCount={selectionCount}
+          >
+            {catCodes.map((cc) => renderCostCode(cc))}
+          </CategoryAccordion>
+        );
+      })}
     </div>
   );
 };
