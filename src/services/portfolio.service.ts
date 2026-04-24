@@ -1,26 +1,18 @@
-import axios from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+import { api } from "@/lib/api";
 
 export const portfolioService = {
-  // Get all categories (for public portfolio page)
   getAllCategories: (includeInactive = false) => {
-    return axios.get(`${API_URL}/portfolio/categories`, {
-      params: { includeInactive },
-    });
+    return api.get("/portfolio/categories", { params: { includeInactive } });
   },
 
-  // Get category by ID
   getCategoryById: (id: string) => {
-    return axios.get(`${API_URL}/portfolio/categories/${id}`);
+    return api.get(`/portfolio/categories/${id}`);
   },
 
-  // Get category by slug
   getCategoryBySlug: (slug: string) => {
-    return axios.get(`${API_URL}/portfolio/categories/slug/${slug}`);
+    return api.get(`/portfolio/categories/slug/${slug}`);
   },
 
-  // Create category (dashboard)
   createCategory: (data: {
     name: string;
     slug: string;
@@ -33,10 +25,9 @@ export const portfolioService = {
       displayOrder?: number;
     }>;
   }) => {
-    return axios.post(`${API_URL}/portfolio/categories`, data);
+    return api.post("/portfolio/categories", data);
   },
 
-  // Update category (dashboard)
   updateCategory: (
     id: string,
     data: {
@@ -47,20 +38,17 @@ export const portfolioService = {
       isActive?: boolean;
     }
   ) => {
-    return axios.patch(`${API_URL}/portfolio/categories/${id}`, data);
+    return api.patch(`/portfolio/categories/${id}`, data);
   },
 
-  // Toggle category status (dashboard)
   toggleCategoryStatus: (id: string) => {
-    return axios.patch(`${API_URL}/portfolio/categories/${id}/toggle-status`);
+    return api.patch(`/portfolio/categories/${id}/toggle-status`);
   },
 
-  // Delete category (dashboard)
   deleteCategory: (id: string) => {
-    return axios.delete(`${API_URL}/portfolio/categories/${id}`);
+    return api.delete(`/portfolio/categories/${id}`);
   },
 
-  // Add image to category (dashboard)
   addImage: (
     categoryId: string,
     data: {
@@ -69,13 +57,9 @@ export const portfolioService = {
       displayOrder?: number;
     }
   ) => {
-    return axios.post(
-      `${API_URL}/portfolio/categories/${categoryId}/images`,
-      data
-    );
+    return api.post(`/portfolio/categories/${categoryId}/images`, data);
   },
 
-  // Update image (dashboard)
   updateImage: (
     imageId: string,
     data: {
@@ -84,19 +68,14 @@ export const portfolioService = {
       displayOrder?: number;
     }
   ) => {
-    return axios.patch(`${API_URL}/portfolio/images/${imageId}`, data);
+    return api.patch(`/portfolio/images/${imageId}`, data);
   },
 
-  // Delete image (dashboard)
   deleteImage: (imageId: string) => {
-    return axios.delete(`${API_URL}/portfolio/images/${imageId}`);
+    return api.delete(`/portfolio/images/${imageId}`);
   },
 
-  // Reorder images (dashboard)
   reorderImages: (categoryId: string, imageIds: string[]) => {
-    return axios.post(
-      `${API_URL}/portfolio/categories/${categoryId}/reorder-images`,
-      { imageIds }
-    );
+    return api.post(`/portfolio/categories/${categoryId}/reorder-images`, { imageIds });
   },
 };
