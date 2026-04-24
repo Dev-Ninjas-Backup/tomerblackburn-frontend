@@ -57,6 +57,8 @@ jobs:
                   context: .
                   push: true
                   tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PACKAGE_NAME }}:latest
+                  build-args: |
+                      NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
                   cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ secrets.PACKAGE_NAME }}:buildcache
                   cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ secrets.PACKAGE_NAME }}:buildcache,mode=max
 
