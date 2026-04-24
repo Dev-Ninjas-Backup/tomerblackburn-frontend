@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
     container_name: ${PACKAGE_NAME}_app
     restart: always
-    expose:
-      - "${PORT}"
+    ports:
+      - "${PORT}:${PORT}"
     environment:
       - NODE_ENV=production
       - PORT=${PORT}
