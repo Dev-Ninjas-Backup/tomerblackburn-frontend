@@ -70,7 +70,7 @@ export const RevenueChart = () => {
                     tickFormatter={(value) => `$${value.toLocaleString()}`}
                   />
                   <Tooltip 
-                    formatter={(value: number | undefined) => [`$${(value || 0).toLocaleString()}`, 'Revenue']}
+                    formatter={(value) => [`$${(Number(value) || 0).toLocaleString()}`, 'Revenue']}
                   />
                   <Line 
                     type="monotone" 
