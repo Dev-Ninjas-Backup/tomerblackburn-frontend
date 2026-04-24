@@ -18,7 +18,10 @@ services:
       - PORT=${PORT}
       - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
     networks:
-      - tomerblackburn-frontend-network
+      tomerblackburn-frontend-network: {}
+      tomerblackburn-network:
+        aliases:
+          - frontend-app
 
   # caddy:
   #   image: caddy:2-alpine
@@ -42,6 +45,8 @@ services:
 networks:
   tomerblackburn-frontend-network:
     driver: bridge
+  tomerblackburn-network:
+    external: true
 
 volumes:
   caddy_data:

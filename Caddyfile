@@ -1,4 +1,4 @@
-bburnbuilders.com, www.bburnbuilders.com {
+dev.bburnbuilders.com, www.dev.bburnbuilders.com {
 	reverse_proxy app:3000
 
 	encode gzip
