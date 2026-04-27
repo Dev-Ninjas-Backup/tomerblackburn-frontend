@@ -10,6 +10,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "floridayt.s3.eu-north-1.amazonaws.com",
       },
+      {
+        protocol: "https",
+        hostname: "api.bburnbuilders.com",
+      },
     ],
   },
 };
