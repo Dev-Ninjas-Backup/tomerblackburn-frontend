@@ -20,6 +20,9 @@ import {
 import { useServices } from "@/hooks/useProjectManagement";
 import CostCodeModal from "../_components/CostCodeModal";
 import { QuestionType, UnitType } from "@/types/cost-management.types";
+import ImportExportButtons from "@/components/ImportExportButtons";
+import { exportToCSV } from "@/lib/csv";
+import { toast } from "sonner";
 
 const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
   WHITE: "bg-gray-100 text-gray-800",
@@ -69,6 +72,77 @@ const CostCodesTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedData, setSelectedData] = useState<any>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExport = () => {
+    if (!costCodes?.length) return toast.error('No data to export');
+    const parents = costCodes.filter((c) => !c.parentCostCodeId);
+    exportToCSV('cost-codes.csv', parents.map((c) => ({
+      code: c.code,
+      name: c.name,
+      description: c.description ?? '',
+      elies: c.elies ?? '',
+      categoryName: c.category?.name ?? '',
+      serviceName: c.service?.name ?? '',
+      basePrice: c.basePrice,
+      markup: c.markup ?? 0,
+      clientPrice: c.clientPrice ?? 0,
+      unitType: c.unitType,
+      questionType: c.questionType,
+      step: c.step,
+      displayOrder: c.displayOrder,
+      isIncludedInBase: c.isIncludedInBase,
+      requiresQuantity: c.requiresQuantity,
+      isOptional: c.isOptional,
+      isActive: c.isActive,
+      tips: Array.isArray(c.tips) ? c.tips.join('|') : '',
+    })));
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    const { costCodeCategoryService } = await import('@/services/cost-code-category.service');
+    const { serviceService } = await import('@/services/service.service');
+    const { costCodeService } = await import('@/services/cost-code.service');
+    const [catsRes, svcsRes] = await Promise.all([
+      costCodeCategoryService.getAll(),
+      serviceService.getAll(),
+    ]);
+    const allCats = catsRes.data.data as any[];
+    const allSvcs = svcsRes.data.data as any[];
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      const cat = allCats.find((c: any) => c.name === row.categoryName);
+      if (!cat) { failed++; continue; }
+      const svc = allSvcs.find((s: any) => s.name === row.serviceName);
+      try {
+        await costCodeService.create({
+          code: row.code,
+          name: row.name,
+          description: row.description || undefined,
+          elies: row.elies || undefined,
+          categoryId: cat.id,
+          serviceId: svc?.id,
+          basePrice: Number(row.basePrice) || 0,
+          markup: Number(row.markup) || 0,
+          clientPrice: Number(row.clientPrice) || 0,
+          unitType: (row.unitType as any) || 'FIXED',
+          questionType: (row.questionType as any) || 'WHITE',
+          step: Number(row.step) || 1,
+          displayOrder: Number(row.displayOrder) || 0,
+          isIncludedInBase: row.isIncludedInBase === 'true',
+          requiresQuantity: row.requiresQuantity === 'true',
+          isOptional: row.isOptional === 'true',
+          isActive: row.isActive === 'false' ? false : true,
+          tips: row.tips ? row.tips.split('|').filter(Boolean) : [],
+        });
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} cost codes${failed ? `, ${failed} failed` : ''}`);
+  };
 
   const handleFilterChange = (key: keyof CostCodeFilters, value: any) => {
     setFilters((prev) => ({
@@ -315,6 +389,7 @@ const CostCodesTab = () => {
             <span className="hidden sm:inline">Add Cost Code</span>
             <span className="sm:hidden">Add</span>
           </Button>
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
         </div>
       </div>
 

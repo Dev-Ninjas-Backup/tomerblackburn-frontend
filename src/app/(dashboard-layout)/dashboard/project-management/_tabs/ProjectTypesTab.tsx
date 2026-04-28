@@ -2,16 +2,50 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
-import { useProjectTypes, useDeleteProjectType } from '@/hooks/useProjectManagement';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { useProjectTypes, useDeleteProjectType, useCreateProjectType } from '@/hooks/useProjectManagement';
 import ProjectTypeModal from '../_components/ProjectTypeModal';
+import ImportExportButtons from '@/components/ImportExportButtons';
+import { exportToCSV } from '@/lib/csv';
+import { toast } from 'sonner';
 
 const ProjectTypesTab = () => {
   const { data: projectTypes, isLoading } = useProjectTypes();
   const deleteMutation = useDeleteProjectType();
+  const createMutation = useCreateProjectType();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExport = () => {
+    if (!projectTypes?.length) return toast.error('No data to export');
+    exportToCSV('project-types.csv', projectTypes.map((pt) => ({
+      name: pt.name,
+      description: pt.description ?? '',
+      displayOrder: pt.displayOrder,
+      isActive: pt.isActive,
+    })));
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      try {
+        await createMutation.mutateAsync({
+          name: row.name,
+          description: row.description || undefined,
+          displayOrder: row.displayOrder ? Number(row.displayOrder) : 0,
+          isActive: row.isActive === 'false' ? false : true,
+        } as any);
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} project types${failed ? `, ${failed} failed` : ''}`);
+  };
 
   const handleCreate = () => {
     setModalMode('create');
@@ -39,10 +73,13 @@ const ProjectTypesTab = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Project Types</h2>
-        <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-          <Plus size={18} className="mr-2" />
-          Add Project Type
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+            <Plus size={18} className="mr-2" />
+            Add Project Type
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">

@@ -3,19 +3,24 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useServices, useDeleteService, useProjectTypes, useServiceCategoriesByProjectType } from '@/hooks/useProjectManagement';
+import { useServices, useDeleteService, useProjectTypes, useServiceCategoriesByProjectType, useCreateService } from '@/hooks/useProjectManagement';
 import ServiceModal from '../_components/ServiceModal';
+import ImportExportButtons from '@/components/ImportExportButtons';
+import { exportToCSV } from '@/lib/csv';
+import { toast } from 'sonner';
 
 const ServicesTab = () => {
   const { data: services, isLoading } = useServices();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteService();
+  const createMutation = useCreateService();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
   const [filterProjectType, setFilterProjectType] = useState<string>('');
   const [filterCategory, setFilterCategory] = useState<string>('');
-  
+  const [isImporting, setIsImporting] = useState(false);
+
   const { data: categories } = useServiceCategoriesByProjectType(filterProjectType);
 
   const handleCreate = () => {
@@ -36,6 +41,55 @@ const ServicesTab = () => {
     }
   };
 
+  const handleExport = () => {
+    const data = filterCategory
+      ? services?.filter((s) => s.serviceCategoryId === filterCategory)
+      : services;
+    if (!data?.length) return toast.error('No data to export');
+    exportToCSV('services.csv', data.map((s) => ({
+      code: s.code,
+      name: s.name,
+      fullDescription: s.fullDescription ?? '',
+      basePrice: s.basePrice,
+      markup: s.markup ?? 0,
+      clientPrice: s.clientPrice ?? 0,
+      displayOrder: s.displayOrder,
+      isActive: s.isActive,
+      serviceCategoryName: s.serviceCategory?.name ?? '',
+    })));
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    // Need all categories to match by name
+    const { data: allCategories } = await import('@/services/service-category.service').then(
+      async (m) => m.serviceCategoryService.getAll()
+    ).then((res) => res.data);
+
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      const cat = (allCategories as any[])?.find((c: any) => c.name === row.serviceCategoryName);
+      if (!cat) { failed++; continue; }
+      try {
+        await createMutation.mutateAsync({
+          data: {
+            code: row.code,
+            name: row.name,
+            fullDescription: row.fullDescription || undefined,
+            basePrice: Number(row.basePrice) || 0,
+            displayOrder: Number(row.displayOrder) || 0,
+            isActive: row.isActive === 'false' ? false : true,
+            serviceCategoryId: cat.id,
+          },
+        });
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} services${failed ? `, ${failed} failed` : ''}`);
+  };
+
   const filteredServices = filterCategory
     ? services?.filter((s) => s.serviceCategoryId === filterCategory)
     : services;
@@ -51,10 +105,7 @@ const ServicesTab = () => {
           <h2 className="text-xl font-semibold">Services</h2>
           <select
             value={filterProjectType}
-            onChange={(e) => {
-              setFilterProjectType(e.target.value);
-              setFilterCategory('');
-            }}
+            onChange={(e) => { setFilterProjectType(e.target.value); setFilterCategory(''); }}
             className="border rounded px-3 py-2 text-sm"
             title="Filter by project type"
             aria-label="Filter by project type"
@@ -79,10 +130,13 @@ const ServicesTab = () => {
             </select>
           )}
         </div>
-        <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-          <Plus size={18} className="mr-2" />
-          Add Service
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+            <Plus size={18} className="mr-2" />
+            Add Service
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
