@@ -22,6 +22,9 @@ import {
 } from "@/hooks/useCostManagement";
 import CostCodeOptionModal from "../_components/CostCodeOptionModal";
 import BulkCreateOptionsModal from "../_components/BulkCreateOptionsModal";
+import ImportExportButtons from "@/components/ImportExportButtons";
+import { exportToCSV } from "@/lib/csv";
+import { toast } from "sonner";
 import {
   DndContext,
   closestCenter,
@@ -143,6 +146,43 @@ const CostCodeOptionsTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExport = () => {
+    if (!options?.length) return toast.error('No options to export');
+    exportToCSV(`cost-code-options-${selectedCostCodeData?.code ?? 'all'}.csv`,
+      options.map((o) => ({
+        optionName: o.optionName,
+        optionValue: o.optionValue ?? '',
+        priceModifier: o.priceModifier,
+        isDefault: o.isDefault,
+        displayOrder: o.displayOrder,
+      }))
+    );
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!selectedCostCode) return toast.error('Please select a cost code first');
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    const { costCodeOptionService } = await import('@/services/cost-code-option.service');
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      try {
+        await costCodeOptionService.create({
+          costCodeId: selectedCostCode,
+          optionName: row.optionName,
+          optionValue: row.optionValue || undefined,
+          priceModifier: Number(row.priceModifier) || 0,
+          isDefault: row.isDefault === 'true',
+          displayOrder: Number(row.displayOrder) || 0,
+        });
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} options${failed ? `, ${failed} failed` : ''}`);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -286,6 +326,7 @@ const CostCodeOptionsTab = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
           <Button
             onClick={handleBulkCreate}
             variant="outline"
