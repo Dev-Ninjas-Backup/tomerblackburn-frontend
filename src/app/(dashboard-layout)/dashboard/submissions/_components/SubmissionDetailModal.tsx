@@ -167,6 +167,17 @@ const SubmissionDetailModal = ({
                 ${submission.additionalItemsTotal.toLocaleString()}
               </span>
             </div>
+            {submission.buildingType && Number(submission.buildingTypeRef?.price) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">
+                  Building Type
+                  <span className="ml-1 text-xs text-gray-400">({submission.buildingTypeRef?.name || submission.buildingType})</span>
+                </span>
+                <span className="font-medium">
+                  ${Number(submission.buildingTypeRef?.price).toLocaleString()}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between pt-2 border-t border-blue-200">
               <span className="font-semibold text-gray-900">Total Amount:</span>
               <span className="font-bold text-lg text-blue-600">

@@ -24,6 +24,7 @@ interface UserInfo {
   desiredStartDate?: string
   buildingType?: string
   buildingTypeId?: string
+  buildingTypePrice?: number
   photoIds: string[]
   videoIds: string[]
 }

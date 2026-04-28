@@ -22,8 +22,9 @@ interface WhatHappensNextData {
 
 export default function ConfirmationPage() {
   const router = useRouter();
-  const { serviceId, totalPrice, resetEstimator, submissionId, submissionNumber, pdfUrl } =
+  const { serviceId, totalPrice, userInfo, resetEstimator, submissionId, submissionNumber, pdfUrl } =
     useEstimatorStore();
+  const grandTotal = totalPrice + (Number(userInfo.buildingTypePrice) || 0);
   const [nextSteps, setNextSteps] = useState<WhatHappensNextData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -116,7 +117,7 @@ export default function ConfirmationPage() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Total:</span>
                 <span className="text-3xl font-bold text-[#283878]">
-                  ${totalPrice.toLocaleString()}
+                  ${grandTotal.toLocaleString()}
                 </span>
               </div>
             </div>
