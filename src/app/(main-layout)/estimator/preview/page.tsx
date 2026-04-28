@@ -69,11 +69,11 @@ export default function PreviewPage() {
   const [desiredStartDate, setDesiredStartDate] = useState(
     userInfo.desiredStartDate || "",
   );
-  const [buildingType, setBuildingType] = useState(userInfo.buildingType || "");
-  const [buildingTypeId, setBuildingTypeId] = useState(
-    userInfo.buildingTypeId || "",
-  );
+  const [buildingTypeId, setBuildingTypeId] = useState("");
+  const [buildingType, setBuildingType] = useState("");
   const [buildingTypes, setBuildingTypes] = useState<BuildingType[]>([]);
+  const [buildingTypesLoaded, setBuildingTypesLoaded] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const [buildingTypeFieldValues, setBuildingTypeFieldValues] = useState<
     Record<string, string>
   >({});
@@ -84,12 +84,23 @@ export default function PreviewPage() {
     buildingTypeService
       .getActive()
       .then((res) => {
-        setBuildingTypes(res.data.data || []);
+        const types = res.data.data || [];
+        setBuildingTypes(types);
+        setBuildingTypesLoaded(true);
       })
-      .catch(() => {});
+      .catch(() => { setBuildingTypesLoaded(true); });
   }, []);
 
-  const [hydrated, setHydrated] = useState(false);
+  // After both hydrated + buildingTypes loaded, sync from store
+  useEffect(() => {
+    if (!hydrated || !buildingTypesLoaded) return;
+    const storedId = useEstimatorStore.getState().userInfo.buildingTypeId;
+    const storedName = useEstimatorStore.getState().userInfo.buildingType;
+    if (storedId) {
+      setBuildingTypeId(storedId);
+      setBuildingType(storedName || "");
+    }
+  }, [hydrated, buildingTypesLoaded]);
 
   useEffect(() => {
     setHydrated(true);
@@ -148,16 +159,6 @@ export default function PreviewPage() {
     };
 
     loadUploadedFiles();
-
-    // Debug log
-    console.log("Preview page loaded with:", {
-      serviceId,
-      basePrice,
-      totalPrice,
-      step1Count: step1Selections.length,
-      step2Count: step2Selections.length,
-      userInfo,
-    });
   }, [
     hydrated,
     serviceId,
@@ -310,15 +311,18 @@ export default function PreviewPage() {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const selectedBuildingType = buildingTypes.find(
-    (bt) => bt.id === buildingTypeId,
-  );
+  const selectedBuildingType = buildingTypes.find((bt) => bt.id === buildingTypeId);
 
   const handleBuildingTypeChange = (id: string) => {
     setBuildingTypeId(id);
     const bt = buildingTypes.find((b) => b.id === id);
     setBuildingType(bt?.name || "");
     setBuildingTypeFieldValues({});
+    setUserInfo({
+      buildingType: bt?.name || "",
+      buildingTypeId: id,
+      buildingTypePrice: Number(bt?.price) || 0,
+    });
   };
 
   const handleSubmit = async () => {
@@ -351,7 +355,7 @@ export default function PreviewPage() {
           : undefined,
         basePrice,
         additionalItemsTotal: totalPrice - basePrice,
-        totalAmount: totalPrice,
+        totalAmount: totalPrice + (Number(selectedBuildingType?.price) || 0),
         projectNotes: notes,
         items: [
           ...step1Selections
@@ -378,33 +382,6 @@ export default function PreviewPage() {
             })),
         ],
       };
-
-      console.log("=== SUBMISSION DEBUG ===");
-      console.log("API URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
-      console.log("Submission Data:", JSON.stringify(submissionData, null, 2));
-      console.log("========================");
-      console.log("User Information:", {
-        fullName,
-        email,
-        phone,
-        zipCode,
-        address,
-      });
-      console.log("Pricing Details:", {
-        basePrice,
-        totalPrice,
-        additionalItemsTotal: totalPrice - basePrice,
-      });
-      console.log("Files:", {
-        photos: uploadedFiles.filter((f) => f.type === "image").length,
-        videos: uploadedFiles.filter((f) => f.type === "video").length,
-      });
-      console.log("Selections:", {
-        step1: step1Selections.length,
-        step2: step2Selections.length,
-      });
-      console.log("Full Submission Data:", submissionData);
-      console.log("==========================");
 
       // Submit to API
       const response = await submissionService.create(submissionData);
@@ -449,12 +426,6 @@ export default function PreviewPage() {
 
       router.push("/estimator/confirmation");
     } catch (error: any) {
-      console.error("=== SUBMISSION ERROR ===");
-      console.error("Full error:", error);
-      console.error("Response status:", error.response?.status);
-      console.error("Response data:", error.response?.data);
-      console.error("========================");
-
       const errorMessage =
         error.response?.data?.message || error.message || "Unknown error";
       alert(`Submission failed: ${errorMessage}`);
@@ -937,12 +908,25 @@ export default function PreviewPage() {
                   </div>
                 )}
 
+                {/* Building Type */}
+                {selectedBuildingType && Number(selectedBuildingType.price) > 0 && (
+                  <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <span className="text-xs text-gray-400 block">Building Type</span>
+                      <span className="text-gray-700 font-medium">{selectedBuildingType.name}</span>
+                    </div>
+                    <span className="font-semibold text-gray-900">
+                      +${Number(selectedBuildingType.price).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+
                 {/* Grand Total */}
                 <div className="border-t-2 border-[#283878] pt-4 mt-2">
                   <div className="flex justify-between items-center">
                     <span className="text-xl font-bold text-gray-900">Total</span>
                     <span className="text-2xl font-bold text-[#283878]">
-                      ${totalPrice.toLocaleString()}
+                      ${(totalPrice + (Number(selectedBuildingType?.price) || 0)).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mt-2 text-right">

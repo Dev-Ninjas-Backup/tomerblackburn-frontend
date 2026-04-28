@@ -52,6 +52,7 @@ export interface Submission {
   buildingTypeRef?: {
     id: string;
     name: string;
+    price?: string;
     fields: Array<{ id: string; label: string; fieldType: string }>;
   };
   basePrice: number;
