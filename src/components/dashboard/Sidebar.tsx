@@ -21,6 +21,7 @@ import {
   ExternalLink,
   FolderKanban,
   Calculator,
+  DatabaseBackup,
 } from "lucide-react";
 
 const menuItems = [
@@ -39,6 +40,7 @@ const menuItems = [
   { icon: Users, label: "All Contacts", href: "/dashboard/contacts" },
   { icon: Globe, label: "Web", href: "/dashboard/web" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: DatabaseBackup, label: "Backup & Restore", href: "/dashboard/data-backup" },
 ];
 
 // Reusable Logo Component

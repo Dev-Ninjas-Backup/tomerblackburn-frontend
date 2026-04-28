@@ -55,7 +55,10 @@ interface CostCodeRendererProps {
 }
 
 // ─── TipsPopover ────────────────────────────────────────────────────────────
-const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label }) => {
+const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({
+  tips,
+  label,
+}) => {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -88,9 +91,12 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label 
     if (!open) return;
     const close = (e: MouseEvent) => {
       if (
-        popoverRef.current && !popoverRef.current.contains(e.target as Node) &&
-        btnRef.current && !btnRef.current.contains(e.target as Node)
-      ) setOpen(false);
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        btnRef.current &&
+        !btnRef.current.contains(e.target as Node)
+      )
+        setOpen(false);
     };
     const reposition = () => calcPos();
     document.addEventListener("mousedown", close);
@@ -101,7 +107,7 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label 
       window.removeEventListener("scroll", reposition, true);
       window.removeEventListener("resize", reposition);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (
@@ -123,52 +129,64 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({ tips, label 
         )}
       </button>
 
-      {open && typeof window !== "undefined" && createPortal(
-        <div
-          ref={popoverRef}
-          style={{ position: "absolute", top: pos.top, left: pos.left, width: POPOVER_W, zIndex: 9999 }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="bg-white rounded-xl overflow-hidden shadow-2xl shadow-[#283878]/20 border border-[#283878]/10"
+      {open &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              position: "absolute",
+              top: pos.top,
+              left: pos.left,
+              width: POPOVER_W,
+              zIndex: 9999,
+            }}
           >
-            <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#283878]">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                  <Lightbulb className="w-3 h-3 text-white" />
-                </div>
-                <span className="text-xs font-semibold text-white tracking-wide">Pro Tips</span>
-                <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-medium">
-                  {tips.length}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors"
-                aria-label="Close tips"
-              >
-                <XIcon className="w-3 h-3 text-white" />
-              </button>
-            </div>
-            <ul className="px-3.5 py-3 space-y-2.5 max-h-60 overflow-y-auto">
-              {tips.map((tip, i) => (
-                <li key={i} className="flex gap-2.5 items-start">
-                  <span className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-[#283878] text-white text-[9px] font-bold flex items-center justify-center">
-                    {i + 1}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="bg-white rounded-xl overflow-hidden shadow-2xl shadow-[#283878]/20 border border-[#283878]/10"
+            >
+              <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#283878]">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                    <Lightbulb className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-xs font-semibold text-white tracking-wide">
+                    Pro Tips
                   </span>
-                  <span className="text-xs text-gray-600 leading-relaxed">{tip}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="h-0.5 bg-gradient-to-r from-[#283878] via-[#4064b8] to-transparent" />
-          </motion.div>
-        </div>,
-        document.body
-      )}
+                  <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-medium">
+                    {tips.length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors"
+                  aria-label="Close tips"
+                >
+                  <XIcon className="w-3 h-3 text-white" />
+                </button>
+              </div>
+              <ul className="px-3.5 py-3 space-y-2.5 max-h-60 overflow-y-auto">
+                {tips.map((tip, i) => (
+                  <li key={i} className="flex gap-2.5 items-start">
+                    <span className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-[#283878] text-white text-[9px] font-bold flex items-center justify-center">
+                      {i + 1}
+                    </span>
+                    <span className="text-xs text-gray-600 leading-relaxed">
+                      {tip}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="h-0.5 bg-linear-to-r from-[#283878] via-[#4064b8] to-transparent" />
+            </motion.div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
@@ -194,7 +212,9 @@ const AnimatedChildren: React.FC<{
     <motion.div
       initial={false}
       animate={{ height: show ? height : 0, opacity: show ? 1 : 0 }}
-      onAnimationComplete={() => { if (show) setHeight("auto"); }}
+      onAnimationComplete={() => {
+        if (show) setHeight("auto");
+      }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       style={{ overflow: "hidden" }}
     >
@@ -205,7 +225,9 @@ const AnimatedChildren: React.FC<{
 
 // ─── UpgradeLabel ────────────────────────────────────────────────────────────
 const UpgradeLabel = ({ isIncludedInBase }: { isIncludedInBase: boolean }) => (
-  <p className={`text-xs mt-1 ${isIncludedInBase ? "text-green-600 font-medium" : "text-[#283878]"}`}>
+  <p
+    className={`text-xs mt-1 ${isIncludedInBase ? "text-green-600 font-medium" : "text-[#283878]"}`}
+  >
     {isIncludedInBase ? "✦ Included in Base Price" : "✦ Additional Upgrade"}
   </p>
 );
@@ -347,7 +369,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       });
       return next;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selections.length]);
 
   const toggleCategory = useCallback((categoryName: string) => {
@@ -419,7 +441,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
           parentSelection &&
           existing.quantity !== parentSelection.quantity
         ) {
-          onSelectionChange(costCode.id, { quantity: parentSelection.quantity });
+          onSelectionChange(costCode.id, {
+            quantity: parentSelection.quantity,
+          });
         }
       }
     });
@@ -445,6 +469,13 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
 
   const handleToggle = (costCode: CostCode, enabled: boolean) => {
     if (enabled) {
+      // If YELLOW, auto-deselect other YELLOW siblings under same parent
+      if (costCode.questionType === "YELLOW" && costCode.parentCostCodeId) {
+        const siblings = getChildQuestions(costCode.parentCostCodeId).filter(
+          (c) => c.id !== costCode.id && c.questionType === "YELLOW",
+        );
+        siblings.forEach((s) => onSelectionRemove(s.id));
+      }
       onSelectionChange(costCode.id, {
         costCodeName: costCode.elies || costCode.name,
         unitPrice: costCode.clientPrice,
@@ -490,7 +521,10 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         quantity: numValue,
       });
     } else {
-      onSelectionChange(costCode.id, { userInputValue: value, quantity: numValue });
+      onSelectionChange(costCode.id, {
+        userInputValue: value,
+        quantity: numValue,
+      });
     }
   };
 
@@ -531,7 +565,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
   const renderCostCode = (costCode: CostCode, isNested = false) => {
     const selection = getSelection(costCode.id);
     const isEnabled = selection?.isEnabled || false;
-    const bgColor = costCode.isIncludedInBase ? "bg-green-50" : "bg-blue-50";
+    const bgColor = costCode.isIncludedInBase
+      ? "bg-green-50 border border-green-100"
+      : "bg-blue-50 border border-l-[#283878]/20 border-blue-100";
     const sizeClass = isNested
       ? "p-3 rounded-lg border-l-4 border-[#283878] bg-white/80 ml-2"
       : "p-3 rounded-lg mb-2";
@@ -542,7 +578,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5">
-            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {costCode.name}
+            </p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -554,13 +592,18 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       );
     }
 
-    if (costCode.questionType === "BLUE" || costCode.questionType === "YELLOW") {
+    if (
+      costCode.questionType === "BLUE" ||
+      costCode.questionType === "YELLOW"
+    ) {
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-1.5">
-                <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
+                <p className="text-sm font-semibold text-gray-800">
+                  {costCode.name}
+                </p>
                 {costCode.tips && costCode.tips.length > 0 && (
                   <TipsPopover tips={costCode.tips} label={costCode.name} />
                 )}
@@ -583,7 +626,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5 mb-1.5">
-            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {costCode.name}
+            </p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -595,7 +640,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               type="number"
               min="1"
               value={selection?.userInputValue || ""}
-              onChange={(e) => handleQuantityInput(costCode, e.target.value, selection)}
+              onChange={(e) =>
+                handleQuantityInput(costCode, e.target.value, selection)
+              }
               placeholder="Enter value"
               className="w-full sm:w-40 p-5 h-10 text-sm border-[#283878]/40 focus:border-[#283878] focus:ring-[#283878]"
             />
@@ -612,7 +659,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5 mb-1.5">
-            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {costCode.name}
+            </p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
@@ -646,7 +695,9 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
       return (
         <div key={costCode.id} className={`${bgColor} ${sizeClass}`}>
           <div className="flex items-start gap-1.5">
-            <p className="text-sm font-semibold text-gray-800">{costCode.name}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {costCode.name}
+            </p>
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}

@@ -7,16 +7,55 @@ import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import {
   useCostCodeCategories,
   useDeleteCostCodeCategory,
+  useCreateCostCodeCategory,
 } from "@/hooks/useCostManagement";
 import CostCodeCategoryModal from "../_components/CostCodeCategoryModal";
+import ImportExportButtons from "@/components/ImportExportButtons";
+import { exportToCSV } from "@/lib/csv";
+import { toast } from "sonner";
 
 const CostCodeCategoriesTab = () => {
   const { data: categories, isLoading } = useCostCodeCategories();
   const deleteMutation = useDeleteCostCodeCategory();
+  const createMutation = useCreateCostCodeCategory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedData, setSelectedData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExport = () => {
+    if (!categories?.length) return toast.error('No data to export');
+    exportToCSV('cost-code-categories.csv', categories.map((c) => ({
+      name: c.name,
+      slug: c.slug,
+      description: c.description ?? '',
+      stepNumber: c.stepNumber,
+      displayOrder: c.displayOrder,
+      isActive: c.isActive,
+    })));
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      try {
+        await createMutation.mutateAsync({
+          name: row.name,
+          slug: row.slug,
+          description: row.description || undefined,
+          stepNumber: row.stepNumber ? Number(row.stepNumber) : undefined,
+          displayOrder: row.displayOrder ? Number(row.displayOrder) : 0,
+          isActive: row.isActive === 'false' ? false : true,
+        } as any);
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} categories${failed ? `, ${failed} failed` : ''}`);
+  };
 
   const handleCreate = () => {
     setModalMode("create");
@@ -66,14 +105,17 @@ const CostCodeCategoriesTab = () => {
             className="pl-9 w-full"
           />
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-[#2d4a8f] hover:bg-[#243a73] shrink-0"
-        >
-          <Plus size={18} className="mr-1 sm:mr-2" />
-          <span className="hidden sm:inline">Add Category</span>
-          <span className="sm:hidden">Add</span>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+          <Button
+            onClick={handleCreate}
+            className="bg-[#2d4a8f] hover:bg-[#243a73]"
+          >
+            <Plus size={18} className="mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Add Category</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-x-auto">

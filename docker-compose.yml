@@ -1,0 +1,53 @@
+services:
+  app:
+    image: softvence/${PACKAGE_NAME}:latest
+    profiles:
+      - prod
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    container_name: ${PACKAGE_NAME}_app
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+    networks:
+      tomerblackburn-frontend-network: {}
+      tomerblackburn-network:
+        aliases:
+          - frontend-app
+
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: ${PACKAGE_NAME}_caddy
+  #   profiles:
+  #     - prod
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "443:443/udp"
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - tomerblackburn-frontend-network
+
+networks:
+  tomerblackburn-frontend-network:
+    driver: bridge
+  tomerblackburn-network:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:
