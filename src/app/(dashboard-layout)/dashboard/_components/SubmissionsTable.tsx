@@ -9,6 +9,7 @@ import { useSubmissions, useDeleteSubmission } from '@/hooks/useSubmissions'
 import { SubmissionStatus } from '@/types/submission.types'
 import SubmissionDetailModal from '@/app/(dashboard-layout)/dashboard/submissions/_components/SubmissionDetailModal'
 import { useRouter } from 'next/navigation'
+import { usePermissions } from '@/hooks/usePermissions'
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
@@ -22,6 +23,7 @@ export const SubmissionsTable = () => {
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
   const { data: response, isLoading } = useSubmissions(undefined, 1, 5);
   const deleteMutation = useDeleteSubmission();
+  const { submissionsDelete } = usePermissions();
 
   const submissions = response?.data || [];
 
@@ -122,13 +124,15 @@ export const SubmissionsTable = () => {
                               <FileText size={16} />
                             </a>
                           )}
-                          <button
-                            onClick={() => handleDelete(submission.id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {submissionsDelete && (
+                            <button
+                              onClick={() => handleDelete(submission.id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

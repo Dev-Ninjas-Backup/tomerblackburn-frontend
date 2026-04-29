@@ -6,10 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { usePermissions, UserRole } from "@/hooks/usePermissions";
+import type { ResolvedPermissions } from "@/hooks/usePermissions";
 import {
   LayoutDashboard,
-  Bath,
-  DollarSign,
   Globe,
   Users,
   Settings,
@@ -24,26 +24,64 @@ import {
   DatabaseBackup,
 } from "lucide-react";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+interface NavItem {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  visible: (p: ResolvedPermissions) => boolean;
+}
+
+const menuItems: NavItem[] = [
+  {
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    href: "/dashboard",
+    visible: () => true,
+  },
   {
     icon: FolderKanban,
     label: "Project Types",
     href: "/dashboard/project-management",
+    visible: (p) => p.projectManagementView,
   },
   {
     icon: Calculator,
     label: "Cost Codes",
     href: "/dashboard/cost-management",
+    visible: (p) => p.costManagementView,
   },
-  { icon: FileText, label: "Submissions", href: "/dashboard/submissions" },
-  { icon: Users, label: "All Contacts", href: "/dashboard/contacts" },
-  { icon: Globe, label: "Web", href: "/dashboard/web" },
-  { icon: Settings, label: "Settings", href: "/dashboard/settings" },
-  { icon: DatabaseBackup, label: "Backup & Restore", href: "/dashboard/data-backup" },
+  {
+    icon: FileText,
+    label: "Submissions",
+    href: "/dashboard/submissions",
+    visible: (p) => p.submissionsView,
+  },
+  {
+    icon: Users,
+    label: "All Contacts",
+    href: "/dashboard/contacts",
+    visible: (p) => p.contactsView,
+  },
+  {
+    icon: Globe,
+    label: "Web",
+    href: "/dashboard/web",
+    visible: (p) => p.webView,
+  },
+  {
+    icon: Settings,
+    label: "Settings",
+    href: "/dashboard/settings",
+    visible: (p) => p.settingsView,
+  },
+  {
+    icon: DatabaseBackup,
+    label: "Backup & Restore",
+    href: "/dashboard/data-backup",
+    visible: (p) => p.dataBackupAccess,
+  },
 ];
 
-// Reusable Logo Component
 const SidebarLogo = () => {
   const { data: settings } = useSiteSettings();
   const logoUrl = settings?.logoImage?.url;
@@ -74,7 +112,6 @@ const SidebarLogo = () => {
   );
 };
 
-// Reusable Menu Item Component
 interface MenuItemProps {
   icon: LucideIcon;
   label: string;
@@ -112,25 +149,52 @@ const MenuItem = ({
   </Link>
 );
 
-// Reusable Logout Button Component
+const RoleBadge = ({ role }: { role: UserRole | null }) => {
+  if (!role) return null;
+  const labels: Record<UserRole, string> = {
+    SUPER_ADMIN: 'Super Admin',
+    ADMIN: 'Admin',
+    VIEW_ONLY: 'View Only',
+  };
+  const colors: Record<UserRole, string> = {
+    SUPER_ADMIN: 'bg-blue-100 text-blue-700',
+    ADMIN: 'bg-green-100 text-green-700',
+    VIEW_ONLY: 'bg-gray-100 text-gray-600',
+  };
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${colors[role]}`}>
+      {labels[role]}
+    </span>
+  );
+};
+
 const LogoutButton = ({
   showHoverTranslate = false,
 }: {
   showHoverTranslate?: boolean;
 }) => {
   const logout = useAuthStore((state) => state.logout);
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { user } = useAuthStore();
+  const { role } = usePermissions();
 
   return (
     <div className="p-3 border-t border-gray-200">
+      {user && (
+        <div className="flex items-center gap-2 px-3 py-2 mb-2">
+          <div className="w-7 h-7 rounded-full bg-[#2d4a8f] flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+            {user.name?.charAt(0).toUpperCase() ?? 'U'}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-gray-800 truncate">{user.name}</p>
+            <RoleBadge role={role} />
+          </div>
+        </div>
+      )}
       <Link
         href="/"
         target="_blank"
         className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700
           hover:bg-gray-100 w-full transition-all duration-200 mb-2
           ${showHoverTranslate ? "hover:translate-x-1" : ""}
         `}
@@ -139,9 +203,9 @@ const LogoutButton = ({
         <span>View Site</span>
       </Link>
       <button
-        onClick={handleLogout}
+        onClick={logout}
         className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+          flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700
           hover:bg-gray-100 w-full transition-all duration-200
           ${showHoverTranslate ? "hover:translate-x-1" : ""}
         `}
@@ -156,8 +220,11 @@ const LogoutButton = ({
 export const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const permissions = usePermissions();
 
   const closeSidebar = () => setIsOpen(false);
+
+  const visibleItems = menuItems.filter((item) => item.visible(permissions));
 
   return (
     <>
@@ -174,7 +241,7 @@ export const Sidebar = () => {
       <div
         onClick={closeSidebar}
         className={`
-          lg:hidden fixed inset-0 bg-black/50 z-40 
+          lg:hidden fixed inset-0 bg-black/50 z-40
           transition-opacity duration-300
           ${
             isOpen
@@ -189,7 +256,7 @@ export const Sidebar = () => {
         <SidebarLogo />
 
         <div className="flex-1 p-3">
-          {menuItems.map((item) => (
+          {visibleItems.map((item) => (
             <MenuItem
               key={item.href}
               icon={item.icon}
@@ -207,7 +274,7 @@ export const Sidebar = () => {
       {/* Mobile Sidebar */}
       <aside
         className={`
-          lg:hidden fixed left-0 top-0 w-[280px] bg-gray-50 border-r border-gray-200 
+          lg:hidden fixed left-0 top-0 w-[280px] bg-gray-50 border-r border-gray-200
           h-screen flex flex-col z-40 transition-transform duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
@@ -215,7 +282,7 @@ export const Sidebar = () => {
         <SidebarLogo />
 
         <div className="flex-1 p-3">
-          {menuItems.map((item) => (
+          {visibleItems.map((item) => (
             <MenuItem
               key={item.href}
               icon={item.icon}

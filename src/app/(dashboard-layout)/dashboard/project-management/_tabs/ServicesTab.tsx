@@ -8,12 +8,14 @@ import ServiceModal from '../_components/ServiceModal';
 import ImportExportButtons from '@/components/ImportExportButtons';
 import { exportToCSV } from '@/lib/csv';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const ServicesTab = () => {
   const { data: services, isLoading } = useServices();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteService();
   const createMutation = useCreateService();
+  const { projectManagementEdit, projectManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -130,13 +132,15 @@ const ServicesTab = () => {
             </select>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-            <Plus size={18} className="mr-2" />
-            Add Service
-          </Button>
-        </div>
+        {projectManagementEdit && (
+          <div className="flex items-center gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-2" />
+              Add Service
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -172,12 +176,16 @@ const ServicesTab = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service" aria-label="Edit service">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service" aria-label="Delete service">
-                    <Trash2 size={16} />
-                  </button>
+                  {projectManagementEdit && (
+                    <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service" aria-label="Edit service">
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                  {projectManagementDelete && (
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service" aria-label="Delete service">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

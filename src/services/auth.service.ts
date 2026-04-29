@@ -1,10 +1,11 @@
 import api from '@/lib/api';
+import { UserPermissions } from '@/lib/auth';
 
 export interface RegisterUserDto {
   name: string;
   email: string;
   password: string;
-  role?: 'SUPER_ADMIN' | 'ADMIN' | 'USER';
+  role?: 'SUPER_ADMIN' | 'ADMIN' | 'VIEW_ONLY';
 }
 
 export interface User {
@@ -14,6 +15,7 @@ export interface User {
   role: string;
   isActive: boolean;
   createdAt: string;
+  permissions?: UserPermissions | null;
 }
 
 export const authService = {
@@ -44,6 +46,16 @@ export const authService = {
 
   changePassword: async (id: string, data: { currentPassword: string; newPassword: string }) => {
     const response = await api.patch<{ message: string }>(`/users/${id}/password`, data);
+    return response.data;
+  },
+
+  getUserPermissions: async (id: string) => {
+    const response = await api.get<{ message: string; data: UserPermissions }>(`/users/${id}/permissions`);
+    return response.data;
+  },
+
+  updateUserPermissions: async (id: string, data: Partial<UserPermissions>) => {
+    const response = await api.put<{ message: string; data: UserPermissions }>(`/users/${id}/permissions`, data);
     return response.data;
   },
 };

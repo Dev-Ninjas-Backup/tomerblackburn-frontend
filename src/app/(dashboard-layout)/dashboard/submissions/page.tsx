@@ -34,6 +34,7 @@ import { TableSkeleton } from "@/components/shared/TableSkeleton";
 import { submissionService } from "@/services/submission.service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const STATUS_COLORS: Record<SubmissionStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -93,6 +94,7 @@ const SubmissionsPage = () => {
     },
   });
 
+  const { submissionsEdit, submissionsDelete } = usePermissions();
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
     null,
   );
@@ -303,24 +305,28 @@ const SubmissionsPage = () => {
               <div className="flex flex-col sm:flex-row gap-2 md:shrink-0">
                 {selectedIds.length > 0 && (
                   <>
-                    <Button
-                      onClick={handleArchiveSelected}
-                      disabled={archiveMutation.isPending}
-                      variant="outline"
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Archive size={18} />
-                      Archive ({selectedIds.length})
-                    </Button>
-                    <Button
-                      onClick={handleBulkDelete}
-                      disabled={bulkDeleteMutation.isPending}
-                      variant="outline"
-                      className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 size={18} />
-                      Delete ({selectedIds.length})
-                    </Button>
+                    {submissionsEdit && (
+                      <Button
+                        onClick={handleArchiveSelected}
+                        disabled={archiveMutation.isPending}
+                        variant="outline"
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <Archive size={18} />
+                        Archive ({selectedIds.length})
+                      </Button>
+                    )}
+                    {submissionsDelete && (
+                      <Button
+                        onClick={handleBulkDelete}
+                        disabled={bulkDeleteMutation.isPending}
+                        variant="outline"
+                        className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 size={18} />
+                        Delete ({selectedIds.length})
+                      </Button>
+                    )}
                     <Button
                       onClick={handleExportSelected}
                       disabled={exportByIds.isPending}
@@ -445,29 +451,35 @@ const SubmissionsPage = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={submission.status}
-                        onChange={(e) =>
-                          handleStatusChange(
-                            submission.id,
-                            e.target.value as SubmissionStatus,
-                          )
-                        }
-                        className={`px-3 py-1.5 pr-8 text-xs rounded-full border-0 appearance-none cursor-pointer ${STATUS_COLORS[submission.status]}`}
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                          backgroundPosition: 'right 0.5rem center',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundSize: '1.25em 1.25em',
-                        }}
-                        title="Change status"
-                        aria-label="Change status"
-                      >
-                        <option value="PENDING">Pending</option>
-                        <option value="PROCESSING">Processing</option>
-                        <option value="COMPLETED">Completed</option>
-                        <option value="CANCELLED">Cancelled</option>
-                      </select>
+                      {submissionsEdit ? (
+                        <select
+                          value={submission.status}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              submission.id,
+                              e.target.value as SubmissionStatus,
+                            )
+                          }
+                          className={`px-3 py-1.5 pr-8 text-xs rounded-full border-0 appearance-none cursor-pointer ${STATUS_COLORS[submission.status]}`}
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundSize: '1.25em 1.25em',
+                          }}
+                          title="Change status"
+                          aria-label="Change status"
+                        >
+                          <option value="PENDING">Pending</option>
+                          <option value="PROCESSING">Processing</option>
+                          <option value="COMPLETED">Completed</option>
+                          <option value="CANCELLED">Cancelled</option>
+                        </select>
+                      ) : (
+                        <span className={`px-3 py-1.5 text-xs rounded-full ${STATUS_COLORS[submission.status]}`}>
+                          {submission.status}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {submission.submittedAt
@@ -504,14 +516,16 @@ const SubmissionsPage = () => {
                           <FileText size={16} />
                         </a>
                       )}
-                      <button
-                        onClick={() => handleDelete(submission.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete submission"
-                        aria-label="Delete submission"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {submissionsDelete && (
+                        <button
+                          onClick={() => handleDelete(submission.id)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete submission"
+                          aria-label="Delete submission"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

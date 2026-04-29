@@ -13,11 +13,13 @@ import CostCodeCategoryModal from "../_components/CostCodeCategoryModal";
 import ImportExportButtons from "@/components/ImportExportButtons";
 import { exportToCSV } from "@/lib/csv";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const CostCodeCategoriesTab = () => {
   const { data: categories, isLoading } = useCostCodeCategories();
   const deleteMutation = useDeleteCostCodeCategory();
   const createMutation = useCreateCostCodeCategory();
+  const { costManagementEdit, costManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -105,17 +107,16 @@ const CostCodeCategoriesTab = () => {
             className="pl-9 w-full"
           />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button
-            onClick={handleCreate}
-            className="bg-[#2d4a8f] hover:bg-[#243a73]"
-          >
-            <Plus size={18} className="mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Add Category</span>
-            <span className="sm:hidden">Add</span>
-          </Button>
-        </div>
+        {costManagementEdit && (
+          <div className="flex items-center gap-2 shrink-0">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Add Category</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-x-auto">
@@ -172,22 +173,16 @@ const CostCodeCategoriesTab = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                      title="Edit category"
-                      aria-label="Edit category"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Delete category"
-                      aria-label="Delete category"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {costManagementEdit && (
+                      <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit category" aria-label="Edit category">
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                    {costManagementDelete && (
+                      <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete category" aria-label="Delete category">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

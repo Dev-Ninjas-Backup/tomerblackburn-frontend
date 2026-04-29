@@ -25,6 +25,7 @@ import BulkCreateOptionsModal from "../_components/BulkCreateOptionsModal";
 import ImportExportButtons from "@/components/ImportExportButtons";
 import { exportToCSV } from "@/lib/csv";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   DndContext,
   closestCenter,
@@ -48,6 +49,8 @@ const SortableRow = ({
   handleSetDefault,
   handleEdit,
   handleDelete,
+  canEdit,
+  canDelete,
 }: any) => {
   const {
     attributes,
@@ -111,22 +114,16 @@ const SortableRow = ({
             <Star size={16} />
           </button>
         )}
-        <button
-          onClick={() => handleEdit(item)}
-          className="text-blue-600 hover:text-blue-900 mr-3"
-          title="Edit option"
-          aria-label="Edit option"
-        >
-          <Pencil size={16} />
-        </button>
-        <button
-          onClick={() => handleDelete(item.id)}
-          className="text-red-600 hover:text-red-900"
-          title="Delete option"
-          aria-label="Delete option"
-        >
-          <Trash2 size={16} />
-        </button>
+        {canEdit && (
+          <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit option" aria-label="Edit option">
+            <Pencil size={16} />
+          </button>
+        )}
+        {canDelete && (
+          <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete option" aria-label="Delete option">
+            <Trash2 size={16} />
+          </button>
+        )}
       </td>
     </tr>
   );
@@ -137,6 +134,7 @@ const CostCodeOptionsTab = () => {
   const [selectedCostCode, setSelectedCostCode] = useState<string>("");
   const { data: options, isLoading } = useCostCodeOptions(selectedCostCode);
   const deleteMutation = useDeleteCostCodeOption();
+  const { costManagementEdit: canEdit, costManagementDelete: canDelete } = usePermissions();
   const setDefaultMutation = useSetDefaultCostCodeOption();
   const reorderMutation = useReorderCostCodeOptions();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -325,25 +323,19 @@ const CostCodeOptionsTab = () => {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button
-            onClick={handleBulkCreate}
-            variant="outline"
-            disabled={!selectedCostCode}
-          >
-            <ListPlus size={18} className="mr-2" />
-            Bulk Create
-          </Button>
-          <Button
-            onClick={handleCreate}
-            className="bg-[#2d4a8f] hover:bg-[#243a73]"
-            disabled={!selectedCostCode}
-          >
-            <Plus size={18} className="mr-2" />
-            Add Option
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleBulkCreate} variant="outline" disabled={!selectedCostCode}>
+              <ListPlus size={18} className="mr-2" />
+              Bulk Create
+            </Button>
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]" disabled={!selectedCostCode}>
+              <Plus size={18} className="mr-2" />
+              Add Option
+            </Button>
+          </div>
+        )}
       </div>
 
       {!selectedCostCode ? (
@@ -407,6 +399,8 @@ const CostCodeOptionsTab = () => {
                         handleSetDefault={handleSetDefault}
                         handleEdit={handleEdit}
                         handleDelete={handleDelete}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
                       />
                     ))}
                   </SortableContext>

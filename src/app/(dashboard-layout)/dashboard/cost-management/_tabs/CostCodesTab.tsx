@@ -23,6 +23,7 @@ import { QuestionType, UnitType } from "@/types/cost-management.types";
 import ImportExportButtons from "@/components/ImportExportButtons";
 import { exportToCSV } from "@/lib/csv";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const QUESTION_TYPE_COLORS: Record<QuestionType, string> = {
   WHITE: "bg-gray-100 text-gray-800",
@@ -69,6 +70,7 @@ const CostCodesTab = () => {
 
   const { data: costCodes, isLoading } = useCostCodes(filters);
   const deleteMutation = useDeleteCostCode();
+  const { costManagementEdit, costManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -381,15 +383,16 @@ const CostCodesTab = () => {
               <X size={16} />
             </Button>
           )}
-          <Button
-            onClick={handleCreate}
-            className="bg-[#2d4a8f] hover:bg-[#243a73]"
-          >
-            <Plus size={18} className="mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Add Cost Code</span>
-            <span className="sm:hidden">Add</span>
-          </Button>
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+          {costManagementEdit && (
+            <>
+              <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+                <Plus size={18} className="mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Add Cost Code</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+              <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            </>
+          )}
         </div>
       </div>
 
@@ -663,22 +666,16 @@ const CostCodesTab = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="text-blue-600 hover:text-blue-900 mr-3"
-                    title="Edit cost code"
-                    aria-label="Edit cost code"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="text-red-600 hover:text-red-900"
-                    title="Delete cost code"
-                    aria-label="Delete cost code"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {costManagementEdit && (
+                    <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit cost code" aria-label="Edit cost code">
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                  {costManagementDelete && (
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete cost code" aria-label="Delete cost code">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

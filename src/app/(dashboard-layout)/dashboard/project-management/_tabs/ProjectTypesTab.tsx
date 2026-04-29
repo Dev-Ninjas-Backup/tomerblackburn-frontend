@@ -8,11 +8,13 @@ import ProjectTypeModal from '../_components/ProjectTypeModal';
 import ImportExportButtons from '@/components/ImportExportButtons';
 import { exportToCSV } from '@/lib/csv';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const ProjectTypesTab = () => {
   const { data: projectTypes, isLoading } = useProjectTypes();
   const deleteMutation = useDeleteProjectType();
   const createMutation = useCreateProjectType();
+  const { projectManagementEdit, projectManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -73,13 +75,15 @@ const ProjectTypesTab = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Project Types</h2>
-        <div className="flex items-center gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-            <Plus size={18} className="mr-2" />
-            Add Project Type
-          </Button>
-        </div>
+        {projectManagementEdit && (
+          <div className="flex items-center gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-2" />
+              Add Project Type
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -113,12 +117,16 @@ const ProjectTypesTab = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit project type" aria-label="Edit project type">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete project type" aria-label="Delete project type">
-                    <Trash2 size={16} />
-                  </button>
+                  {projectManagementEdit && (
+                    <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit project type" aria-label="Edit project type">
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                  {projectManagementDelete && (
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete project type" aria-label="Delete project type">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

@@ -8,12 +8,14 @@ import ServiceCategoryModal from '../_components/ServiceCategoryModal';
 import ImportExportButtons from '@/components/ImportExportButtons';
 import { exportToCSV } from '@/lib/csv';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const ServiceCategoriesTab = () => {
   const { data: categories, isLoading } = useServiceCategories();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteServiceCategory();
   const createMutation = useCreateServiceCategory();
+  const { projectManagementEdit, projectManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -100,13 +102,15 @@ const ServiceCategoriesTab = () => {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-            <Plus size={18} className="mr-2" />
-            Add Category
-          </Button>
-        </div>
+        {projectManagementEdit && (
+          <div className="flex items-center gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-2" />
+              Add Category
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -144,12 +148,16 @@ const ServiceCategoriesTab = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service category" aria-label="Edit service category">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service category" aria-label="Delete service category">
-                    <Trash2 size={16} />
-                  </button>
+                  {projectManagementEdit && (
+                    <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service category" aria-label="Edit service category">
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                  {projectManagementDelete && (
+                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service category" aria-label="Delete service category">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

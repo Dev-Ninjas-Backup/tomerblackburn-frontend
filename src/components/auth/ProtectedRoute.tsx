@@ -1,28 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { usePermissions, UserRole } from "@/hooks/usePermissions";
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requiredRoles?: UserRole[];
+}
+
+export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, checkAuth } = useAuthStore();
+  const { role } = usePermissions();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Check auth on mount
     checkAuth();
     setIsInitialized(true);
   }, [checkAuth]);
 
   useEffect(() => {
-    // Redirect to login if not authenticated after initialization
-    if (isInitialized && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isInitialized, router]);
+    if (!isInitialized) return;
 
-  // Show loading while initializing
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    if (requiredRoles && role && !requiredRoles.includes(role)) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, isInitialized, role, requiredRoles, router]);
+
   if (!isInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -31,10 +42,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Don't render anything if not authenticated
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
+
+  if (requiredRoles && role && !requiredRoles.includes(role)) return null;
 
   return <>{children}</>;
 }
