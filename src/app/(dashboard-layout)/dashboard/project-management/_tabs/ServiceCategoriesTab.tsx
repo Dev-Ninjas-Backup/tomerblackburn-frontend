@@ -3,17 +3,22 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useServiceCategories, useDeleteServiceCategory, useProjectTypes } from '@/hooks/useProjectManagement';
+import { useServiceCategories, useDeleteServiceCategory, useProjectTypes, useCreateServiceCategory } from '@/hooks/useProjectManagement';
 import ServiceCategoryModal from '../_components/ServiceCategoryModal';
+import ImportExportButtons from '@/components/ImportExportButtons';
+import { exportToCSV } from '@/lib/csv';
+import { toast } from 'sonner';
 
 const ServiceCategoriesTab = () => {
   const { data: categories, isLoading } = useServiceCategories();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteServiceCategory();
+  const createMutation = useCreateServiceCategory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
   const [filterProjectType, setFilterProjectType] = useState<string>('');
+  const [isImporting, setIsImporting] = useState(false);
 
   const handleCreate = () => {
     setModalMode('create');
@@ -31,6 +36,42 @@ const ServiceCategoriesTab = () => {
     if (confirm('Are you sure you want to delete this service category?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleExport = () => {
+    const data = filterProjectType
+      ? categories?.filter((c) => c.projectTypeId === filterProjectType)
+      : categories;
+    if (!data?.length) return toast.error('No data to export');
+    exportToCSV('service-categories.csv', data.map((c) => ({
+      name: c.name,
+      description: c.description ?? '',
+      projectTypeName: projectTypes?.find((pt) => pt.id === c.projectTypeId)?.name ?? '',
+      displayOrder: c.displayOrder,
+      isActive: c.isActive,
+    })));
+  };
+
+  const handleImport = async (rows: Record<string, string>[]) => {
+    if (!rows.length) return toast.error('No valid rows found in CSV');
+    setIsImporting(true);
+    let success = 0, failed = 0;
+    for (const row of rows) {
+      const projectType = projectTypes?.find((pt) => pt.name === row.projectTypeName);
+      if (!projectType) { failed++; continue; }
+      try {
+        await createMutation.mutateAsync({
+          name: row.name,
+          description: row.description || undefined,
+          projectTypeId: projectType.id,
+          displayOrder: row.displayOrder ? Number(row.displayOrder) : 0,
+          isActive: row.isActive === 'false' ? false : true,
+        } as any);
+        success++;
+      } catch { failed++; }
+    }
+    setIsImporting(false);
+    toast.success(`Imported ${success} categories${failed ? `, ${failed} failed` : ''}`);
   };
 
   const filteredCategories = filterProjectType
@@ -59,10 +100,13 @@ const ServiceCategoriesTab = () => {
             ))}
           </select>
         </div>
-        <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-          <Plus size={18} className="mr-2" />
-          Add Category
-        </Button>
+        <div className="flex items-center gap-2">
+          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+            <Plus size={18} className="mr-2" />
+            Add Category
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
