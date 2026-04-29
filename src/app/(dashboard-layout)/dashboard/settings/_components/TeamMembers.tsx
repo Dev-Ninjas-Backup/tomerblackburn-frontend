@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, X, Edit2, Trash2, Power } from "lucide-react";
+import { Plus, X, Edit2, Trash2, Power, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authService } from "@/services/auth.service";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/authStore";
+import { usePermissions } from "@/hooks/usePermissions";
+import { PermissionsModal } from "./PermissionsModal";
 
 interface TeamMember {
   id: string;
@@ -22,21 +23,36 @@ interface TeamMembersProps {
   isLoading?: boolean;
 }
 
+type AssignableRole = "ADMIN";
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
+  VIEW_ONLY: "View Only",
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  SUPER_ADMIN: "text-[#2d4a8f]",
+  ADMIN: "text-green-700",
+  VIEW_ONLY: "text-gray-500",
+};
+
 export const TeamMembers = ({
   members,
   onRefresh,
   isLoading,
 }: TeamMembersProps) => {
-  const { user } = useAuthStore();
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const { isSuperAdmin } = usePermissions();
+  const canManage = isSuperAdmin;
 
   const [showModal, setShowModal] = useState(false);
+  const [permissionsTarget, setPermissionsTarget] = useState<TeamMember | null>(null);
   const [editingUser, setEditingUser] = useState<TeamMember | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "USER">("ADMIN");
+  const [role, setRole] = useState<AssignableRole>("ADMIN");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAdd = async () => {
@@ -119,7 +135,7 @@ export const TeamMembers = ({
     setEditingUser(member);
     setName(member.name);
     setEmail(member.email);
-    setRole(member.role as "ADMIN" | "USER");
+    setRole("ADMIN");
     setPassword("");
     setConfirmPassword("");
     setShowModal(true);
@@ -139,7 +155,7 @@ export const TeamMembers = ({
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
-        {isSuperAdmin && (
+        {canManage && (
           <button
             onClick={openAddModal}
             className="text-sm text-[#2d4a8f] hover:underline font-medium flex items-center gap-1"
@@ -148,6 +164,18 @@ export const TeamMembers = ({
             Add Member
           </button>
         )}
+      </div>
+
+      {/* Role legend */}
+      <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-[#2d4a8f] inline-block" />
+          Super Admin — full access
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-green-600 inline-block" />
+          Admin — can edit
+        </span>
       </div>
 
       <div className="space-y-3">
@@ -177,17 +205,9 @@ export const TeamMembers = ({
               </div>
               <div className="flex items-center gap-3">
                 <span
-                  className={`text-sm font-medium ${
-                    member.role === "SUPER_ADMIN"
-                      ? "text-[#2d4a8f]"
-                      : "text-gray-700"
-                  }`}
+                  className={`text-sm font-medium ${ROLE_COLORS[member.role] ?? "text-gray-700"}`}
                 >
-                  {member.role === "SUPER_ADMIN"
-                    ? "Super Admin"
-                    : member.role === "ADMIN"
-                      ? "Admin"
-                      : "User"}
+                  {ROLE_LABELS[member.role] ?? member.role}
                 </span>
                 <span
                   className={`text-xs px-2 py-1 rounded ${
@@ -198,8 +218,15 @@ export const TeamMembers = ({
                 >
                   {member.isActive ? "Active" : "Inactive"}
                 </span>
-                {isSuperAdmin && member.role !== "SUPER_ADMIN" && (
+                {canManage && member.role !== "SUPER_ADMIN" && (
                   <div className="flex gap-1">
+                    <button
+                      onClick={() => setPermissionsTarget(member)}
+                      className="p-1 hover:bg-gray-100 rounded"
+                      title="Manage Permissions"
+                    >
+                      <ShieldCheck size={16} className="text-[#2d4a8f]" />
+                    </button>
                     <button
                       onClick={() => handleToggleStatus(member.id)}
                       className="p-1 hover:bg-gray-100 rounded"
@@ -233,6 +260,15 @@ export const TeamMembers = ({
           ))
         )}
       </div>
+
+      {/* Permissions Modal */}
+      {permissionsTarget && (
+        <PermissionsModal
+          userId={permissionsTarget.id}
+          userName={permissionsTarget.name}
+          onClose={() => setPermissionsTarget(null)}
+        />
+      )}
 
       {/* Add/Edit Member Modal */}
       {showModal && (
@@ -310,11 +346,10 @@ export const TeamMembers = ({
                 <select
                   id="team-member-role"
                   value={role}
-                  onChange={(e) => setRole(e.target.value as "ADMIN" | "USER")}
+                  onChange={(e) => setRole(e.target.value as AssignableRole)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="ADMIN">Admin</option>
-                  <option value="USER">User</option>
                 </select>
               </div>
 

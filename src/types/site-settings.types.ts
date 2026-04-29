@@ -17,6 +17,9 @@ export interface SiteSettings {
   twitterUrl?: string;
   ctaBannerText?: string;
   ctaBannerEnabled?: boolean;
+  notificationEmail?: string;
+  notifyOnNewSubmission?: boolean;
+  maintenanceMode?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +36,9 @@ export interface CreateSiteSettingsDto {
   twitterUrl?: string;
   ctaBannerText?: string;
   ctaBannerEnabled?: boolean;
+  notificationEmail?: string;
+  notifyOnNewSubmission?: boolean;
+  maintenanceMode?: boolean;
 }
 
 export interface UpdateSiteSettingsDto extends Partial<CreateSiteSettingsDto> {}

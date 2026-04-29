@@ -1,5 +1,26 @@
 import { jwtDecode } from "jwt-decode";
 
+export interface UserPermissions {
+  id: string;
+  userId: string;
+  submissionsView: boolean;
+  submissionsEdit: boolean;
+  submissionsDelete: boolean;
+  contactsView: boolean;
+  contactsEdit: boolean;
+  contactsDelete: boolean;
+  costManagementView: boolean;
+  costManagementEdit: boolean;
+  costManagementDelete: boolean;
+  projectManagementView: boolean;
+  projectManagementEdit: boolean;
+  projectManagementDelete: boolean;
+  webView: boolean;
+  webEdit: boolean;
+  settingsView: boolean;
+  dataBackupAccess: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -10,6 +31,7 @@ export interface User {
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+  permissions?: UserPermissions | null;
 }
 
 export interface AuthResponse {

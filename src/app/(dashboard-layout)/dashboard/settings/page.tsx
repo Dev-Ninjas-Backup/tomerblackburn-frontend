@@ -59,6 +59,15 @@ export default function SettingsPage() {
     }
   };
 
+  const handleUpdateNotifications = async (data: any) => {
+    try {
+      await updateMutation.mutateAsync(data);
+      toast.success("Notification settings saved");
+    } catch (error) {
+      toast.error("Failed to save notification settings");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -99,20 +108,18 @@ export default function SettingsPage() {
       </motion.div>
 
       {/* Email Notifications */}
-      {/* <motion.div
+      <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.5, delay: 0.45 }}
       >
         <EmailNotifications
-          notifications={{
-            newSubmission: true,
-            confirmationEmail: true,
-            dailySummary: true
-          }}
-          onUpdate={() => {}}
+          notificationEmail={settings?.notificationEmail ?? ''}
+          notifyOnNewSubmission={settings?.notifyOnNewSubmission ?? false}
+          onUpdate={handleUpdateNotifications}
+          isSaving={updateMutation.isPending}
         />
-      </motion.div> */}
+      </motion.div>
 
       {/* Account Security */}
       {currentUser && (

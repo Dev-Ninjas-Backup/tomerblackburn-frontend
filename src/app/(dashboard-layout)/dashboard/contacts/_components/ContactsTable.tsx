@@ -12,6 +12,7 @@ import {
 import { format } from "date-fns";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { MediaGalleryModal } from "@/components/dashboard/MediaGalleryModal";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface ContactsTableProps {
   contacts: ContactSubmission[];
@@ -51,6 +52,7 @@ export const ContactsTable = ({
   const markAsUnread = useMarkAsUnread();
   const deleteContact = useDeleteContact();
   const exportByIds = useExportContactsByIds();
+  const { contactsEdit, contactsDelete } = usePermissions();
 
   const handleViewDetails = (contact: ContactSubmission) => {
     if (!contact.isRead) {
@@ -226,7 +228,7 @@ export const ContactsTable = ({
                       >
                         <Eye size={16} className="text-blue-600" />
                       </button>
-                      {contact.isRead ? (
+                      {contactsEdit && (contact.isRead ? (
                         <button
                           onClick={() => markAsUnread.mutate(contact.id)}
                           className="p-1.5 hover:bg-gray-100 rounded transition-colors"
@@ -242,19 +244,21 @@ export const ContactsTable = ({
                         >
                           <MailOpen size={16} className="text-green-600" />
                         </button>
+                      ))}
+                      {contactsDelete && (
+                        <button
+                          onClick={() =>
+                            handleDeleteClick(
+                              contact.id,
+                              `${contact.firstName} ${contact.lastName}`,
+                            )
+                          }
+                          className="p-1.5 hover:bg-red-50 rounded transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} className="text-red-600" />
+                        </button>
                       )}
-                      <button
-                        onClick={() =>
-                          handleDeleteClick(
-                            contact.id,
-                            `${contact.firstName} ${contact.lastName}`,
-                          )
-                        }
-                        className="p-1.5 hover:bg-red-50 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
                     </div>
                   </td>
                 </tr>
