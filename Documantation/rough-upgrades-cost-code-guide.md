@@ -45,9 +45,9 @@ For all entries:
 | **Category** | Demolition |
 | **Question Type** | `GREEN` |
 | **Unit Type** | `PER_SQFT` |
-| **Base Price** | `10` |
+| **Base Price** | `20` |
 | **Markup** | `20` |
-| **Client Price** | `12` *(auto)* |
+| **Client Price** | `24` *(auto)* |
 | **Is Included In Base** | ❌ |
 | **Exclude From Export** | ❌ |
 | **Parent** | `Demo-WallTile-Branch` |
@@ -61,7 +61,26 @@ For all entries:
 
 ---
 
-### 3. Additional Plumbing Branch
+### 3. Water Shut Off Valves
+
+| Field | Value |
+|---|---|
+| **Code** | `Plumbing-Shut-Off-Valves` |
+| **Name** | `Water Shut Off Valves` |
+| **Alias** | `Water Shut Off` |
+| **Category** | Plumbing |
+| **Question Type** | `BLUE` |
+| **Base Price** | `250` |
+| **Markup** | `20` |
+| **Client Price** | `300` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Install water shut-off valves in accessible location within bathroom or behind access panel.` |
+| **Tips** | `Shut-off valves are required in high-rise buildings and recommended in all bathrooms to isolate water when needed. Installation requires shutting off water to the unit or building for 2–3 hours.` |
+
+---
+
+### 4. Additional Plumbing Branch
 
 | Field | Value |
 |---|---|
@@ -79,7 +98,7 @@ For all entries:
 
 ---
 
-### 4. Change Tub Style Branch *(child of Plumbing Branch)*
+### 5. Change Tub Style Branch *(child of Plumbing Branch)*
 
 | Field | Value |
 |---|---|
@@ -106,7 +125,7 @@ For all entries:
 
 ---
 
-### 5. Drop In Tub *(ORANGE option — add via Cost Code Options)*
+### 6. Drop In Tub *(ORANGE option — add via Cost Code Options)*
 
 | Field | Value |
 |---|---|
@@ -124,7 +143,7 @@ For all entries:
 
 ---
 
-### 6. Freestanding (Soaking) Tub
+### 7. Freestanding (Soaking) Tub
 
 | Field | Value |
 |---|---|
@@ -142,7 +161,7 @@ For all entries:
 
 ---
 
-### 7. Jetted Tub
+### 8. Jetted Tub
 
 | Field | Value |
 |---|---|
@@ -160,7 +179,7 @@ For all entries:
 
 ---
 
-### 8. Relocate Tub
+### 9. Relocate Tub
 
 | Field | Value |
 |---|---|
@@ -180,7 +199,7 @@ For all entries:
 
 ---
 
-### 9. Relocate Shower
+### 10. Relocate Shower
 
 | Field | Value |
 |---|---|
@@ -200,7 +219,7 @@ For all entries:
 
 ---
 
-### 10. Convert to Wall-Hung Toilet
+### 11. Convert to Wall-Hung Toilet
 
 | Field | Value |
 |---|---|
@@ -220,7 +239,7 @@ For all entries:
 
 ---
 
-### 11. Toilet with Built in Bidet (Washlet)
+### 12. Toilet with Built in Bidet (Washlet)
 
 | Field | Value |
 |---|---|
@@ -240,7 +259,7 @@ For all entries:
 
 ---
 
-### 12. Relocate Sink/Vanity
+### 13. Relocate Sink/Vanity
 
 | Field | Value |
 |---|---|
@@ -249,9 +268,9 @@ For all entries:
 | **Alias** | `Relocate Sink` |
 | **Category** | Plumbing |
 | **Question Type** | `BLUE` |
-| **Base Price** | `1600` |
+| **Base Price** | `800` |
 | **Markup** | `20` |
-| **Client Price** | `1920` |
+| **Client Price** | `960` |
 | **BT Export** | ✅ |
 | **Parent** | `Plumbing-Branch` |
 | **Show When Parent Value** | `true` |
@@ -260,7 +279,7 @@ For all entries:
 
 ---
 
-### 13. Convert Single to Double Vanity
+### 14. Convert Single to Double Vanity
 
 | Field | Value |
 |---|---|
@@ -280,7 +299,7 @@ For all entries:
 
 ---
 
-### 14. Wall Mounted Faucets
+### 15. Wall Mounted Faucets
 
 | Field | Value |
 |---|---|
@@ -303,7 +322,7 @@ For all entries:
 
 ---
 
-### 15. Handheld Shower Wand
+### 16. Handheld Shower Wand
 
 | Field | Value |
 |---|---|
@@ -326,7 +345,7 @@ For all entries:
 
 ---
 
-### 16. Body Sprays
+### 17. Body Sprays
 
 | Field | Value |
 |---|---|
@@ -349,7 +368,7 @@ For all entries:
 
 ---
 
-### 17. Steam Shower
+### 18. Steam Shower
 
 | Field | Value |
 |---|---|
@@ -369,22 +388,43 @@ For all entries:
 
 ---
 
+### 19. Replace Galvanized Pipes (Bathroom Only)
+
+| Field | Value |
+|---|---|
+| **Code** | `Plumbing-Galvanized-to-Copper` |
+| **Name** | `Replace Galvanized Pipes (Bathroom Only)` |
+| **Alias** | `Galvanized Pipes` |
+| **Category** | Plumbing |
+| **Question Type** | `BLUE` |
+| **Base Price** | `900` |
+| **Markup** | `20` |
+| **Client Price** | `1080` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Parent** | `Plumbing-Branch` |
+| **Show When Parent Value** | `true` |
+| **Description** | `Remove and replace existing galvanized piping with copper piping within bathroom area only. Modify water supply and connections as needed. Final scope and pricing to be confirmed after demolition. Labor and materials included.` |
+| **Tips** | `If you have other exposed galvanized piping (such as in a basement), this is a good time to consider upgrading those sections as well. Please note it in the comments if applicable.` |
+
+---
+
 ## ELECTRIC UPGRADES
 
 ---
 
-### 18. Additional Electric Branch
+### 20. Additional Electric Branch
 
 | Field | Value |
 |---|---|
-| **Code** | `Electric-Branch` |
+| **Code** | `Electric-Trip-Charge` |
 | **Name** | `Do you need any additional electrical work beyond the scope listed above?` |
 | **Alias** | `Electrician Trip Charge` |
 | **Category** | Electric |
 | **Question Type** | `BLUE` |
-| **Base Price** | `500` |
+| **Base Price** | `400` |
 | **Markup** | `20` |
-| **Client Price** | `600` |
+| **Client Price** | `480` |
 | **BT Export** | ✅ |
 | **Exclude From Export** | ❌ |
 | **Is Optional** | ✅ |
@@ -393,7 +433,7 @@ For all entries:
 
 ---
 
-### 19. Add New Outlets or Switch
+### 21. Add New Outlets or Switch
 
 | Field | Value |
 |---|---|
@@ -416,7 +456,7 @@ For all entries:
 
 ---
 
-### 20. Relocate Existing Outlets or Switches
+### 22. Relocate Existing Outlets or Switches
 
 | Field | Value |
 |---|---|
@@ -439,7 +479,7 @@ For all entries:
 
 ---
 
-### 21. Add Recessed Lighting Branch
+### 23. Add Recessed Lighting Branch
 
 | Field | Value |
 |---|---|
@@ -457,7 +497,7 @@ For all entries:
 
 ---
 
-### 22. Install 2" Recessed Can Lights
+### 24. Install 2" Recessed Can Lights
 
 | Field | Value |
 |---|---|
@@ -480,7 +520,7 @@ For all entries:
 
 ---
 
-### 23. Install 4" Recessed Can Lights
+### 25. Install 4" Recessed Can Lights
 
 | Field | Value |
 |---|---|
@@ -503,7 +543,7 @@ For all entries:
 
 ---
 
-### 24. Install 6" Recessed Can Lights
+### 26. Install 6" Recessed Can Lights
 
 | Field | Value |
 |---|---|
@@ -526,7 +566,7 @@ For all entries:
 
 ---
 
-### 25. Add Ceiling Light Fixture with New Switch
+### 27. Add Ceiling Light Fixture with New Switch
 
 | Field | Value |
 |---|---|
@@ -546,7 +586,7 @@ For all entries:
 
 ---
 
-### 26. Install Sconces Instead of Vanity Light
+### 28. Install Sconces Instead of Vanity Light
 
 | Field | Value |
 |---|---|
@@ -569,7 +609,7 @@ For all entries:
 
 ---
 
-### 27. Add Vanity Light with Switch
+### 29. Add Vanity Light with Switch
 
 | Field | Value |
 |---|---|
@@ -589,7 +629,7 @@ For all entries:
 
 ---
 
-### 28. Convert One Vanity Light into Two
+### 30. Convert One Vanity Light into Two
 
 | Field | Value |
 |---|---|
@@ -609,7 +649,7 @@ For all entries:
 
 ---
 
-### 29. Install Dimmer Switches
+### 31. Install Dimmer Switches
 
 | Field | Value |
 |---|---|
@@ -632,7 +672,7 @@ For all entries:
 
 ---
 
-### 30. Install LED Mirror
+### 32. Install LED Mirror
 
 | Field | Value |
 |---|---|
@@ -652,7 +692,7 @@ For all entries:
 
 ---
 
-### 31. Install Heated Floors
+### 33. Install Heated Floors
 
 | Field | Value |
 |---|---|
@@ -669,6 +709,105 @@ For all entries:
 | **Show When Parent Value** | `true` |
 | **Description** | `Install new dedicated electrical circuit for heated floor system - Install Schluter Ditra heating system and run heating cables - Install thermostat and connect system - Prepare floor for tile installation - Pricing may vary based on existing site conditions and size of heated area` |
 | **Tips** | `Electrical panel work not included, if needed` |
+
+---
+
+## HVAC UPGRADES
+
+---
+
+### 34. Replace Exhaust Fan
+
+| Field | Value |
+|---|---|
+| **Code** | `HVAC-Replace-Exhaust-Fan` |
+| **Name** | `Replace Exhaust Fan` |
+| **Alias** | `None` |
+| **Category** | HVAC |
+| **Question Type** | `BLUE` |
+| **Base Price** | `400` |
+| **Markup** | `20` |
+| **Client Price** | `480` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Replace existing exhaust fan in existing location. Includes installation of standard exhaust fan. Price assumes existing ductwork is in working condition; modifications or replacement of ductwork not included.` |
+| **Tips** | `Exhaust fan must vent to the exterior of the home. If existing ductwork is not properly vented or in working condition, additional work may be required.` |
+
+---
+
+### 35. Relocate Existing Exhaust Fan
+
+| Field | Value |
+|---|---|
+| **Code** | `HVAC-Relocate-Exhaust-Fan` |
+| **Name** | `Relocate existing Exhaust Fan` |
+| **Alias** | `Relocate Exhaust Fan` |
+| **Category** | HVAC |
+| **Question Type** | `BLUE` |
+| **Base Price** | `600` |
+| **Markup** | `20` |
+| **Client Price** | `720` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Relocate existing exhaust fan to new location within bathroom. Connect to existing exterior vent. Includes installation of standard exhaust fan. Price assumes existing ductwork is in working condition; modifications or replacement of ductwork not included. Final pricing may vary based on feasibility after demolition.` |
+| **Tips** | `Exhaust fan relocation depends on joist direction and access to an exterior vent. Final placement will be determined based on existing conditions.` |
+
+---
+
+### 36. Install New Exhaust Fan
+
+| Field | Value |
+|---|---|
+| **Code** | `HVAC-New-Exhaust-Fan` |
+| **Name** | `Install New Exhaust Fan` |
+| **Alias** | `New Exhaust Fan` |
+| **Category** | HVAC |
+| **Question Type** | `BLUE` |
+| **Base Price** | `1500` |
+| **Markup** | `20` |
+| **Client Price** | `1800` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Install new exhaust fan in bathroom where one does not currently exist. Includes placeholder pricing; final cost and feasibility to be determined after site visit based on framing, electrical, and access to exterior venting.` |
+| **Tips** | `Some high-rise buildings and condo associations do not allow installation of new exhaust fans. Please check building requirements if applicable.` |
+
+---
+
+### 37. Exhaust Fan with Features
+
+| Field | Value |
+|---|---|
+| **Code** | `HVAC-Exhaust-Fan-Features` |
+| **Name** | `Exhaust fan with features` |
+| **Alias** | `Exhaust Fan W/ Function` |
+| **Category** | HVAC |
+| **Question Type** | `BLUE` |
+| **Base Price** | `250` |
+| **Markup** | `20` |
+| **Client Price** | `300` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Upgrade selected exhaust fan (from options above) to include additional features such as integrated light, Bluetooth speaker, humidity sensor, or other non-standard functions. Final pricing will vary based on selected model and installation requirements.` |
+| **Tips** | `Upgraded exhaust fans with added features (light, speaker, sensors) require additional wiring or switches depending on the model.` |
+
+---
+
+### 38. Relocate HVAC Vent
+
+| Field | Value |
+|---|---|
+| **Code** | `HVAC-Relocate-HVAC` |
+| **Name** | `Relocate HVAC vent` |
+| **Alias** | `Relocate HVAC` |
+| **Category** | HVAC |
+| **Question Type** | `BLUE` |
+| **Base Price** | `800` |
+| **Markup** | `20` |
+| **Client Price** | `960` |
+| **Is Included In Base** | ❌ |
+| **BT Export** | ✅ |
+| **Description** | `Relocate HVAC vent in floor or wall to new location within bathroom. Includes placeholder pricing; final cost and feasibility to be determined after demolition based on existing duct layout, framing, and access.` |
+| **Tips** | `HVAC vent relocation depends on existing duct layout and joist direction. Final placement may be adjusted based on site conditions.` |
 
 ---
 
