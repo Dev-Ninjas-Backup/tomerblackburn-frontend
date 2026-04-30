@@ -51,6 +51,10 @@ export const costCodeService = {
     return axios.patch<ApiResponse<CostCode>>(`${API_URL}/cost-codes/${id}/toggle-status`);
   },
 
+  reorder: async (items: { id: string; displayOrder: number }[]) => {
+    return axios.patch(`${API_URL}/cost-codes/reorder`, { items });
+  },
+
   delete: async (id: string) => {
     return axios.delete<ApiResponse<void>>(`${API_URL}/cost-codes/${id}`);
   },

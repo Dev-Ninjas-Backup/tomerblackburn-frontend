@@ -11,11 +11,27 @@ import {
   ChevronUp,
   ChevronDown,
   Search,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   useCostCodes,
   useDeleteCostCode,
   useCostCodeCategories,
+  useReorderCostCodes,
 } from "@/hooks/useCostManagement";
 import { useServices } from "@/hooks/useProjectManagement";
 import CostCodeModal from "../_components/CostCodeModal";
@@ -52,8 +68,88 @@ type SortField =
   | "questionType"
   | "basePrice"
   | "step"
+  | "displayOrder"
   | "status";
 type SortOrder = "asc" | "desc";
+
+const SortableRow = ({
+  item,
+  depth,
+  costManagementEdit,
+  costManagementDelete,
+  onEdit,
+  onDelete,
+}: {
+  item: any;
+  depth: number;
+  costManagementEdit: boolean;
+  costManagementDelete: boolean;
+  onEdit: (item: any) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className={depth > 0 ? "bg-gray-50" : ""}>
+      <td className="px-3 py-4 w-8">
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex items-center justify-center"
+          title="Drag to reorder"
+        >
+          <GripVertical size={16} />
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        <span style={{ paddingLeft: `${depth * 24}px` }}>{item.code}</span>
+      </td>
+      <td className="px-6 py-4 text-sm text-gray-900">
+        {depth > 0 && <span className="text-gray-400 mr-1">{"↳".repeat(depth)}</span>}
+        {item.name}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.service?.name || "-"}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category?.name || "-"}</td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`px-2 py-1 text-xs rounded-full ${QUESTION_TYPE_COLORS[item.questionType as QuestionType]}`}>
+          {item.questionType}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.basePrice.toLocaleString()}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Step {item.step}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.displayOrder ?? 0}</td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`px-2 py-1 text-xs rounded-full ${depth > 0 ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"}`}>
+          {depth > 0 ? `Child (L${depth})` : "Parent"}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`px-2 py-1 text-xs rounded-full ${item.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+          {item.isActive ? "Active" : "Inactive"}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        {costManagementEdit && (
+          <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit cost code" aria-label="Edit cost code">
+            <Pencil size={16} />
+          </button>
+        )}
+        {costManagementDelete && (
+          <button onClick={() => onDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete cost code" aria-label="Delete cost code">
+            <Trash2 size={16} />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+};
 
 const CostCodesTab = () => {
   const { data: categories } = useCostCodeCategories();
@@ -70,6 +166,7 @@ const CostCodesTab = () => {
 
   const { data: costCodes, isLoading } = useCostCodes(filters);
   const deleteMutation = useDeleteCostCode();
+  const reorderMutation = useReorderCostCodes();
   const { costManagementEdit, costManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -179,6 +276,34 @@ const CostCodesTab = () => {
     }
   };
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = (event: DragEndEvent, siblings: { item: any; depth: number }[]) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !costCodes) return;
+
+    const activeItem = costCodes.find((c) => c.id === active.id);
+    const overItem = costCodes.find((c) => c.id === over.id);
+    if (!activeItem || !overItem) return;
+    // Must be same parent group
+    if (activeItem.parentCostCodeId !== overItem.parentCostCodeId) return;
+
+    const groupItems = siblings
+      .filter((r) => r.item.parentCostCodeId === activeItem.parentCostCodeId)
+      .map((r) => r.item);
+
+    const oldIndex = groupItems.findIndex((c) => c.id === active.id);
+    const newIndex = groupItems.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...groupItems];
+    reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, activeItem);
+
+    const items = reordered.map((c, i) => ({ id: c.id, displayOrder: i }));
+    reorderMutation.mutate(items);
+  };
+
   // Sort and paginate logic
   const { paginatedTreeRows, totalPages, totalParents } = useMemo(() => {
     if (!costCodes)
@@ -253,6 +378,10 @@ const CostCodesTab = () => {
         case "step":
           aVal = a.step;
           bVal = b.step;
+          break;
+        case "displayOrder":
+          aVal = a.displayOrder ?? 0;
+          bVal = b.displayOrder ?? 0;
           break;
         case "status":
           aVal = a.isActive ? 1 : 0;
@@ -528,10 +657,20 @@ const CostCodesTab = () => {
         </div>
       )}
 
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={(e) => handleDragEnd(e, paginatedTreeRows)}
+      >
+        <SortableContext
+          items={paginatedTreeRows.map((r) => r.item.id)}
+          strategy={verticalListSortingStrategy}
+        >
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-3 py-3 w-8" />
               <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort("code")}
@@ -595,6 +734,15 @@ const CostCodesTab = () => {
                   <SortIcon field="step" />
                 </div>
               </th>
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort("displayOrder")}
+              >
+                <div className="flex items-center gap-1">
+                  Order
+                  <SortIcon field="displayOrder" />
+                </div>
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Type
               </th>
@@ -614,74 +762,21 @@ const CostCodesTab = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedTreeRows.map(({ item, depth }) => (
-              <tr key={item.id} className={depth > 0 ? "bg-gray-50" : ""}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  <span style={{ paddingLeft: `${depth * 24}px` }}>
-                    {item.code}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {depth > 0 && (
-                    <span className="text-gray-400 mr-1">
-                      {"↳".repeat(depth)}
-                    </span>
-                  )}
-                  {item.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {item.service?.name || "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {item.category?.name || "-"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${QUESTION_TYPE_COLORS[item.questionType as QuestionType]}`}
-                  >
-                    {item.questionType}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  ${item.basePrice.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  Step {item.step}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${
-                      depth > 0
-                        ? "bg-purple-100 text-purple-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {depth > 0 ? `Child (L${depth})` : "Parent"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${item.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-                  >
-                    {item.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {costManagementEdit && (
-                    <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit cost code" aria-label="Edit cost code">
-                      <Pencil size={16} />
-                    </button>
-                  )}
-                  {costManagementDelete && (
-                    <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete cost code" aria-label="Delete cost code">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </td>
-              </tr>
+              <SortableRow
+                key={item.id}
+                item={item}
+                depth={depth}
+                costManagementEdit={costManagementEdit}
+                costManagementDelete={costManagementDelete}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))}
           </tbody>
         </table>
       </div>
+      </SortableContext>
+      </DndContext>
 
       {/* Pagination Controls */}
       <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-4 sm:px-6 py-4 rounded-lg shadow">

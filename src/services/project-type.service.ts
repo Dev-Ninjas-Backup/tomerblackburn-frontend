@@ -30,6 +30,10 @@ export const projectTypeService = {
     return axios.patch<ApiResponse<ProjectType>>(`${API_URL}/project-types/${id}`, data);
   },
 
+  reorder: async (items: { id: string; displayOrder: number }[]) => {
+    return axios.patch(`${API_URL}/project-types/reorder`, { items });
+  },
+
   delete: async (id: string) => {
     return axios.delete<ApiResponse<void>>(`${API_URL}/project-types/${id}`);
   },
