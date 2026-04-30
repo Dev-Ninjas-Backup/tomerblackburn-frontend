@@ -45,6 +45,20 @@ export const useUpdateProjectType = () => {
   });
 };
 
+export const useReorderProjectTypes = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      projectTypeService.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-types'] });
+    },
+    onError: () => {
+      toast.error('Failed to reorder project types');
+    },
+  });
+};
+
 export const useDeleteProjectType = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -107,6 +121,20 @@ export const useUpdateServiceCategory = () => {
     },
     onError: () => {
       toast.error('Failed to update service category');
+    },
+  });
+};
+
+export const useReorderServiceCategories = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      serviceCategoryService.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-categories'] });
+    },
+    onError: () => {
+      toast.error('Failed to reorder service categories');
     },
   });
 };
@@ -174,6 +202,20 @@ export const useUpdateService = () => {
     },
     onError: () => {
       toast.error('Failed to update service');
+    },
+  });
+};
+
+export const useReorderServices = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      serviceService.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+    },
+    onError: () => {
+      toast.error('Failed to reorder services');
     },
   });
 };

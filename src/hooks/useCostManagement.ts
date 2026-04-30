@@ -45,6 +45,20 @@ export const useUpdateCostCodeCategory = () => {
   });
 };
 
+export const useReorderCostCodeCategories = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      costCodeCategoryService.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cost-code-categories'] });
+    },
+    onError: () => {
+      toast.error('Failed to reorder categories');
+    },
+  });
+};
+
 export const useDeleteCostCodeCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
