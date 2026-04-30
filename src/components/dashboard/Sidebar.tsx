@@ -22,6 +22,7 @@ import {
   FolderKanban,
   Calculator,
   DatabaseBackup,
+  Activity,
 } from "lucide-react";
 
 interface NavItem {
@@ -73,6 +74,12 @@ const menuItems: NavItem[] = [
     label: "Settings",
     href: "/dashboard/settings",
     visible: (p) => p.settingsView,
+  },
+  {
+    icon: Activity,
+    label: "Live Traffic",
+    href: "/dashboard/traffic",
+    visible: () => true,
   },
   {
     icon: DatabaseBackup,

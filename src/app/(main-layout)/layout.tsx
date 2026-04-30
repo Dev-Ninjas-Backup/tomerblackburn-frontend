@@ -3,6 +3,7 @@ import Header from "@/components/shared/main/Header"
 import Footer from "@/components/shared/main/Footer"
 import ScrollToTop from "@/components/shared/main/ScrollToTop"
 import MaintenancePage from "@/components/MaintenancePage"
+import { TrafficTracker } from "@/components/shared/TrafficTracker"
 
 async function getSiteSettings() {
   try {
@@ -27,6 +28,7 @@ const MainLayout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <TrafficTracker />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
