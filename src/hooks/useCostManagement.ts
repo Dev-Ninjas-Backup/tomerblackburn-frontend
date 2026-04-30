@@ -121,6 +121,20 @@ export const useUpdateCostCode = () => {
   });
 };
 
+export const useReorderCostCodes = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (items: { id: string; displayOrder: number }[]) =>
+      costCodeService.reorder(items),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cost-codes'] });
+    },
+    onError: () => {
+      toast.error('Failed to reorder cost codes');
+    },
+  });
+};
+
 export const useDeleteCostCode = () => {
   const queryClient = useQueryClient();
   return useMutation({
