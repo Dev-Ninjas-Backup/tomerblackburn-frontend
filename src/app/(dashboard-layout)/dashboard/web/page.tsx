@@ -10,6 +10,7 @@ import EstimatorTab from "./_tabs/EstimatorTab";
 import BuildingTypesTab from "./_tabs/BuildingTypesTab";
 import { TermsTab } from "./_tabs/TermsTab";
 import { PrivacyTab } from "./_tabs/PrivacyTab";
+import SiteStatusTab from "./_tabs/SiteStatusTab";
 
 const WebPage = () => {
   const [activeTab, setActiveTab] = useState("Home");
@@ -30,6 +31,8 @@ const WebPage = () => {
         return <TermsTab />;
       case "Privacy Policy":
         return <PrivacyTab />;
+      case "Site Status":
+        return <SiteStatusTab />;
       default:
         return <HomeTab />;
     }

@@ -34,6 +34,10 @@ export const serviceCategoryService = {
     return axios.patch<ApiResponse<ServiceCategory>>(`${API_URL}/service-categories/${id}`, data);
   },
 
+  reorder: async (items: { id: string; displayOrder: number }[]) => {
+    return axios.patch(`${API_URL}/service-categories/reorder`, { items });
+  },
+
   delete: async (id: string) => {
     return axios.delete<ApiResponse<void>>(`${API_URL}/service-categories/${id}`);
   },

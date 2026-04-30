@@ -61,6 +61,10 @@ export const serviceService = {
     });
   },
 
+  reorder: async (items: { id: string; displayOrder: number }[]) => {
+    return axios.patch(`${API_URL}/services/reorder`, { items });
+  },
+
   delete: async (id: string) => {
     return axios.delete<ApiResponse<void>>(`${API_URL}/services/${id}`);
   },

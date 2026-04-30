@@ -1,19 +1,102 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useServices, useDeleteService, useProjectTypes, useServiceCategoriesByProjectType, useCreateService } from '@/hooks/useProjectManagement';
+import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useServices, useDeleteService, useProjectTypes, useServiceCategoriesByProjectType, useCreateService, useReorderServices } from '@/hooks/useProjectManagement';
 import ServiceModal from '../_components/ServiceModal';
 import ImportExportButtons from '@/components/ImportExportButtons';
 import { exportToCSV } from '@/lib/csv';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
+
+const SortableServiceRow = ({
+  item,
+  projectManagementEdit,
+  projectManagementDelete,
+  onEdit,
+  onDelete,
+}: {
+  item: any;
+  projectManagementEdit: boolean;
+  projectManagementDelete: boolean;
+  onEdit: (item: any) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style}>
+      <td className="px-3 py-4 w-8">
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex items-center justify-center"
+          title="Drag to reorder"
+        >
+          <GripVertical size={16} />
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        {item.imageFile ? (
+          <img src={item.imageFile.url} alt={item.name} className="w-12 h-12 object-cover rounded" />
+        ) : (
+          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No img</div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.code}</td>
+      <td className="px-6 py-4 text-sm text-gray-900">{item.name}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.basePrice.toLocaleString()}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.displayOrder}</td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`px-2 py-1 text-xs rounded-full ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {item.isActive ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        {projectManagementEdit && (
+          <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service" aria-label="Edit service">
+            <Pencil size={16} />
+          </button>
+        )}
+        {projectManagementDelete && (
+          <button onClick={() => onDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service" aria-label="Delete service">
+            <Trash2 size={16} />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+};
 
 const ServicesTab = () => {
   const { data: services, isLoading } = useServices();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteService();
   const createMutation = useCreateService();
+  const reorderMutation = useReorderServices();
+  const { projectManagementEdit, projectManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
@@ -22,6 +105,29 @@ const ServicesTab = () => {
   const [isImporting, setIsImporting] = useState(false);
 
   const { data: categories } = useServiceCategoriesByProjectType(filterProjectType);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const filteredServices = useMemo(() => {
+    if (!services) return [];
+    if (filterCategory) return services.filter((s) => s.serviceCategoryId === filterCategory);
+    return services;
+  }, [services, filterCategory]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !filteredServices.length) return;
+
+    const oldIndex = filteredServices.findIndex((c) => c.id === active.id);
+    const newIndex = filteredServices.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...filteredServices];
+    reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, filteredServices[oldIndex]);
+
+    reorderMutation.mutate(reordered.map((c, i) => ({ id: c.id, displayOrder: i })));
+  };
 
   const handleCreate = () => {
     setModalMode('create');
@@ -61,7 +167,6 @@ const ServicesTab = () => {
 
   const handleImport = async (rows: Record<string, string>[]) => {
     if (!rows.length) return toast.error('No valid rows found in CSV');
-    // Need all categories to match by name
     const { data: allCategories } = await import('@/services/service-category.service').then(
       async (m) => m.serviceCategoryService.getAll()
     ).then((res) => res.data);
@@ -89,10 +194,6 @@ const ServicesTab = () => {
     setIsImporting(false);
     toast.success(`Imported ${success} services${failed ? `, ${failed} failed` : ''}`);
   };
-
-  const filteredServices = filterCategory
-    ? services?.filter((s) => s.serviceCategoryId === filterCategory)
-    : services;
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -130,19 +231,24 @@ const ServicesTab = () => {
             </select>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-            <Plus size={18} className="mr-2" />
-            Add Service
-          </Button>
-        </div>
+        {projectManagementEdit && (
+          <div className="flex items-center gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-2" />
+              Add Service
+            </Button>
+          </div>
+        )}
       </div>
 
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={filteredServices.map((c) => c.id)} strategy={verticalListSortingStrategy}>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-3 py-3 w-8" />
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
@@ -153,37 +259,29 @@ const ServicesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredServices?.map((item) => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {item.imageFile ? (
-                    <img src={item.imageFile.url} alt={item.name} className="w-12 h-12 object-cover rounded" />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No img</div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.code}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.basePrice.toLocaleString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.displayOrder}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {item.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service" aria-label="Edit service">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service" aria-label="Delete service">
-                    <Trash2 size={16} />
-                  </button>
+            {filteredServices.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  No services found
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredServices.map((item) => (
+                <SortableServiceRow
+                  key={item.id}
+                  item={item}
+                  projectManagementEdit={projectManagementEdit}
+                  projectManagementDelete={projectManagementDelete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
+        </SortableContext>
+      </DndContext>
 
       <ServiceModal
         isOpen={isModalOpen}

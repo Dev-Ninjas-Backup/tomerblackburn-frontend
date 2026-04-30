@@ -1,24 +1,135 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { useServiceCategories, useDeleteServiceCategory, useProjectTypes, useCreateServiceCategory } from '@/hooks/useProjectManagement';
+import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useServiceCategories, useDeleteServiceCategory, useProjectTypes, useCreateServiceCategory, useReorderServiceCategories } from '@/hooks/useProjectManagement';
 import ServiceCategoryModal from '../_components/ServiceCategoryModal';
 import ImportExportButtons from '@/components/ImportExportButtons';
 import { exportToCSV } from '@/lib/csv';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
+
+const SortableServiceCategoryRow = ({
+  item,
+  projectTypeName,
+  projectManagementEdit,
+  projectManagementDelete,
+  onEdit,
+  onDelete,
+}: {
+  item: any;
+  projectTypeName: string;
+  projectManagementEdit: boolean;
+  projectManagementDelete: boolean;
+  onEdit: (item: any) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style}>
+      <td className="px-3 py-4 w-8">
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 flex items-center justify-center"
+          title="Drag to reorder"
+        >
+          <GripVertical size={16} />
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        {item.image?.url ? (
+          <img src={item.image.url} alt={item.name} className="h-12 w-12 object-cover rounded" />
+        ) : (
+          <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">No Image</div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{projectTypeName}</td>
+      <td className="px-6 py-4 text-sm text-gray-500">{item.description || '-'}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.displayOrder}</td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span className={`px-2 py-1 text-xs rounded-full ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {item.isActive ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        {projectManagementEdit && (
+          <button onClick={() => onEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service category" aria-label="Edit service category">
+            <Pencil size={16} />
+          </button>
+        )}
+        {projectManagementDelete && (
+          <button onClick={() => onDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service category" aria-label="Delete service category">
+            <Trash2 size={16} />
+          </button>
+        )}
+      </td>
+    </tr>
+  );
+};
 
 const ServiceCategoriesTab = () => {
   const { data: categories, isLoading } = useServiceCategories();
   const { data: projectTypes } = useProjectTypes();
   const deleteMutation = useDeleteServiceCategory();
   const createMutation = useCreateServiceCategory();
+  const reorderMutation = useReorderServiceCategories();
+  const { projectManagementEdit, projectManagementDelete } = usePermissions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedData, setSelectedData] = useState<any>(null);
   const [filterProjectType, setFilterProjectType] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const filteredCategories = useMemo(() => {
+    if (!categories) return [];
+    if (!filterProjectType) return categories;
+    return categories.filter((c) => c.projectTypeId === filterProjectType);
+  }, [categories, filterProjectType]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !filteredCategories.length) return;
+
+    const oldIndex = filteredCategories.findIndex((c) => c.id === active.id);
+    const newIndex = filteredCategories.findIndex((c) => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...filteredCategories];
+    reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, filteredCategories[oldIndex]);
+
+    reorderMutation.mutate(reordered.map((c, i) => ({ id: c.id, displayOrder: i })));
+  };
+
+  const getProjectTypeName = (projectTypeId: string) =>
+    projectTypes?.find((pt) => pt.id === projectTypeId)?.name || '-';
 
   const handleCreate = () => {
     setModalMode('create');
@@ -74,10 +185,6 @@ const ServiceCategoriesTab = () => {
     toast.success(`Imported ${success} categories${failed ? `, ${failed} failed` : ''}`);
   };
 
-  const filteredCategories = filterProjectType
-    ? categories?.filter((c) => c.projectTypeId === filterProjectType)
-    : categories;
-
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -100,19 +207,24 @@ const ServiceCategoriesTab = () => {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
-          <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
-            <Plus size={18} className="mr-2" />
-            Add Category
-          </Button>
-        </div>
+        {projectManagementEdit && (
+          <div className="flex items-center gap-2">
+            <ImportExportButtons onExport={handleExport} onImport={handleImport} isImporting={isImporting} />
+            <Button onClick={handleCreate} className="bg-[#2d4a8f] hover:bg-[#243a73]">
+              <Plus size={18} className="mr-2" />
+              Add Category
+            </Button>
+          </div>
+        )}
       </div>
 
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={filteredCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-3 py-3 w-8" />
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Project Type</th>
@@ -123,39 +235,30 @@ const ServiceCategoriesTab = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredCategories?.map((item) => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {item.image?.url ? (
-                    <img src={item.image.url} alt={item.name} className="h-12 w-12 object-cover rounded" />
-                  ) : (
-                    <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">No Image</div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {projectTypes?.find((pt) => pt.id === item.projectTypeId)?.name || '-'}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500">{item.description || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.displayOrder}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {item.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button onClick={() => handleEdit(item)} className="text-blue-600 hover:text-blue-900 mr-3" title="Edit service category" aria-label="Edit service category">
-                    <Pencil size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(item.id)} className="text-red-600 hover:text-red-900" title="Delete service category" aria-label="Delete service category">
-                    <Trash2 size={16} />
-                  </button>
+            {filteredCategories.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                  No service categories found
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredCategories.map((item) => (
+                <SortableServiceCategoryRow
+                  key={item.id}
+                  item={item}
+                  projectTypeName={getProjectTypeName(item.projectTypeId)}
+                  projectManagementEdit={projectManagementEdit}
+                  projectManagementDelete={projectManagementDelete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
+        </SortableContext>
+      </DndContext>
 
       <ServiceCategoryModal
         isOpen={isModalOpen}

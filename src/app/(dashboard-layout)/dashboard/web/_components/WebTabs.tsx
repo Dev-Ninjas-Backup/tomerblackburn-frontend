@@ -16,6 +16,7 @@ const tabs = [
   "Building Types",
   "Terms of Service",
   "Privacy Policy",
+  "Site Status",
 ];
 
 export const WebTabs = ({ activeTab, onTabChange }: WebTabsProps) => {
