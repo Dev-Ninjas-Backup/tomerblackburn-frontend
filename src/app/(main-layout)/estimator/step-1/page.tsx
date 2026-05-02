@@ -20,6 +20,7 @@ export default function Step1Page() {
     addCostCodeSelection,
     updateCostCodeSelection,
     removeCostCodeSelection,
+    setBasePrice,
   } = useEstimatorStore();
 
   const { data: services } = useServicesByCategory(serviceCategoryId || undefined);
@@ -32,6 +33,15 @@ export default function Step1Page() {
   });
 
   const step1CostCodes = costCodes?.filter((code) => code.step === 1) || [];
+
+  // Calculate base price from isIncludedInBase cost codes
+  useEffect(() => {
+    if (!costCodes) return;
+    const base = costCodes
+      .filter((cc) => cc.isIncludedInBase)
+      .reduce((sum, cc) => sum + Number(cc.clientPrice), 0);
+    setBasePrice(base);
+  }, [costCodes, setBasePrice]);
 
   const [hydrated, setHydrated] = useState(false);
 
