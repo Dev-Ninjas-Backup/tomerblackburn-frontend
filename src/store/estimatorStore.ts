@@ -58,7 +58,8 @@ interface EstimatorStore extends EstimatorState {
   // Project selection
   setProjectTypeId: (id: string) => void
   setServiceCategoryId: (id: string) => void
-  setServiceId: (id: string, basePrice: number) => void
+  setServiceId: (id: string) => void
+  setBasePrice: (price: number) => void
   
   // Cost code management
   addCostCodeSelection: (step: 1 | 2, selection: CostCodeSelection) => void
@@ -140,21 +141,25 @@ export const useEstimatorStore = create<EstimatorStore>()(
         }
       },
 
-      setServiceId: (id, clientPrice) => {
+      setServiceId: (id) => {
         const currentServiceId = get().serviceId;
         if (currentServiceId === id) {
-          set({ serviceId: id, basePrice: clientPrice, lastActivityAt: Date.now() })
-          get().calculateTotal()
+          set({ serviceId: id, lastActivityAt: Date.now() })
         } else {
           set({
             serviceId: id,
-            basePrice: clientPrice,
-            totalPrice: clientPrice,
+            basePrice: 0,
+            totalPrice: 0,
             step1Selections: [],
             step2Selections: [],
             lastActivityAt: Date.now()
           })
         }
+      },
+
+      setBasePrice: (price) => {
+        set({ basePrice: price })
+        get().calculateTotal()
       },
 
       addCostCodeSelection: (step, selection) => {
