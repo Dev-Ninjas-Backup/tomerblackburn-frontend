@@ -29,7 +29,7 @@ export default function ChooseServicePage() {
   }, [serviceCategoryId, router]);
 
   const handleSelect = (service: Service) => {
-    setServiceId(service.id, service.clientPrice || 0);
+    setServiceId(service.id);
     router.push("/estimator/step-1");
   };
 

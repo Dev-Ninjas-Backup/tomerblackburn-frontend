@@ -9,7 +9,13 @@ import { useEstimatorStore } from "@/store/estimatorStore";
 import { useTips } from "@/hooks/useTips";
 import { useCostCodes } from "@/hooks/useCostManagement";
 import { useServicesByCategory } from "@/hooks/useProjectManagement";
-import { Upload, X, Video as VideoIcon, ChevronDown, CheckCircle2 } from "lucide-react";
+import {
+  Upload,
+  X,
+  Video as VideoIcon,
+  ChevronDown,
+  CheckCircle2,
+} from "lucide-react";
 import { submissionService } from "@/services/submission.service";
 import { uploadService } from "@/services/upload.service";
 import {
@@ -43,14 +49,18 @@ export default function PreviewPage() {
   } = useEstimatorStore();
 
   const { data: tips } = useTips();
-  const { data: services } = useServicesByCategory(serviceCategoryId || undefined);
+  const { data: services } = useServicesByCategory(
+    serviceCategoryId || undefined,
+  );
   const serviceName = services?.find((s) => s.id === serviceId)?.name;
   const { data: costCodes } = useCostCodes({
     serviceId: serviceId || undefined,
     includeCategory: true,
   });
 
-  const [openSummaryCategories, setOpenSummaryCategories] = useState<Set<string>>(new Set());
+  const [openSummaryCategories, setOpenSummaryCategories] = useState<
+    Set<string>
+  >(new Set());
 
   const toggleSummaryCategory = useCallback((cat: string) => {
     setOpenSummaryCategories((prev) => {
@@ -88,7 +98,9 @@ export default function PreviewPage() {
         setBuildingTypes(types);
         setBuildingTypesLoaded(true);
       })
-      .catch(() => { setBuildingTypesLoaded(true); });
+      .catch(() => {
+        setBuildingTypesLoaded(true);
+      });
   }, []);
 
   // After both hydrated + buildingTypes loaded, sync from store
@@ -311,7 +323,9 @@ export default function PreviewPage() {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const selectedBuildingType = buildingTypes.find((bt) => bt.id === buildingTypeId);
+  const selectedBuildingType = buildingTypes.find(
+    (bt) => bt.id === buildingTypeId,
+  );
 
   const handleBuildingTypeChange = (id: string) => {
     setBuildingTypeId(id);
@@ -355,7 +369,8 @@ export default function PreviewPage() {
           : undefined,
         basePrice,
         additionalItemsTotal: totalPrice - basePrice,
-        totalAmount: totalPrice + (Number(selectedBuildingType?.price) || 0),
+        totalAmount:
+          Number(totalPrice) + (Number(selectedBuildingType?.price) || 0),
         projectNotes: notes,
         items: [
           ...step1Selections
@@ -498,7 +513,9 @@ export default function PreviewPage() {
               <h1 className="text-2xl font-bold text-gray-900">
                 {serviceName || "Estimate Preview"}
               </h1>
-              <p className="text-sm text-gray-400 mt-0.5">Review your selections before submitting</p>
+              <p className="text-sm text-gray-400 mt-0.5">
+                Review your selections before submitting
+              </p>
             </div>
 
             {/* Breadcrumb */}
@@ -820,113 +837,142 @@ export default function PreviewPage() {
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1">
                       Additional Items
                     </p>
-                    {Object.entries(groupedAdditionalCosts).map(([categoryName, items]) => {
-                      const isOpen = openSummaryCategories.has(categoryName);
-                      const categoryTotal = items.reduce((sum, c) => sum + c.cost, 0);
-                      return (
-                        <div
-                          key={categoryName}
-                          className={`border rounded-xl overflow-hidden transition-colors ${
-                            isOpen ? "border-[#283878]/20" : "border-gray-200"
-                          }`}
-                        >
-                          {/* Category Header */}
-                          <button
-                            type="button"
-                            onClick={() => toggleSummaryCategory(categoryName)}
-                            className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                    {Object.entries(groupedAdditionalCosts).map(
+                      ([categoryName, items]) => {
+                        const isOpen = openSummaryCategories.has(categoryName);
+                        const categoryTotal = items.reduce(
+                          (sum, c) => sum + c.cost,
+                          0,
+                        );
+                        return (
+                          <div
+                            key={categoryName}
+                            className={`border rounded-xl overflow-hidden transition-colors ${
+                              isOpen ? "border-[#283878]/20" : "border-gray-200"
+                            }`}
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-gray-800 group-hover:text-[#283878] transition-colors">
-                                {categoryName}
-                              </span>
-                              <span className="text-[11px] font-medium text-[#283878] bg-[#283878]/10 px-2 py-0.5 rounded-full">
-                                {items.length} item{items.length > 1 ? "s" : ""}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-semibold text-gray-700">
-                                +${categoryTotal.toLocaleString()}
-                              </span>
-                              <motion.div
-                                animate={{ rotate: isOpen ? 180 : 0 }}
-                                transition={{ duration: 0.22 }}
-                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                                  isOpen
-                                    ? "bg-[#283878] text-white"
-                                    : "bg-gray-200 text-gray-500 group-hover:bg-[#283878]/10 group-hover:text-[#283878]"
-                                }`}
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </motion.div>
-                            </div>
-                          </button>
+                            {/* Category Header */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                toggleSummaryCategory(categoryName)
+                              }
+                              className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-gray-800 group-hover:text-[#283878] transition-colors">
+                                  {categoryName}
+                                </span>
+                                <span className="text-[11px] font-medium text-[#283878] bg-[#283878]/10 px-2 py-0.5 rounded-full">
+                                  {items.length} item
+                                  {items.length > 1 ? "s" : ""}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-semibold text-gray-700">
+                                  +${categoryTotal.toLocaleString()}
+                                </span>
+                                <motion.div
+                                  animate={{ rotate: isOpen ? 180 : 0 }}
+                                  transition={{ duration: 0.22 }}
+                                  className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                                    isOpen
+                                      ? "bg-[#283878] text-white"
+                                      : "bg-gray-200 text-gray-500 group-hover:bg-[#283878]/10 group-hover:text-[#283878]"
+                                  }`}
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </motion.div>
+                              </div>
+                            </button>
 
-                          {/* Category Items */}
-                          <AnimatePresence initial={false}>
-                            {isOpen && (
-                              <motion.div
-                                key="items"
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                                style={{ overflow: "hidden" }}
-                              >
-                                <div className="px-4 py-3 space-y-2 border-t border-gray-100">
-                                  {items.map((cost, index) => (
-                                    <div
-                                      key={`${cost.id}-${index}`}
-                                      className="flex justify-between items-center text-sm"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                                        <span className="text-gray-600">{cost.name}</span>
+                            {/* Category Items */}
+                            <AnimatePresence initial={false}>
+                              {isOpen && (
+                                <motion.div
+                                  key="items"
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{
+                                    duration: 0.25,
+                                    ease: [0.25, 0.46, 0.45, 0.94],
+                                  }}
+                                  style={{ overflow: "hidden" }}
+                                >
+                                  <div className="px-4 py-3 space-y-2 border-t border-gray-100">
+                                    {items.map((cost, index) => (
+                                      <div
+                                        key={`${cost.id}-${index}`}
+                                        className="flex justify-between items-center text-sm"
+                                      >
+                                        <div className="flex items-center gap-2">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                                          <span className="text-gray-600">
+                                            {cost.name}
+                                          </span>
+                                        </div>
+                                        <span className="font-medium text-gray-800 shrink-0 ml-4">
+                                          +${cost.cost.toLocaleString()}
+                                        </span>
                                       </div>
-                                      <span className="font-medium text-gray-800 shrink-0 ml-4">
-                                        +${cost.cost.toLocaleString()}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      );
-                    })}
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      },
+                    )}
                   </div>
                 )}
 
                 {/* Additions Total */}
                 {additionalCosts.length > 0 && (
                   <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600 font-medium">Additions Total</span>
+                    <span className="text-gray-600 font-medium">
+                      Additions Total
+                    </span>
                     <span className="font-semibold text-gray-900">
-                      +${additionalCosts.reduce((sum, c) => sum + c.cost, 0).toLocaleString()}
+                      +$
+                      {additionalCosts
+                        .reduce((sum, c) => sum + c.cost, 0)
+                        .toLocaleString()}
                     </span>
                   </div>
                 )}
 
                 {/* Building Type */}
-                {selectedBuildingType && Number(selectedBuildingType.price) > 0 && (
-                  <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <span className="text-xs text-gray-400 block">Building Type</span>
-                      <span className="text-gray-700 font-medium">{selectedBuildingType.name}</span>
+                {selectedBuildingType &&
+                  Number(selectedBuildingType.price) > 0 && (
+                    <div className="flex justify-between items-center py-2 px-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <span className="text-xs text-gray-400 block">
+                          Building Type
+                        </span>
+                        <span className="text-gray-700 font-medium">
+                          {selectedBuildingType.name}
+                        </span>
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        +${Number(selectedBuildingType.price).toLocaleString()}
+                      </span>
                     </div>
-                    <span className="font-semibold text-gray-900">
-                      +${Number(selectedBuildingType.price).toLocaleString()}
-                    </span>
-                  </div>
-                )}
+                  )}
 
                 {/* Grand Total */}
                 <div className="border-t-2 border-[#283878] pt-4 mt-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-gray-900">Total</span>
+                    <span className="text-xl font-bold text-gray-900">
+                      Total
+                    </span>
                     <span className="text-2xl font-bold text-[#283878]">
-                      ${(totalPrice + (Number(selectedBuildingType?.price) || 0)).toLocaleString()}
+                      $
+                      {(
+                        Number(totalPrice) +
+                        (Number(selectedBuildingType?.price) || 0)
+                      ).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mt-2 text-right">

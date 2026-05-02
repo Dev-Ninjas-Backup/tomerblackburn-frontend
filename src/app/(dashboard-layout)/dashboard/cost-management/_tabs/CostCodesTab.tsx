@@ -779,80 +779,97 @@ const CostCodesTab = () => {
       </DndContext>
 
       {/* Pagination Controls */}
-      <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-4 sm:px-6 py-4 rounded-lg shadow">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-gray-700">
-            Showing{" "}
-            {pageSize === -1
-              ? totalParents
-              : Math.min((currentPage - 1) * pageSize + 1, totalParents)}{" "}
-            –{" "}
-            {pageSize === -1
-              ? totalParents
-              : Math.min(currentPage * pageSize, totalParents)}{" "}
-            of {totalParents}
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-5 py-3 rounded-xl shadow-sm border border-gray-100">
+        {/* Left: info + page size */}
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-500">
+            <span className="font-semibold text-gray-800">
+              {pageSize === -1 ? totalParents : Math.min((currentPage - 1) * pageSize + 1, totalParents)}
+              {" – "}
+              {pageSize === -1 ? totalParents : Math.min(currentPage * pageSize, totalParents)}
+            </span>
+            {" of "}
+            <span className="font-semibold text-gray-800">{totalParents}</span>
+            {" results"}
           </span>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-700">Show:</label>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border rounded px-2 py-1 text-sm"
-              aria-label="Select page size"
-              title="Select page size"
-            >
-              <option value={-1}>All</option>
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-              <option value={40}>40</option>
-              <option value={50}>50</option>
-            </select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400">Rows per page</span>
+            <div className="relative">
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                className="appearance-none border border-gray-200 rounded-lg pl-3 pr-7 py-1.5 text-sm text-gray-700 bg-white hover:border-[#2d4a8f]/40 focus:outline-none focus:ring-2 focus:ring-[#2d4a8f]/30 cursor-pointer"
+                aria-label="Select page size"
+                title="Select page size"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+                <option value={-1}>All</option>
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
           </div>
         </div>
 
-        {pageSize !== -1 && (
-          <div className="flex items-center gap-1 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
+        {/* Right: page buttons */}
+        {pageSize !== -1 && totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
+              className="px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              First
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              «
+            </button>
+            <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
+              className="px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Prev
-            </Button>
-            <span className="text-sm text-gray-700 px-2">
-              {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
+              ‹
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+              .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
+                acc.push(p);
+                return acc;
+              }, [])
+              .map((p, idx) =>
+                p === "..." ? (
+                  <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p as number)}
+                    className={`min-w-8.5 px-2.5 py-1.5 text-sm rounded-lg border transition-colors ${
+                      currentPage === p
+                        ? "bg-[#2d4a8f] text-white border-[#2d4a8f] font-semibold"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
+              className="px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Next
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              ›
+            </button>
+            <button
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
+              className="px-2.5 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Last
-            </Button>
+              »
+            </button>
           </div>
         )}
       </div>
