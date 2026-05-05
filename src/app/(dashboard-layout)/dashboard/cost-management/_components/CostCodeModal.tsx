@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import CostCodeImageManager from "./CostCodeImageManager";
+import { costCodeService } from "@/services/cost-code.service";
+import { uploadService } from "@/services/upload.service";
 import {
   useCreateCostCode,
   useUpdateCostCode,
@@ -73,6 +76,10 @@ const CostCodeModal = ({
 
   // Track deleted option IDs for update mode
   const [deletedOptionIds, setDeletedOptionIds] = useState<string[]>([]);
+
+  // Image state
+  const [pendingImages, setPendingImages] = useState<{ file: File; preview: string }[]>([]);
+  const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<CreateCostCodeDto>({
     categoryId: "",
@@ -182,6 +189,8 @@ const CostCodeModal = ({
       setSelectedServiceId("");
       setOptions([]);
       setDeletedOptionIds([]);
+      setPendingImages([]);
+      setDeletedImageIds([]);
     }
   }, [mode, data, allServiceCategories]);
 
@@ -205,11 +214,9 @@ const CostCodeModal = ({
 
     try {
       if (mode === "create") {
-        // Step 1: Create cost code first
         const result = await createMutation.mutateAsync(submitData);
         const newCostCodeId = result.data.data.id;
 
-        // Step 2: Create options with the new cost code ID
         if (formData.questionType === "ORANGE" && options.length > 0) {
           await bulkCreateOptions.mutateAsync({
             costCodeId: newCostCodeId,
@@ -221,21 +228,21 @@ const CostCodeModal = ({
             })),
           });
         }
+
+        // Upload pending images
+        for (const pending of pendingImages) {
+          const uploaded = await uploadService.uploadSingle(pending.file);
+          await costCodeService.addImage(newCostCodeId, uploaded.id);
+        }
       } else {
-        // Step 1: Update cost code
         await updateMutation.mutateAsync({ id: data.id, data: submitData });
 
-        // Step 2: Handle options for ORANGE type
         if (formData.questionType === "ORANGE") {
-          // Delete removed options
           for (const optionId of deletedOptionIds) {
             await deleteOption.mutateAsync(optionId);
           }
-
-          // Update or create options
           for (const option of options) {
             if (option.id) {
-              // Update existing option
               await updateOption.mutateAsync({
                 id: option.id,
                 data: {
@@ -246,7 +253,6 @@ const CostCodeModal = ({
                 },
               });
             } else {
-              // Create new option
               await createOption.mutateAsync({
                 costCodeId: data.id,
                 optionName: option.optionName,
@@ -256,6 +262,15 @@ const CostCodeModal = ({
               });
             }
           }
+        }
+
+        // Handle images in edit mode
+        for (const imageId of deletedImageIds) {
+          await costCodeService.removeImage(data.id, imageId);
+        }
+        for (const pending of pendingImages) {
+          const uploaded = await uploadService.uploadSingle(pending.file);
+          await costCodeService.addImage(data.id, uploaded.id);
         }
       }
       onClose();
@@ -947,6 +962,22 @@ const CostCodeModal = ({
               </div>
             </div>
           </div>
+
+          {/* Images */}
+          <CostCodeImageManager
+            existingImages={mode === "edit" ? (data?.images || []) : []}
+            onDeleteExisting={(imageId) => setDeletedImageIds((prev) => [...prev, imageId])}
+            pendingImages={pendingImages}
+            onAddPending={(files) =>
+              setPendingImages((prev) => [
+                ...prev,
+                ...files.map((f) => ({ file: f, preview: URL.createObjectURL(f) })),
+              ])
+            }
+            onRemovePending={(index) =>
+              setPendingImages((prev) => prev.filter((_, i) => i !== index))
+            }
+          />
 
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="outline" onClick={onClose}>
