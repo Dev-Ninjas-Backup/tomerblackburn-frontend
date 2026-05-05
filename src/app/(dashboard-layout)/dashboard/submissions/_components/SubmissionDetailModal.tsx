@@ -149,6 +149,12 @@ const SubmissionDetailModal = ({
                 )}
               </div>
             )}
+            {submission.hearAboutUs && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">How They Heard About Us</h3>
+                <p className="text-sm font-bold text-[#2d4a8f]">{submission.hearAboutUs}</p>
+              </div>
+            )}
           </div>
         )}
 

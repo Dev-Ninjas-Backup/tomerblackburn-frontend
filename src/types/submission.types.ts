@@ -39,6 +39,7 @@ export interface Submission {
   desiredStartDate?: string;
   buildingType?: string;
   buildingTypeId?: string;
+  hearAboutUs?: string;
   buildingTypeFieldValues?: Array<{
     id: string;
     fieldId: string;

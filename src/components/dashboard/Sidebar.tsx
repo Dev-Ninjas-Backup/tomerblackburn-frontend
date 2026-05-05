@@ -23,6 +23,7 @@ import {
   Calculator,
   DatabaseBackup,
   Activity,
+  MessageCircleQuestion,
 } from "lucide-react";
 
 interface NavItem {
@@ -73,6 +74,12 @@ const menuItems: NavItem[] = [
     icon: Settings,
     label: "Settings",
     href: "/dashboard/settings",
+    visible: (p) => p.settingsView,
+  },
+  {
+    icon: MessageCircleQuestion,
+    label: "Hear About Us",
+    href: "/dashboard/hear-about-us",
     visible: (p) => p.settingsView,
   },
   {
