@@ -130,6 +130,17 @@ export default function ConfirmationPage() {
             transition={{ delay: 0.6 }}
             className="bg-white rounded-2xl p-8 shadow-sm mb-8 text-left"
           >
+            {/* Personal Review Note */}
+            <div className="bg-[#283878]/5 border border-[#283878]/15 rounded-xl px-5 py-4 mb-6 flex gap-3 items-start">
+              <span className="text-xl shrink-0">👤</span>
+              <div>
+                <p className="text-sm font-semibold text-[#283878] mb-0.5">A real person will review your estimate</p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  BBurn Builders will personally review everything you submitted and reach out within 24–48 hours to discuss your project, confirm details, and answer any questions.
+                </p>
+              </div>
+            </div>
+
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               {nextSteps?.title || "What happens next?"}
             </h2>

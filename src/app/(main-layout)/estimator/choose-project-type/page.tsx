@@ -12,7 +12,8 @@ const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export default function ChooseProjectTypePage() {
   const router = useRouter();
-  const { setProjectTypeId, serviceId, lastActivityAt, resetEstimator } = useEstimatorStore();
+  const { setProjectTypeId, serviceId, lastActivityAt, resetEstimator } =
+    useEstimatorStore();
   const { data: projectTypes, isLoading } = useProjectTypes(true);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -70,7 +71,8 @@ export default function ChooseProjectTypePage() {
     );
   }
 
-  const activeProjectTypes = projectTypes?.filter((type) => type.isActive) || [];
+  const activeProjectTypes =
+    projectTypes?.filter((type) => type.isActive) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -92,7 +94,10 @@ export default function ChooseProjectTypePage() {
               transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="fixed inset-0 z-50 flex items-center justify-center px-4"
             >
-              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="w-14 h-14 bg-[#283878]/10 rounded-full flex items-center justify-center mx-auto mb-5">
                   <Clock className="w-7 h-7 text-[#283878]" />
                 </div>
@@ -101,8 +106,10 @@ export default function ChooseProjectTypePage() {
                 </h2>
                 <p className="text-gray-500 text-center text-sm mb-6">
                   You have an unfinished estimate from{" "}
-                  <span className="font-medium text-gray-700">{getTimeAgo()}</span>.
-                  Would you like to continue where you left off?
+                  <span className="font-medium text-gray-700">
+                    {getTimeAgo()}
+                  </span>
+                  . Would you like to continue where you left off?
                 </p>
 
                 <div className="space-y-3">
@@ -132,13 +139,30 @@ export default function ChooseProjectTypePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          className="text-center mb-6"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-[#283878] mb-4">
             Choose Your Project Type
           </h1>
           <p className="text-gray-600 text-lg">
             Select the type of project you&apos;re planning to get started
+          </p>
+        </motion.div>
+
+        {/* Reassurance Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="max-w-2xl mx-auto mb-10 bg-[#283878]/5 border border-[#283878]/15 rounded-xl px-4 py-3 flex gap-3 items-center"
+        >
+          <span className="text-base shrink-0">💬</span>
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold text-[#283878]">
+              Answer as best you can
+            </span>{" "}
+            — a real person will review your estimate and confirm all details
+            before anything is final.
           </p>
         </motion.div>
 
@@ -154,7 +178,8 @@ export default function ChooseProjectTypePage() {
                 No Project Types Available
               </h3>
               <p className="text-gray-600 mb-6">
-                There are currently no active project types. Please check back later.
+                There are currently no active project types. Please check back
+                later.
               </p>
               <Button
                 onClick={() => router.push("/")}
@@ -182,7 +207,10 @@ export default function ChooseProjectTypePage() {
                   visible: {
                     opacity: 1,
                     y: 0,
-                    transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const },
+                    transition: {
+                      duration: 0.7,
+                      ease: [0.25, 0.46, 0.45, 0.94] as const,
+                    },
                   },
                 }}
                 whileHover={type.isComingSoon ? {} : { y: -8 }}
@@ -208,7 +236,10 @@ export default function ChooseProjectTypePage() {
                       src={type.image.url}
                       alt={type.name}
                       whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      transition={{
+                        duration: 0.4,
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                      }}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -224,7 +255,8 @@ export default function ChooseProjectTypePage() {
                     {type.name}
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    {type.description || `Complete ${type.name.toLowerCase()} services`}
+                    {type.description ||
+                      `Complete ${type.name.toLowerCase()} services`}
                   </p>
                 </div>
               </motion.div>
