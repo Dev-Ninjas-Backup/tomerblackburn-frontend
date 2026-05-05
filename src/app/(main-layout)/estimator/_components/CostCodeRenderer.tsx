@@ -483,10 +483,16 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
         quantity: costCode.requiresQuantity ? 1 : undefined,
       });
     } else {
-      onSelectionRemove(costCode.id);
-      getChildQuestions(costCode.id).forEach((child) =>
-        onSelectionRemove(child.id),
-      );
+      if (costCode.questionType === "BLUE") {
+        // BLUE: just hide children, keep their selections intact
+        onSelectionChange(costCode.id, { isEnabled: false });
+      } else {
+        // YELLOW and others: remove parent + all children
+        onSelectionRemove(costCode.id);
+        getChildQuestions(costCode.id).forEach((child) =>
+          onSelectionRemove(child.id),
+        );
+      }
     }
   };
 
@@ -647,7 +653,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
               className="w-full sm:w-40 p-5 h-10 text-sm border-[#283878]/40 focus:border-[#283878] focus:ring-[#283878]"
             />
             <span className="text-xs text-gray-500">
-              {costCode.unitType.replace("PER_", "per ").toLowerCase()}
+              {costCode.unitType.replace("PER_", "per ").replace("_", " ").replace("LF", "linear foot").toLowerCase()}
             </span>
           </div>
           {renderChildren(costCode.id, !!selection?.userInputValue)}

@@ -185,11 +185,23 @@ export default function ChooseProjectTypePage() {
                     transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const },
                   },
                 }}
-                whileHover={{ y: -8 }}
+                whileHover={type.isComingSoon ? {} : { y: -8 }}
                 transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                onClick={() => handleSelect(type.id)}
-                className="w-full bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg"
+                onClick={() => !type.isComingSoon && handleSelect(type.id)}
+                className={`w-full bg-white rounded-2xl overflow-hidden relative ${
+                  type.isComingSoon
+                    ? "cursor-not-allowed"
+                    : "cursor-pointer hover:shadow-lg"
+                }`}
               >
+                {/* Coming Soon Overlay */}
+                {type.isComingSoon && (
+                  <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center gap-2">
+                    <span className="bg-white text-[#283878] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg tracking-wide">
+                      Coming Soon
+                    </span>
+                  </div>
+                )}
                 <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
                   {type.image?.url ? (
                     <motion.img

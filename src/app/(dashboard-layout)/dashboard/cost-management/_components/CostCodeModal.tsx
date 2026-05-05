@@ -560,6 +560,7 @@ const CostCodeModal = ({
                 options={[
                   { value: "FIXED", label: "Fixed" },
                   { value: "PER_SQFT", label: "Per Sq Ft" },
+                  { value: "PER_LF", label: "Per Linear Foot" },
                   { value: "PER_EACH", label: "Per Each" },
                   { value: "PER_LOT", label: "Per Lot" },
                   { value: "PER_SET", label: "Per Set" },
