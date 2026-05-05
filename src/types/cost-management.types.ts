@@ -25,7 +25,7 @@ export interface UpdateCostCodeCategoryDto extends Partial<CreateCostCodeCategor
 
 // Cost Code
 export type QuestionType = 'WHITE' | 'BLUE' | 'GREEN' | 'ORANGE' | 'YELLOW' | 'RED' | 'PURPLE';
-export type UnitType = 'FIXED' | 'PER_SQFT' | 'PER_EACH' | 'PER_LOT' | 'PER_SET' | 'PER_UPGRADE';
+export type UnitType = 'FIXED' | 'PER_SQFT' | 'PER_LF' | 'PER_EACH' | 'PER_LOT' | 'PER_SET' | 'PER_UPGRADE';
 
 export interface CostCode {
   id: string;

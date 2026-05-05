@@ -30,6 +30,7 @@ const ProjectTypeModal = ({
     description: "",
     displayOrder: 0,
     isActive: true,
+    isComingSoon: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -43,6 +44,7 @@ const ProjectTypeModal = ({
         imageId: data.imageId,
         displayOrder: data.displayOrder,
         isActive: data.isActive,
+        isComingSoon: data.isComingSoon || false,
       });
       if (data.image?.url) {
         setImagePreview(data.image.url);
@@ -232,6 +234,23 @@ const ProjectTypeModal = ({
               />
               <label htmlFor="is-active" className="text-sm font-medium">
                 Active
+              </label>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                id="is-coming-soon"
+                type="checkbox"
+                checked={formData.isComingSoon || false}
+                onChange={(e) =>
+                  setFormData({ ...formData, isComingSoon: e.target.checked })
+                }
+                className="mr-2"
+                aria-label="Coming Soon"
+              />
+              <label htmlFor="is-coming-soon" className="text-sm font-medium">
+                Coming Soon
+                <span className="ml-2 text-xs text-gray-400">(card visible but not selectable)</span>
               </label>
             </div>
           </div>

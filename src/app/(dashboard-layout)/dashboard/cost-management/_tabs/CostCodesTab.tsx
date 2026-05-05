@@ -75,6 +75,9 @@ type SortOrder = "asc" | "desc";
 const SortableRow = ({
   item,
   depth,
+  hasChildren,
+  isExpanded,
+  onToggleExpand,
   costManagementEdit,
   costManagementDelete,
   onEdit,
@@ -82,6 +85,9 @@ const SortableRow = ({
 }: {
   item: any;
   depth: number;
+  hasChildren: boolean;
+  isExpanded: boolean;
+  onToggleExpand: (id: string) => void;
   costManagementEdit: boolean;
   costManagementDelete: boolean;
   onEdit: (item: any) => void;
@@ -109,7 +115,21 @@ const SortableRow = ({
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-        <span style={{ paddingLeft: `${depth * 24}px` }}>{item.code}</span>
+        <div className="flex items-center gap-1" style={{ paddingLeft: `${depth * 20}px` }}>
+          {hasChildren ? (
+            <button
+              onClick={() => onToggleExpand(item.id)}
+              className="w-5 h-5 flex items-center justify-center rounded border border-gray-300 text-gray-500 hover:bg-gray-100 hover:border-gray-400 transition-colors shrink-0"
+              title={isExpanded ? "Collapse" : "Expand"}
+              aria-label={isExpanded ? "Collapse children" : "Expand children"}
+            >
+              {isExpanded ? <span className="text-xs font-bold leading-none">−</span> : <span className="text-xs font-bold leading-none">+</span>}
+            </button>
+          ) : (
+            <span className="w-5 shrink-0" />
+          )}
+          <span>{item.code}</span>
+        </div>
       </td>
       <td className="px-6 py-4 text-sm text-gray-900">
         {depth > 0 && <span className="text-gray-400 mr-1">{"↳".repeat(depth)}</span>}
@@ -160,7 +180,7 @@ const CostCodesTab = () => {
   // Pagination & Sorting states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [sortField, setSortField] = useState<SortField>("code");
+  const [sortField, setSortField] = useState<SortField>("displayOrder");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -172,6 +192,15 @@ const CostCodesTab = () => {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedData, setSelectedData] = useState<any>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   const handleExport = () => {
     if (!costCodes?.length) return toast.error('No data to export');
@@ -411,6 +440,7 @@ const CostCodesTab = () => {
     const result: { item: any; depth: number }[] = [];
 
     const addWithChildren = (parentId: string, depth: number) => {
+      if (!expandedIds.has(parentId)) return; // collapsed — skip children
       const children = costCodes.filter((c) => c.parentCostCodeId === parentId);
       children.forEach((child) => {
         result.push({ item: child, depth });
@@ -428,7 +458,7 @@ const CostCodesTab = () => {
       totalPages: totalPagesCount,
       totalParents: totalParentsCount,
     };
-  }, [costCodes, currentPage, pageSize, sortField, sortOrder, searchQuery]);
+  }, [costCodes, currentPage, pageSize, sortField, sortOrder, searchQuery, expandedIds]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -600,6 +630,7 @@ const CostCodesTab = () => {
               <option value="">All Units</option>
               <option value="FIXED">Fixed</option>
               <option value="PER_SQFT">Per Sq Ft</option>
+              <option value="PER_LF">Per Linear Foot</option>
               <option value="PER_EACH">Per Each</option>
               <option value="PER_LOT">Per Lot</option>
               <option value="PER_SET">Per Set</option>
@@ -766,6 +797,9 @@ const CostCodesTab = () => {
                 key={item.id}
                 item={item}
                 depth={depth}
+                hasChildren={costCodes?.some((c) => c.parentCostCodeId === item.id) ?? false}
+                isExpanded={expandedIds.has(item.id)}
+                onToggleExpand={toggleExpand}
                 costManagementEdit={costManagementEdit}
                 costManagementDelete={costManagementDelete}
                 onEdit={handleEdit}
