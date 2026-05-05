@@ -630,6 +630,7 @@ const CostCodesTab = () => {
               <option value="">All Units</option>
               <option value="FIXED">Fixed</option>
               <option value="PER_SQFT">Per Sq Ft</option>
+              <option value="PER_LF">Per Linear Foot</option>
               <option value="PER_EACH">Per Each</option>
               <option value="PER_LOT">Per Lot</option>
               <option value="PER_SET">Per Set</option>

@@ -6,6 +6,7 @@ export interface ProjectType {
   imageId?: string;
   displayOrder: number;
   isActive: boolean;
+  isComingSoon: boolean;
   createdAt: string;
   updatedAt: string;
   serviceCategories?: ServiceCategory[];
@@ -22,6 +23,7 @@ export interface CreateProjectTypeDto {
   imageId?: string;
   displayOrder?: number;
   isActive?: boolean;
+  isComingSoon?: boolean;
 }
 
 export interface UpdateProjectTypeDto extends Partial<CreateProjectTypeDto> {}
