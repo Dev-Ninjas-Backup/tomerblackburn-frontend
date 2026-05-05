@@ -97,6 +97,9 @@ export default function Step1Page() {
                 style={{ width: "50%" }}
               ></div>
             </div>
+            <p className="text-xs text-gray-500 mt-3 bg-gray-100 rounded-lg px-4 py-2.5">
+              💡 <span className="font-medium">Not sure about something?</span> Just do your best — you&apos;ll have a chance to add extra details in the notes section at the end.
+            </p>
           </div>
 
           <motion.div

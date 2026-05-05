@@ -22,6 +22,7 @@ import {
   buildingTypeService,
   BuildingType,
 } from "@/services/building-type.service";
+import { hearAboutUsService, HearAboutUsOption } from "@/services/hear-about-us.service";
 import { FloatingPriceCard } from "../_components/FloatingPriceCard";
 import { EstimatorBreadcrumb } from "../_components/EstimatorBreadcrumb";
 
@@ -87,6 +88,9 @@ export default function PreviewPage() {
   const [buildingTypeFieldValues, setBuildingTypeFieldValues] = useState<
     Record<string, string>
   >({});
+  const [hearAboutUsOptions, setHearAboutUsOptions] = useState<HearAboutUsOption[]>([]);
+  const [hearAboutUsEnabled, setHearAboutUsEnabled] = useState(false);
+  const [hearAboutUs, setHearAboutUs] = useState(userInfo.hearAboutUs || "");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,6 +105,16 @@ export default function PreviewPage() {
       .catch(() => {
         setBuildingTypesLoaded(true);
       });
+  }, []);
+
+  useEffect(() => {
+    Promise.all([
+      hearAboutUsService.getSetting(),
+      hearAboutUsService.getActiveOptions(),
+    ]).then(([settingRes, optionsRes]) => {
+      setHearAboutUsEnabled(settingRes.data.data?.isEnabled ?? false);
+      setHearAboutUsOptions(optionsRes.data.data || []);
+    }).catch(() => {});
   }, []);
 
   // After both hydrated + buildingTypes loaded, sync from store
@@ -372,6 +386,7 @@ export default function PreviewPage() {
         totalAmount:
           Number(totalPrice) + (Number(selectedBuildingType?.price) || 0),
         projectNotes: notes,
+        hearAboutUs: hearAboutUs || undefined,
         items: [
           ...step1Selections
             .filter((s) => s.isEnabled)
@@ -437,6 +452,7 @@ export default function PreviewPage() {
         desiredStartDate,
         buildingType,
         buildingTypeId,
+        hearAboutUs,
       });
 
       router.push("/estimator/confirmation");
@@ -656,6 +672,31 @@ export default function PreviewPage() {
                     />
                   </div>
                 ))}
+
+                {/* How did you hear about us */}
+                {hearAboutUsEnabled && hearAboutUsOptions.length > 0 && (
+                  <div className="md:col-span-2">
+                    <label
+                      htmlFor="hearAboutUs"
+                      className="block text-sm font-medium text-gray-900 mb-2"
+                    >
+                      How did you hear about us?
+                    </label>
+                    <select
+                      id="hearAboutUs"
+                      value={hearAboutUs}
+                      onChange={(e) => setHearAboutUs(e.target.value)}
+                      className="w-full h-12 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#283878] focus:border-transparent"
+                    >
+                      <option value="">Select an option</option>
+                      {hearAboutUsOptions.map((opt) => (
+                        <option key={opt.id} value={opt.label}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -664,14 +705,17 @@ export default function PreviewPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Project Notes (optional)
               </h2>
-              <p className="text-gray-600 mb-4 text-sm">
-                Share any additional details, preferences, or questions about
-                your project
-              </p>
+              <div className="bg-[#283878]/5 border border-[#283878]/15 rounded-xl px-4 py-3 mb-4 flex gap-3 items-start">
+                <span className="text-lg shrink-0">✏️</span>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  This is your chance to add anything you weren&apos;t sure about, special requests, or additional details.
+                  <span className="font-medium text-[#283878]"> We read every note carefully.</span> A real person will review your estimate and follow up with you directly.
+                </p>
+              </div>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="example address"
+                placeholder="e.g. Not sure about the tile size — we currently have 12x24 but might want something different. Also interested in a floating vanity if possible."
                 className="w-full min-h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#283878] focus:border-transparent"
               />
             </div>
