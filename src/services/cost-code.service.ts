@@ -58,4 +58,16 @@ export const costCodeService = {
   delete: async (id: string) => {
     return axios.delete<ApiResponse<void>>(`${API_URL}/cost-codes/${id}`);
   },
+
+  addImage: async (costCodeId: string, fileInstanceId: string) => {
+    return axios.post(`${API_URL}/cost-codes/${costCodeId}/images`, { fileInstanceId });
+  },
+
+  removeImage: async (costCodeId: string, imageId: string) => {
+    return axios.delete(`${API_URL}/cost-codes/${costCodeId}/images/${imageId}`);
+  },
+
+  reorderImages: async (costCodeId: string, items: { id: string; displayOrder: number }[]) => {
+    return axios.patch(`${API_URL}/cost-codes/${costCodeId}/images/reorder`, { items });
+  },
 };

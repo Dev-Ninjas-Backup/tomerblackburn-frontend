@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Lightbulb, X as XIcon, ChevronDown, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GalleryIconButton } from "./CostCodeImageSlider";
 
 interface CostCode {
   id: string;
@@ -23,6 +24,7 @@ interface CostCode {
   showWhenParentValue?: string;
   nestedInputType?: "QUANTITY" | "DROPDOWN" | "CUSTOM_PRICE" | "NONE";
   category?: { id: string; name: string };
+  images?: Array<{ id: string; fileInstance: { url: string; originalFilename: string } }>;
   options?: Array<{
     id: string;
     optionName: string;
@@ -590,6 +592,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
+            <GalleryIconButton images={costCode.images || []} label={costCode.name} />
           </div>
           {formatDescription(costCode.description)}
           <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
@@ -613,6 +616,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
                 {costCode.tips && costCode.tips.length > 0 && (
                   <TipsPopover tips={costCode.tips} label={costCode.name} />
                 )}
+                <GalleryIconButton images={costCode.images || []} label={costCode.name} />
               </div>
               {formatDescription(costCode.description)}
               <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
@@ -638,6 +642,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
+            <GalleryIconButton images={costCode.images || []} label={costCode.name} />
           </div>
           {formatDescription(costCode.description)}
           <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
@@ -671,6 +676,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
+            <GalleryIconButton images={costCode.images || []} label={costCode.name} />
           </div>
           {formatDescription(costCode.description)}
           <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
@@ -707,6 +713,7 @@ export const CostCodeRenderer: React.FC<CostCodeRendererProps> = ({
             {costCode.tips && costCode.tips.length > 0 && (
               <TipsPopover tips={costCode.tips} label={costCode.name} />
             )}
+            <GalleryIconButton images={costCode.images || []} label={costCode.name} />
           </div>
           {formatDescription(costCode.description)}
           <UpgradeLabel isIncludedInBase={costCode.isIncludedInBase} />
