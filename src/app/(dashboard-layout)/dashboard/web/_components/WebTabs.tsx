@@ -14,6 +14,7 @@ const tabs = [
   "Portfolio",
   "Estimator",
   "Building Types",
+  "Hear About Us",
   "Terms of Service",
   "Privacy Policy",
   "Site Status",
