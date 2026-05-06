@@ -119,16 +119,14 @@ const TipsPopover: React.FC<{ tips: string[]; label: string }> = ({
         type="button"
         onClick={() => (open ? setOpen(false) : handleOpen())}
         aria-label={`Tips for ${label}`}
-        className={`relative flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200 ${
+        className={`relative flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200 cursor-pointer ${
           open
             ? "bg-[#283878] text-white shadow-lg shadow-[#283878]/40 scale-110"
             : "bg-[#283878]/10 text-[#283878] hover:bg-[#283878]/20 hover:scale-110"
         }`}
       >
         <Lightbulb className="w-3.5 h-3.5" />
-        {!open && (
-          <span className="absolute inset-0 rounded-full animate-ping bg-[#283878]/20 pointer-events-none" />
-        )}
+
       </button>
 
       {open &&
