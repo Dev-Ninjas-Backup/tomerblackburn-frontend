@@ -15,7 +15,8 @@ const BathroomTypesSection = () => {
     router.push("/estimator/choose-service-category");
   };
 
-  const activeProjectTypes = projectTypes?.filter(type => type.isActive) || [];
+  const activeProjectTypes =
+    projectTypes?.filter((type) => type.isActive) || [];
 
   return (
     <section className="py-20 bg-gray-50">
@@ -24,7 +25,7 @@ const BathroomTypesSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          className="text-center mb-6"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-[#283878] mb-4">
             Choose Your Project Type
@@ -52,10 +53,26 @@ const BathroomTypesSection = () => {
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: index * 0.1 }}
-                  onClick={() => handleSelect(type.id)}
-                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                  className="w-full bg-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all"
+                  onClick={() => !type.isComingSoon && handleSelect(type.id)}
+                  whileHover={
+                    type.isComingSoon
+                      ? {}
+                      : { y: -10, transition: { duration: 0.3 } }
+                  }
+                  className={`w-full bg-white rounded-2xl overflow-hidden relative transition-all ${
+                    type.isComingSoon
+                      ? "cursor-not-allowed"
+                      : "cursor-pointer hover:shadow-lg"
+                  }`}
                 >
+                  {/* Coming Soon Overlay */}
+                  {type.isComingSoon && (
+                    <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-[2px] rounded-2xl flex items-center justify-center">
+                      <span className="bg-white text-[#283878] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg tracking-wide">
+                        Coming Soon
+                      </span>
+                    </div>
+                  )}
                   <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
                     {type.image?.url ? (
                       <img

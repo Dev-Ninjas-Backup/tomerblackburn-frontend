@@ -25,6 +25,7 @@ interface UserInfo {
   buildingType?: string
   buildingTypeId?: string
   buildingTypePrice?: number
+  hearAboutUs?: string
   photoIds: string[]
   videoIds: string[]
 }
