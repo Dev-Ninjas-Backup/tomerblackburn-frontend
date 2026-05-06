@@ -118,7 +118,7 @@ const SubmissionDetailModal = ({
           </div>
         </div>
 
-        {(submission.desiredStartDate || submission.buildingType) && (
+        {(submission.desiredStartDate || submission.buildingType || submission.hearAboutUs) && (
           <div className="space-y-4 mb-6">
             {submission.desiredStartDate && (
               <div className="bg-gray-50 rounded-lg p-4">

@@ -25,7 +25,7 @@ export const GalleryIconButton: React.FC<{
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`View images for ${label}`}
-        className="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#283878]/10 text-[#283878] hover:bg-[#283878]/20 hover:scale-110 transition-all duration-200 shrink-0"
+        className="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#283878]/10 text-[#283878] hover:bg-[#283878]/20 hover:scale-110 transition-all duration-200 shrink-0 cursor-pointer"
       >
         <Images className="w-3.5 h-3.5" />
       </button>
@@ -58,7 +58,7 @@ const ImageSliderModal: React.FC<{
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
       onClick={onClose}
     >
       <motion.div
@@ -66,11 +66,11 @@ const ImageSliderModal: React.FC<{
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        className="relative w-full max-w-2xl mx-4"
+        className="relative w-full h-full flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center justify-between px-6 py-3 shrink-0">
           <p className="text-white font-semibold text-sm truncate">{label}</p>
           <div className="flex items-center gap-3">
             <span className="text-white/60 text-xs">{current + 1} / {images.length}</span>
@@ -86,7 +86,7 @@ const ImageSliderModal: React.FC<{
         </div>
 
         {/* Image */}
-        <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+        <div className="relative flex-1 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.img
               key={current}
@@ -96,7 +96,7 @@ const ImageSliderModal: React.FC<{
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.2 }}
-              className="max-h-[70vh] max-w-full object-contain"
+              className="max-h-full max-w-full object-contain"
             />
           </AnimatePresence>
 
@@ -106,18 +106,18 @@ const ImageSliderModal: React.FC<{
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
                 aria-label="Previous"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
                 aria-label="Next"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-6 h-6" />
               </button>
             </>
           )}
@@ -125,13 +125,13 @@ const ImageSliderModal: React.FC<{
 
         {/* Thumbnails */}
         {images.length > 1 && (
-          <div className="flex gap-2 mt-3 justify-center overflow-x-auto pb-1">
+          <div className="flex gap-2 py-3 px-6 justify-center overflow-x-auto shrink-0">
             {images.map((img, i) => (
               <button
                 key={img.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className={`shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-all ${
+                className={`shrink-0 w-14 h-14 rounded overflow-hidden border-2 transition-all ${
                   i === current ? "border-white" : "border-transparent opacity-50 hover:opacity-80"
                 }`}
               >
