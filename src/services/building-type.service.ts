@@ -38,6 +38,10 @@ export interface UpdateBuildingTypeDto {
   fields?: Partial<BuildingTypeField>[];
 }
 
+export interface ReorderBuildingTypesDto {
+  items: { id: string; displayOrder: number }[];
+}
+
 export const buildingTypeService = {
   getActive: async () => {
     return axios.get<{ data: BuildingType[] }>(`${API_URL}/building-types/active`);
@@ -57,5 +61,8 @@ export const buildingTypeService = {
   },
   delete: async (id: string) => {
     return axios.delete<{ message: string }>(`${API_URL}/building-types/${id}`);
+  },
+  reorder: async (data: ReorderBuildingTypesDto) => {
+    return axios.patch<{ message: string }>(`${API_URL}/building-types/reorder`, data);
   },
 };
