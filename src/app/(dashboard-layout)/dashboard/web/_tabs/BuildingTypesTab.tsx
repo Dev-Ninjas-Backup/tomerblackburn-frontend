@@ -9,7 +9,23 @@ import {
   ChevronUp,
   ToggleLeft,
   ToggleRight,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   buildingTypeService,
   BuildingType,
@@ -35,6 +51,172 @@ const emptyForm = () => ({
   fields: [] as (Partial<BuildingTypeField> & { _tempId?: string })[],
 });
 
+function SortableRow({
+  bt,
+  expandedId,
+  setExpandedId,
+  deleteConfirmId,
+  setDeleteConfirmId,
+  handleEdit,
+  handleToggleActive,
+  handleDelete,
+}: {
+  bt: BuildingType;
+  expandedId: string | null;
+  setExpandedId: (id: string | null) => void;
+  deleteConfirmId: string | null;
+  setDeleteConfirmId: (id: string | null) => void;
+  handleEdit: (bt: BuildingType) => void;
+  handleToggleActive: (bt: BuildingType) => void;
+  handleDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: bt.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
+    >
+      <div className="flex items-center gap-3 px-4 py-3 bg-white flex-wrap">
+        {/* Drag handle */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="shrink-0 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 touch-none"
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+
+        {/* Status toggle */}
+        <button
+          onClick={() => handleToggleActive(bt)}
+          title={bt.isActive ? "Active — click to deactivate" : "Inactive — click to activate"}
+          className="shrink-0"
+        >
+          {bt.isActive ? (
+            <ToggleRight className="w-6 h-6 text-green-500" />
+          ) : (
+            <ToggleLeft className="w-6 h-6 text-gray-400" />
+          )}
+        </button>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-gray-900 text-sm">{bt.name}</span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                bt.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              {bt.isActive ? "Active" : "Inactive"}
+            </span>
+            {Number(bt.price) > 0 && (
+              <span className="text-xs text-gray-500">${Number(bt.price).toLocaleString()}</span>
+            )}
+            <span className="text-xs text-gray-400">Order: {bt.displayOrder}</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {bt.fields.length} dynamic field{bt.fields.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-1 shrink-0">
+          {bt.fields.length > 0 && (
+            <button
+              onClick={() => setExpandedId(expandedId === bt.id ? null : bt.id)}
+              className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle fields"
+            >
+              {expandedId === bt.id ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => handleEdit(bt)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            aria-label="Edit"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setDeleteConfirmId(bt.id)}
+            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            aria-label="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Delete confirm inline */}
+      {deleteConfirmId === bt.id && (
+        <div className="px-4 py-3 bg-red-50 border-t border-red-100 flex items-center justify-between flex-wrap gap-2">
+          <p className="text-sm text-red-700 font-medium">Delete "{bt.name}"? This cannot be undone.</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleDelete(bt.id)}
+              className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+            >
+              Yes, Delete
+            </button>
+            <button
+              onClick={() => setDeleteConfirmId(null)}
+              className="px-4 py-1.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Expanded fields */}
+      {expandedId === bt.id && bt.fields.length > 0 && (
+        <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dynamic Fields</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {bt.fields
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map((f) => (
+                <div key={f.id} className="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-gray-800">{f.label}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                        {f.fieldType}
+                      </span>
+                      {f.isRequired && (
+                        <span className="text-xs bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-medium">
+                          Required
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {f.placeholder && (
+                    <p className="text-xs text-gray-400 mt-0.5">Placeholder: {f.placeholder}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BuildingTypesTab() {
   const [buildingTypes, setBuildingTypes] = useState<BuildingType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +233,8 @@ export default function BuildingTypesTab() {
     setIsLoading(true);
     try {
       const res = await buildingTypeService.getAll();
-      setBuildingTypes(res.data.data || []);
+      const sorted = (res.data.data || []).sort((a, b) => a.displayOrder - b.displayOrder);
+      setBuildingTypes(sorted);
     } catch {
       showToast.error("Failed to load building types.");
     } finally {
@@ -128,6 +311,29 @@ export default function BuildingTypesTab() {
       );
     } catch {
       showToast.error("Failed to update status.");
+    }
+  };
+
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = buildingTypes.findIndex((bt) => bt.id === active.id);
+    const newIndex = buildingTypes.findIndex((bt) => bt.id === over.id);
+    const reordered = arrayMove(buildingTypes, oldIndex, newIndex).map(
+      (bt, i) => ({ ...bt, displayOrder: i }),
+    );
+    setBuildingTypes(reordered);
+
+    try {
+      await buildingTypeService.reorder({
+        items: reordered.map((bt) => ({ id: bt.id, displayOrder: bt.displayOrder })),
+      });
+    } catch {
+      showToast.error("Failed to save order.");
+      await fetchAll();
     }
   };
 
@@ -458,158 +664,28 @@ export default function BuildingTypesTab() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {buildingTypes
-                .sort((a, b) => a.displayOrder - b.displayOrder)
-                .map((bt) => (
-                  <div
-                    key={bt.id}
-                    className="border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors"
-                  >
-                    {/* Row */}
-                    <div className="flex items-center gap-3 px-4 py-3 bg-white flex-wrap">
-                      {/* Status toggle */}
-                      <button
-                        onClick={() => handleToggleActive(bt)}
-                        title={
-                          bt.isActive
-                            ? "Active — click to deactivate"
-                            : "Inactive — click to activate"
-                        }
-                        className="shrink-0"
-                      >
-                        {bt.isActive ? (
-                          <ToggleRight className="w-6 h-6 text-green-500" />
-                        ) : (
-                          <ToggleLeft className="w-6 h-6 text-gray-400" />
-                        )}
-                      </button>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-gray-900 text-sm">
-                            {bt.name}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${bt.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                          >
-                            {bt.isActive ? "Active" : "Inactive"}
-                          </span>
-                          {Number(bt.price) > 0 && (
-                            <span className="text-xs text-gray-500">
-                              ${Number(bt.price).toLocaleString()}
-                            </span>
-                          )}
-                          <span className="text-xs text-gray-400">
-                            Order: {bt.displayOrder}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {bt.fields.length} dynamic field
-                          {bt.fields.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        {bt.fields.length > 0 && (
-                          <button
-                            onClick={() =>
-                              setExpandedId(expandedId === bt.id ? null : bt.id)
-                            }
-                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-                            aria-label="Toggle fields"
-                          >
-                            {expandedId === bt.id ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleEdit(bt)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          aria-label="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirmId(bt.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Delete confirm inline */}
-                    {deleteConfirmId === bt.id && (
-                      <div className="px-4 py-3 bg-red-50 border-t border-red-100 flex items-center justify-between flex-wrap gap-2">
-                        <p className="text-sm text-red-700 font-medium">
-                          Delete "{bt.name}"? This cannot be undone.
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleDelete(bt.id)}
-                            className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
-                          >
-                            Yes, Delete
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="px-4 py-1.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Expanded fields */}
-                    {expandedId === bt.id && bt.fields.length > 0 && (
-                      <div className="border-t border-gray-100 bg-gray-50 px-4 py-3">
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                          Dynamic Fields
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {bt.fields
-                            .sort((a, b) => a.displayOrder - b.displayOrder)
-                            .map((f) => (
-                              <div
-                                key={f.id}
-                                className="bg-white border border-gray-200 rounded-lg px-3 py-2"
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-sm font-medium text-gray-800">
-                                    {f.label}
-                                  </span>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                                      {f.fieldType}
-                                    </span>
-                                    {f.isRequired && (
-                                      <span className="text-xs bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-medium">
-                                        Required
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                {f.placeholder && (
-                                  <p className="text-xs text-gray-400 mt-0.5">
-                                    Placeholder: {f.placeholder}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext
+                items={buildingTypes.map((bt) => bt.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {buildingTypes.map((bt) => (
+                    <SortableRow
+                      key={bt.id}
+                      bt={bt}
+                      expandedId={expandedId}
+                      setExpandedId={setExpandedId}
+                      deleteConfirmId={deleteConfirmId}
+                      setDeleteConfirmId={setDeleteConfirmId}
+                      handleEdit={handleEdit}
+                      handleToggleActive={handleToggleActive}
+                      handleDelete={handleDelete}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>
