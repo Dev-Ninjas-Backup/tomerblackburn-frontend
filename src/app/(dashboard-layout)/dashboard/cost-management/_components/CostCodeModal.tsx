@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -44,6 +45,7 @@ const CostCodeModal = ({
   data,
   categories,
 }: CostCodeModalProps) => {
+  const queryClient = useQueryClient();
   const createMutation = useCreateCostCode();
   const updateMutation = useUpdateCostCode();
   const bulkCreateOptions = useBulkCreateCostCodeOptions();
@@ -80,6 +82,7 @@ const CostCodeModal = ({
   // Image state
   const [pendingImages, setPendingImages] = useState<{ file: File; preview: string }[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<CreateCostCodeDto>({
     categoryId: "",
@@ -106,6 +109,8 @@ const CostCodeModal = ({
   });
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (
       mode === "edit" &&
       data &&
@@ -158,7 +163,12 @@ const CostCodeModal = ({
             isDefault: opt.isDefault,
           })),
         );
+      } else {
+        setOptions([]);
       }
+      setDeletedOptionIds([]);
+      setPendingImages([]);
+      setDeletedImageIds([]);
     } else if (mode === "create") {
       setFormData({
         categoryId: "",
@@ -192,7 +202,7 @@ const CostCodeModal = ({
       setPendingImages([]);
       setDeletedImageIds([]);
     }
-  }, [mode, data, allServiceCategories]);
+  }, [isOpen, mode, data, allServiceCategories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +217,7 @@ const CostCodeModal = ({
       return;
     }
 
+    setIsSubmitting(true);
     const submitData = { ...formData };
     if (!submitData.serviceId) delete submitData.serviceId;
     if (!submitData.parentCostCodeId) delete submitData.parentCostCodeId;
@@ -273,9 +284,12 @@ const CostCodeModal = ({
           await costCodeService.addImage(data.id, uploaded.id);
         }
       }
+      queryClient.invalidateQueries({ queryKey: ["cost-codes"] });
       onClose();
     } catch (error) {
       console.error("Failed to save cost code:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -290,9 +304,10 @@ const CostCodeModal = ({
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Close modal"
             aria-label="Close modal"
+            disabled={isSubmitting}
           >
             <X size={20} />
           </button>
@@ -965,7 +980,11 @@ const CostCodeModal = ({
 
           {/* Images */}
           <CostCodeImageManager
-            existingImages={mode === "edit" ? (data?.images || []) : []}
+            existingImages={
+              mode === "edit"
+                ? (data?.images || []).filter((img: any) => !deletedImageIds.includes(img.id))
+                : []
+            }
             onDeleteExisting={(imageId) => setDeletedImageIds((prev) => [...prev, imageId])}
             pendingImages={pendingImages}
             onAddPending={(files) =>
@@ -980,11 +999,13 @@ const CostCodeModal = ({
           />
 
           <div className="flex justify-end gap-3 mt-6">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-[#2d4a8f] hover:bg-[#243a73]">
-              {mode === "create" ? "Create" : "Update"}
+            <Button type="submit" className="bg-[#2d4a8f] hover:bg-[#243a73]" disabled={isSubmitting}>
+              {isSubmitting
+                ? (mode === "create" ? "Creating..." : "Updating...")
+                : (mode === "create" ? "Create" : "Update")}
             </Button>
           </div>
         </form>
