@@ -3,6 +3,98 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { X, ChevronRight, ChevronLeft, GripVertical } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface SummaryContentProps {
+  basePrice: number;
+  additionalCosts: Array<{ id: string; name: string; cost: number }>;
+  additionalTotal: number;
+  buildingTypePrice: number;
+  buildingTypeName: string;
+}
+
+const SummaryContent = ({
+  basePrice,
+  additionalCosts,
+  additionalTotal,
+  buildingTypePrice,
+  buildingTypeName,
+}: SummaryContentProps) => (
+  <div className="space-y-2 text-sm">
+    <div className="flex justify-between">
+      <span className="text-gray-300">Base Price:</span>
+      <span className="font-semibold">
+        ${Number(basePrice).toLocaleString()}
+      </span>
+    </div>
+
+    <AnimatePresence initial={false}>
+      {additionalCosts.length > 0 && (
+        <motion.div
+          key="additional-items-wrapper"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 350,
+            damping: 25,
+            mass: 0.8
+          }}
+          className="overflow-hidden"
+          layout
+        >
+          <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
+          <div className="max-h-40 overflow-y-auto space-y-1.5 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/50">
+            <AnimatePresence initial={false}>
+              {additionalCosts.map((cost) => (
+                <motion.div
+                  key={cost.id}
+                  initial={{ opacity: 0, height: 0, y: -15 }}
+                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -15 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 350,
+                    damping: 25,
+                    mass: 0.8
+                  }}
+                  layout
+                  className="flex justify-between text-xs overflow-hidden py-0.5"
+                >
+                  <span className="text-gray-300 truncate mr-2" title={cost.name}>
+                    {cost.name}:
+                  </span>
+                  <span className="font-semibold shrink-0">
+                    +${cost.cost.toLocaleString()}
+                  </span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <div className="border-t border-white/20 pt-2 mt-3 space-y-2">
+      <div className="flex justify-between font-bold">
+        <span>Additions Total:</span>
+        <span>${additionalTotal.toLocaleString()}</span>
+      </div>
+      {buildingTypePrice > 0 && (
+        <div className="flex justify-between items-start text-sm">
+          <div>
+            <span className="text-gray-400 text-xs block">Building Type</span>
+            <span className="text-gray-300">{buildingTypeName}</span>
+          </div>
+          <span className="font-semibold">
+            +${buildingTypePrice.toLocaleString()}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+);
 
 export const FloatingPriceCard = () => {
   const { totalPrice, basePrice, step1Selections, step2Selections, userInfo } =
@@ -93,54 +185,6 @@ export const FloatingPriceCard = () => {
   );
   const grandTotal = Number(totalPrice) + buildingTypePrice;
 
-  const SummaryContent = () => (
-    <div className="space-y-2 text-sm">
-      <div className="flex justify-between">
-        <span className="text-gray-300">Base Price:</span>
-        <span className="font-semibold">
-          ${Number(basePrice).toLocaleString()}
-        </span>
-      </div>
-
-      {additionalCosts.length > 0 && (
-        <>
-          <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
-          <div className="max-h-40 overflow-y-auto space-y-2 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/50">
-            {additionalCosts.map((cost, index) => (
-              <div
-                key={`${cost.id}-${index}`}
-                className="flex justify-between text-xs"
-              >
-                <span className="text-gray-300">{cost.name}:</span>
-                <span className="font-semibold">
-                  +${cost.cost.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      <div className="border-t border-white/20 pt-2 mt-3 space-y-2">
-        <div className="flex justify-between font-bold">
-          <span>Additions Total:</span>
-          <span>${additionalTotal.toLocaleString()}</span>
-        </div>
-        {buildingTypePrice > 0 && (
-          <div className="flex justify-between items-start text-sm">
-            <div>
-              <span className="text-gray-400 text-xs block">Building Type</span>
-              <span className="text-gray-300">{buildingTypeName}</span>
-            </div>
-            <span className="font-semibold">
-              +${buildingTypePrice.toLocaleString()}
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <>
       {/* Desktop - Fixed Right Side */}
@@ -173,15 +217,27 @@ export const FloatingPriceCard = () => {
             <h3 className="text-xl font-bold mb-4 text-center">
               Total Estimated Cost
             </h3>
-            <div className="text-4xl font-bold mb-2 text-center">
+            <motion.div
+              key={grandTotal}
+              initial={{ scale: 0.95, opacity: 0.8 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              className="text-4xl font-bold mb-2 text-center"
+            >
               ${grandTotal.toLocaleString()}
-            </div>
+            </motion.div>
             <p className="text-sm text-gray-300 mb-6 text-center">
               Includes materials & estimated labor
             </p>
             <div className="border-t border-white/20 pt-4">
               <h4 className="font-semibold mb-3">Estimate Summary</h4>
-              <SummaryContent />
+              <SummaryContent
+                basePrice={basePrice}
+                additionalCosts={additionalCosts}
+                additionalTotal={additionalTotal}
+                buildingTypePrice={buildingTypePrice}
+                buildingTypeName={buildingTypeName}
+              />
               <p className="text-xs text-gray-400 mt-4">
                 * Final price may vary based on site conditions
               </p>
@@ -235,16 +291,28 @@ export const FloatingPriceCard = () => {
             </div>
             <div className="text-center mb-6">
               <p className="text-sm text-gray-300 mb-2">Total Estimated Cost</p>
-              <div className="text-4xl font-bold">
+              <motion.div
+                key={grandTotal}
+                initial={{ scale: 0.95, opacity: 0.8 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="text-4xl font-bold"
+              >
                 ${grandTotal.toLocaleString()}
-              </div>
+              </motion.div>
               <p className="text-xs text-gray-300 mt-2">
                 Includes materials & estimated labor
               </p>
             </div>
             <div className="border-t border-white/20 pt-4">
               <h4 className="font-semibold mb-3">Estimate Summary</h4>
-              <SummaryContent />
+              <SummaryContent
+                basePrice={basePrice}
+                additionalCosts={additionalCosts}
+                additionalTotal={additionalTotal}
+                buildingTypePrice={buildingTypePrice}
+                buildingTypeName={buildingTypeName}
+              />
               <p className="text-xs text-gray-400 mt-4">
                 * Final price may vary based on site conditions
               </p>
