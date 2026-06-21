@@ -22,9 +22,8 @@ const ContactSection = ({
   const { data: settings } = useSiteSettings();
 
   const getMapEmbedUrl = () => {
-    // Chicago-centered map showing service area
-    // Coordinates: 41.8781° N, 87.6298° W (Chicago downtown)
-    return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d190255.5385582!2d-87.8!3d41.85!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880e2c3cd0f4cbed%3A0xafe0a6ad09c0c000!2sChicago%2C%20IL!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus";
+    // Chicago-centered map showing service area (expanded to Northbrook/Wilmette/Evanston and Forest Park)
+    return "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d380511.00464272377!2d-88.06148006037402!3d41.833848581653655!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x880e2c3cd0f4cbed%3A0xafe0a6ad09c0c000!2sChicago%2C%20IL!5e0!3m2!1sen!2sus!4v1782045773175!5m2!1sen!2sus";
   };
 
   const handleFormDataChange = (data: any) => {
