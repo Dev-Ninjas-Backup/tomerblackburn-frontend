@@ -14,6 +14,7 @@ import { toast } from "sonner";
 const CostManagementPage = () => {
   const [activeTab, setActiveTab] = useState("cost-codes");
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingCatalog, setIsExportingCatalog] = useState(false);
 
   const handleExportBuildertrend = async () => {
     setIsExporting(true);
@@ -34,19 +35,47 @@ const CostManagementPage = () => {
     }
   };
 
+  const handleExportBuildertrendCatalog = async () => {
+    setIsExportingCatalog(true);
+    try {
+      const response = await api.get('/cost-codes/export/buildertrend-catalog', { responseType: 'blob' });
+      const filename = `buildertrend-catalog-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Catalog export downloaded successfully');
+    } catch {
+      toast.error('Failed to export catalog for Buildertrend');
+    } finally {
+      setIsExportingCatalog(false);
+    }
+  };
+
   return (
     <div>
       <Navbar title="Cost Codes Management" />
 
       <div className="p-6">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end gap-3 mb-4">
           <Button
             onClick={handleExportBuildertrend}
-            disabled={isExporting}
+            disabled={isExporting || isExportingCatalog}
             className="bg-[#2d4a8f] hover:bg-[#243a73] flex items-center gap-2"
           >
             <Download size={16} />
             {isExporting ? 'Exporting...' : 'Export for Buildertrend'}
+          </Button>
+
+          <Button
+            onClick={handleExportBuildertrendCatalog}
+            disabled={isExporting || isExportingCatalog}
+            className="bg-[#107c41] hover:bg-[#0e6b38] flex items-center gap-2 text-white"
+          >
+            <Download size={16} />
+            {isExportingCatalog ? 'Exporting...' : 'Export Catalog for Buildertrend'}
           </Button>
         </div>
 
