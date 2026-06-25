@@ -97,8 +97,8 @@ export const useRegeneratePdf = () => {
 
 export const useExportSubmissions = () => {
   return useMutation({
-    mutationFn: async (status?: SubmissionStatus) => {
-      return await submissionService.exportToExcel(status);
+    mutationFn: async ({ status, format }: { status?: SubmissionStatus; format?: 'report' | 'import' }) => {
+      return await submissionService.exportToExcel(status, format);
     },
     onSuccess: (data: { blob: Blob; filename: string }) => {
       const url = window.URL.createObjectURL(data.blob);
@@ -119,8 +119,8 @@ export const useExportSubmissions = () => {
 
 export const useExportSubmissionsByIds = () => {
   return useMutation({
-    mutationFn: async (ids: string[]) => {
-      return await submissionService.exportByIds(ids);
+    mutationFn: async ({ ids, format }: { ids: string[]; format?: 'report' | 'import' }) => {
+      return await submissionService.exportByIds(ids, format);
     },
     onSuccess: (data: { blob: Blob; filename: string }) => {
       const url = window.URL.createObjectURL(data.blob);
