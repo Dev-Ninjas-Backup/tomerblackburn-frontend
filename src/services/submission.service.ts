@@ -66,9 +66,10 @@ export const submissionService = {
     );
   },
 
-  exportToExcel: async (status?: SubmissionStatus) => {
+  exportToExcel: async (status?: SubmissionStatus, format?: 'report' | 'import') => {
     const params: any = {};
     if (status) params.status = status;
+    if (format) params.format = format;
     const response = await axios.get(`${API_URL}/submissions/export`, {
       params,
       responseType: "blob",
@@ -95,26 +96,30 @@ export const submissionService = {
     return { blob: response.data, filename };
   },
 
-  exportByIds: async (ids: string[]) => {
+  exportByIds: async (ids: string[], format?: 'report' | 'import') => {
     const submissions = await Promise.all(
       ids.map((id) =>
         submissionService.getById(id).then((res) => res.data.data),
       ),
     );
 
+    const params: any = {};
+    if (format) params.format = format;
     const response = await axios.post(
       `${API_URL}/submissions/export`,
       { ids },
       {
+        params,
         responseType: "blob",
       },
     );
 
     const date = new Date().toISOString().split("T")[0];
+    const prefix = format === 'import' ? 'buildertrend-import-' : '';
     const filename =
       submissions.length === 1
-        ? `${submissions[0].submissionNumber}_${date}.xlsx`
-        : `${submissions.map((s) => s.submissionNumber).join("_")}_${date}.xlsx`;
+        ? `${prefix}${submissions[0].submissionNumber}_${date}.xlsx`
+        : `${prefix}${submissions.map((s) => s.submissionNumber).join("_")}_${date}.xlsx`;
 
     return { blob: response.data, filename };
   },

@@ -147,8 +147,8 @@ const SubmissionsPage = () => {
     setSelectedSubmission(id);
   };
 
-  const handleExport = () => {
-    exportMutation.mutate(filterStatus || undefined);
+  const handleExport = (format: 'report' | 'import' = 'report') => {
+    exportMutation.mutate({ status: filterStatus || undefined, format });
   };
 
   const toggleSelectAll = () => {
@@ -165,9 +165,9 @@ const SubmissionsPage = () => {
     );
   };
 
-  const handleExportSelected = () => {
+  const handleExportSelected = (format: 'report' | 'import' = 'report') => {
     if (selectedIds.length > 0) {
-      exportByIds.mutate(selectedIds);
+      exportByIds.mutate({ ids: selectedIds, format });
     }
   };
 
@@ -197,8 +197,8 @@ const SubmissionsPage = () => {
     return sortOrder === "asc" ? <ArrowUp size={14} className="inline ml-1" /> : <ArrowDown size={14} className="inline ml-1" />;
   };
 
-  const handleExportSingle = (id: string) => {
-    exportByIds.mutate([id]);
+  const handleExportSingle = (id: string, format: 'report' | 'import' = 'report') => {
+    exportByIds.mutate({ ids: [id], format });
   };
 
   if (isLoading) {
@@ -328,23 +328,39 @@ const SubmissionsPage = () => {
                       </Button>
                     )}
                     <Button
-                      onClick={handleExportSelected}
-                      disabled={exportByIds.isPending}
+                      onClick={() => handleExportSelected('report')}
+                      disabled={exportByIds.isPending || exportMutation.isPending}
                       className="flex items-center justify-center gap-2 bg-[#2D4A8F] hover:bg-[#1B2A5A]"
                     >
                       <Download size={18} />
                       Export ({selectedIds.length})
                     </Button>
+                    <Button
+                      onClick={() => handleExportSelected('import')}
+                      disabled={exportByIds.isPending || exportMutation.isPending}
+                      className="flex items-center justify-center gap-2 bg-[#107c41] hover:bg-[#0e6b38] text-white"
+                    >
+                      <Download size={18} />
+                      Export for BT ({selectedIds.length})
+                    </Button>
                   </>
                 )}
                 <Button
-                  onClick={handleExport}
+                  onClick={() => handleExport('report')}
                   variant="outline"
-                  disabled={exportMutation.isPending}
+                  disabled={exportMutation.isPending || exportByIds.isPending}
                   className="flex items-center justify-center gap-2"
                 >
                   <FileSpreadsheet size={18} />
                   Export All
+                </Button>
+                <Button
+                  onClick={() => handleExport('import')}
+                  disabled={exportMutation.isPending || exportByIds.isPending}
+                  className="flex items-center justify-center gap-2 bg-[#107c41] hover:bg-[#0e6b38] text-white"
+                >
+                  <FileSpreadsheet size={18} />
+                  Export All for BT
                 </Button>
               </div>
             </div>
@@ -488,14 +504,23 @@ const SubmissionsPage = () => {
                     </td>
                     <td className="flex px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
-                        onClick={() => handleExportSingle(submission.id)}
-                        className="text-green-600 hover:text-green-900 mr-3"
-                        title="Export"
-                        aria-label="Export"
+                        onClick={() => handleExportSingle(submission.id, 'report')}
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        title="Export Report"
+                        aria-label="Export Report"
                         disabled={exportByIds.isPending}
                       >
                         <FileSpreadsheet size={16} />
                       </button>
+                      {/* <button
+                        onClick={() => handleExportSingle(submission.id, 'import')}
+                        className="text-green-600 hover:text-green-900 mr-3"
+                        title="Export for Buildertrend Import"
+                        aria-label="Export for Buildertrend Import"
+                        disabled={exportByIds.isPending}
+                      >
+                        <Download size={16} />
+                      </button> */}
                       <button
                         onClick={() => handleViewDetails(submission.id)}
                         className="text-blue-600 hover:text-blue-900 mr-3"
