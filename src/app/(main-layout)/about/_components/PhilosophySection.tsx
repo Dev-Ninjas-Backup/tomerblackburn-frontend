@@ -18,10 +18,10 @@ const PhilosophySection = ({ aboutUsData }: PhilosophySectionProps) => {
   const title = aboutUsData?.title || "Our Philosophy";
 
   return (
-    <section ref={ref} className="pt-16 md:py-16 bg-white">
+    <section ref={ref} className="pt-10 md:pt-14 pb-0 bg-white">
       <div className="container mx-auto px-4">
         {/* Title with decorative lines */}
-        <div className="flex items-center justify-center mb-16">
+        <div className="flex items-center justify-center mb-6 md:mb-8">
           <div className="hidden md:block flex-1 max-w-xs h-px bg-gray-300"></div>
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
