@@ -127,6 +127,50 @@
     background-position: right 0.25rem center;
     padding-right: 2.5rem;
   }
+
+  /* Custom theme-styled scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2D4A8F; /* Primary Theme Color */
+    border-radius: 9999px;
+    border: 2.5px solid #f8fafc;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1c3263; /* Darker primary hover */
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #3b82f6; /* Accent blue for dark mode */
+    border-color: #0f172a;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #60a5fa;
+  }
+
+  /* Firefox support */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2D4A8F #f8fafc;
+  }
+
+  .dark * {
+    scrollbar-color: #3b82f6 #0f172a;
+  }
 }
 
 /* Quill Editor Styles */
@@ -153,4 +197,26 @@
 .ql-editor.ql-blank::before {
   color: #9ca3af;
   font-style: normal;
+}
+
+/* Lenis smooth scroll core styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overflow: clip;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }
