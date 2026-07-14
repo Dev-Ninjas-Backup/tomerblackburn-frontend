@@ -109,7 +109,13 @@ export const CompanyProfile = ({
   };
 
   const handleSave = () => {
-    onUpdate(formData);
+    // Map empty string IDs to null before saving to avoid foreign key constraints issues
+    const payload = {
+      ...formData,
+      logoImageId: formData.logoImageId || null,
+      guidePdfId: formData.guidePdfId || null,
+    };
+    onUpdate(payload as any);
     setIsEditing(false);
   };
 
