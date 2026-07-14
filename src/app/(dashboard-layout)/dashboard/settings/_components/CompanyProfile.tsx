@@ -17,6 +17,7 @@ interface CompanyProfileProps {
     siteDescription: string;
     location: string;
     logoImageId?: string;
+    guidePdfId?: string;
     ctaBannerText?: string;
     ctaBannerEnabled?: boolean;
   }) => void;
@@ -30,7 +31,9 @@ export const CompanyProfile = ({
 }: CompanyProfileProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [pdfName, setPdfName] = useState<string>("");
   const [formData, setFormData] = useState({
     siteTitle: "",
     contactEmail: "",
@@ -38,6 +41,7 @@ export const CompanyProfile = ({
     siteDescription: "",
     location: "",
     logoImageId: "",
+    guidePdfId: "",
     ctaBannerText: "",
     ctaBannerEnabled: true,
   });
@@ -51,10 +55,12 @@ export const CompanyProfile = ({
         siteDescription: settings.siteDescription || "",
         location: settings.location || "",
         logoImageId: settings.logoImageId || "",
+        guidePdfId: settings.guidePdfId || "",
         ctaBannerText: settings.ctaBannerText || "Get Your Free Live Estimate Now!",
         ctaBannerEnabled: settings.ctaBannerEnabled ?? true,
       });
       setLogoPreview(settings.logoImage?.url || "");
+      setPdfName(settings.guidePdf?.originalFilename || settings.guidePdf?.filename || "");
     }
   }, [settings]);
 
@@ -77,6 +83,28 @@ export const CompanyProfile = ({
       toast.error("Failed to upload logo");
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.error("Please upload a PDF file");
+      return;
+    }
+
+    setUploadingPdf(true);
+    try {
+      const uploaded = await uploadService.uploadSingle(file);
+      setFormData({ ...formData, guidePdfId: uploaded.id });
+      setPdfName(uploaded.originalFilename || uploaded.filename);
+      toast.success("Guide PDF uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload guide PDF");
+    } finally {
+      setUploadingPdf(false);
     }
   };
 
@@ -266,6 +294,50 @@ export const CompanyProfile = ({
               Enable CTA Banner
             </label>
           </div>
+        </div>
+
+        <div className="md:col-span-2 border-t border-gray-100 pt-4 mt-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Estimator Guide PDF
+          </label>
+          <div className="flex items-center gap-3">
+            {isEditing && (
+              <label className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 text-slate-700 font-semibold text-sm transition-all shadow-sm">
+                <Upload size={16} />
+                {uploadingPdf ? "Uploading..." : "Upload Guide PDF"}
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handlePdfUpload}
+                  className="hidden"
+                  disabled={uploadingPdf}
+                />
+              </label>
+            )}
+            {pdfName ? (
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-medium text-slate-600">
+                <span>📄</span>
+                <span className="truncate max-w-[200px]" title={pdfName}>{pdfName}</span>
+                {isEditing && (
+                  <button
+                    onClick={() => {
+                      setFormData({ ...formData, guidePdfId: "" });
+                      setPdfName("");
+                    }}
+                    className="text-red-500 hover:text-red-700 ml-2 font-bold"
+                    type="button"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ) : (
+              <span className="text-xs text-gray-400">No guide PDF uploaded</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            This PDF will be automatically attached to estimate confirmation emails sent to clients.
+          </p>
         </div>
       </div>
     </div>

@@ -220,3 +220,27 @@ html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* Custom Modern Scrollbars for Dark Containers */
+.scrollbar-modern-dark {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent !important;
+}
+
+.scrollbar-modern-dark::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.scrollbar-modern-dark::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.scrollbar-modern-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 9999px !important;
+}
+
+.scrollbar-modern-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}

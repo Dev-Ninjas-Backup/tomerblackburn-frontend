@@ -9,6 +9,14 @@ export interface SiteSettings {
     url: string;
     mimeType: string;
   };
+  guidePdfId?: string;
+  guidePdf?: {
+    id: string;
+    filename: string;
+    originalFilename?: string;
+    url: string;
+    mimeType: string;
+  };
   contactNumber?: string;
   contactEmail?: string;
   location?: string;
@@ -28,6 +36,7 @@ export interface CreateSiteSettingsDto {
   siteTitle: string;
   siteDescription?: string;
   logoImageId?: string;
+  guidePdfId?: string;
   contactNumber?: string;
   contactEmail?: string;
   location?: string;
