@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 interface HowItWorksStep {
   id: string;
@@ -78,14 +79,16 @@ const HeroSection = ({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <Link href="/estimator/choose-project-type">
-              <Button
-                size="lg"
-                className="bg-white text-[#283878] hover:bg-gray-50 font-semibold px-10 py-6 text-base rounded-full shadow-lg hover:shadow-xl transition-all"
-              >
-                Start My Estimate
-              </Button>
-            </Link>
+            <Button
+              asChild
+              size="lg"
+              className="bg-white text-[#283878] hover:bg-white hover:text-[#283878] font-bold px-10 py-6 text-base rounded-full shadow-lg hover:shadow-[0_8px_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer group"
+            >
+              <Link href="/estimator/choose-project-type" className="flex items-center gap-2">
+                <span>Start My Estimate</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 duration-300" />
+              </Link>
+            </Button>
           </motion.div>
         </motion.div>
 
@@ -105,14 +108,14 @@ const HeroSection = ({
                   className="flex items-stretch flex-1 min-w-0"
                 >
                   {/* Step */}
-                  <div className="flex flex-col items-center text-center flex-1 min-w-0 px-2">
-                    <div className="w-7 h-7 rounded-full bg-[#283878] text-white text-xs font-bold flex items-center justify-center mb-1.5 shrink-0">
+                  <div className="flex flex-col items-center text-center flex-1 min-w-0 px-2 py-1.5 rounded-xl transition-all duration-300 hover:bg-[#283878]/5 group cursor-pointer">
+                    <div className="w-7 h-7 rounded-full bg-[#283878] text-white text-xs font-bold flex items-center justify-center mb-1.5 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#1f2d5c] group-hover:shadow-[0_4px_12px_rgba(40,56,120,0.15)]">
                       {step.stepNumber}
                     </div>
-                    <p className="text-xs font-semibold text-[#283878] leading-tight mb-0.5 line-clamp-1">
+                    <p className="text-xs font-semibold text-[#283878] leading-tight mb-0.5 line-clamp-1 transition-colors duration-300 group-hover:text-[#1f2d5c]">
                       {step.title}
                     </p>
-                    <p className="text-[11px] text-gray-500 leading-tight line-clamp-2 hidden sm:block">
+                    <p className="text-[11px] text-gray-500 leading-tight line-clamp-2 hidden sm:block transition-colors duration-300 group-hover:text-gray-700">
                       {step.description}
                     </p>
                   </div>

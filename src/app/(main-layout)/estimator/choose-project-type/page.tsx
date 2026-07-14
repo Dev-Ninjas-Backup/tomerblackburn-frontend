@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEstimatorStore } from "@/store/estimatorStore";
 import { useProjectTypes } from "@/hooks/useProjectManagement";
-import { RotateCcw, ArrowRight, Clock } from "lucide-react";
+import { RotateCcw, ArrowRight, Clock, Sparkles } from "lucide-react";
 
 const SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -62,10 +62,13 @@ export default function ChooseProjectTypePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100/70 to-indigo-50/40 py-12 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#283878] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading project types...</p>
+          <div className="relative w-16 h-16 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full border-4 border-slate-200/80"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-[#283878] animate-spin"></div>
+          </div>
+          <p className="text-slate-600 font-semibold animate-pulse tracking-wide">Loading project types...</p>
         </div>
       </div>
     );
@@ -75,7 +78,7 @@ export default function ChooseProjectTypePage() {
     projectTypes?.filter((type) => type.isActive) || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-slate-50 via-slate-100/70 to-indigo-50/40 py-8 md:py-12 flex flex-col">
       {/* Session Resume Modal */}
       <AnimatePresence>
         {showSessionModal && (
@@ -84,29 +87,29 @@ export default function ChooseProjectTypePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/60 z-50 backdrop-blur-md"
               onClick={handleFreshStart}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="fixed inset-0 z-50 flex items-center justify-center px-4"
             >
               <div
-                className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"
+                className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-[0_25px_50px_rgba(0,0,0,0.15)] border border-slate-100 max-w-md w-full p-8"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-14 h-14 bg-[#283878]/10 rounded-full flex items-center justify-center mx-auto mb-5">
-                  <Clock className="w-7 h-7 text-[#283878]" />
+                <div className="w-16 h-16 bg-[#283878]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-[#283878]/10">
+                  <Clock className="w-8 h-8 text-[#283878]" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+                <h2 className="text-2xl font-extrabold text-slate-900 text-center mb-2">
                   Welcome Back!
                 </h2>
-                <p className="text-gray-500 text-center text-sm mb-6">
+                <p className="text-slate-500 text-center text-sm mb-6 leading-relaxed">
                   You have an unfinished estimate from{" "}
-                  <span className="font-medium text-gray-700">
+                  <span className="font-semibold text-slate-800">
                     {getTimeAgo()}
                   </span>
                   . Would you like to continue where you left off?
@@ -115,14 +118,14 @@ export default function ChooseProjectTypePage() {
                 <div className="space-y-3">
                   <button
                     onClick={handleContinueSession}
-                    className="w-full flex items-center justify-center gap-2 bg-[#283878] hover:bg-[#1f2d5c] text-white py-3.5 rounded-xl font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-2 bg-[#283878] hover:bg-[#1f2d5c] hover:scale-[1.02] active:scale-[0.98] text-white py-3.5 rounded-2xl font-semibold shadow-lg shadow-[#283878]/20 transition-all duration-200"
                   >
                     <ArrowRight className="w-4 h-4" />
                     Continue My Estimate
                   </button>
                   <button
                     onClick={handleFreshStart}
-                    className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 hover:scale-[1.02] active:scale-[0.98] text-slate-700 py-3.5 rounded-2xl font-semibold transition-all duration-200"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Start Fresh
@@ -133,18 +136,21 @@ export default function ChooseProjectTypePage() {
           </>
         )}
       </AnimatePresence>
-
-      <div className="container mx-auto px-4 max-w-7xl">
+      <div className="container mx-auto px-4 max-w-6xl flex flex-col">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-6"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-5"
         >
-          <h1 className="text-3xl md:text-5xl font-bold text-[#283878] mb-4">
-            Choose Your Project Type
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#283878]/10 text-[#283878] text-[10px] font-extrabold uppercase tracking-widest mb-3">
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+            Project Estimator
+          </div>
+          <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
+            Choose Your <span className="bg-gradient-to-r from-[#283878] via-[#3f57b5] to-[#1f2d5c] bg-clip-text text-transparent">Project Type</span>
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-slate-500 text-sm md:text-base font-medium max-w-md mx-auto">
             Select the type of project you&apos;re planning to get started
           </p>
         </motion.div>
@@ -153,37 +159,36 @@ export default function ChooseProjectTypePage() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="max-w-2xl mx-auto mb-10 bg-[#283878]/5 border border-[#283878]/15 rounded-xl px-4 py-3 flex gap-3 items-center"
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="max-w-xl mx-auto mb-8 bg-white/70 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgb(0,0,0,0.01)] rounded-2xl px-5 py-3 flex gap-3.5 items-center relative overflow-hidden"
         >
-          <span className="text-base shrink-0">💬</span>
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold text-[#283878]">
-              Answer as best you can
-            </span>{" "}
-            — a real person will review your estimate and confirm all details
-            before anything is final.
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#283878]" />
+          <div className="w-8 h-8 rounded-xl bg-[#283878]/10 flex items-center justify-center text-[#283878] shrink-0 border border-[#283878]/5">
+            <span className="text-base">💡</span>
+          </div>
+          <p className="text-xs md:text-sm text-slate-600 leading-normal text-left">
+            <span className="font-bold text-[#283878]">Answer as best you can</span> — a real person will review your estimate and confirm all details before anything is final.
           </p>
         </motion.div>
 
         {activeProjectTypes.length === 0 ? (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center justify-center py-16"
+            className="flex flex-col items-center justify-center py-12"
           >
-            <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 max-w-md text-center">
+              <h3 className="text-xl font-bold text-slate-900 mb-2">
                 No Project Types Available
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-slate-500 text-sm mb-4">
                 There are currently no active project types. Please check back
                 later.
               </p>
               <Button
                 onClick={() => router.push("/")}
-                className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-8 py-3 rounded-full"
+                className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg shadow-[#283878]/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
                 Go to Home
               </Button>
@@ -193,44 +198,47 @@ export default function ChooseProjectTypePage() {
           <motion.div
             variants={{
               hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
             }}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
+            className={`grid grid-cols-1 sm:grid-cols-2 gap-6 mx-auto w-full ${
+              activeProjectTypes.length === 2 ? "max-w-3xl" : "lg:grid-cols-3 max-w-5xl"
+            }`}
           >
             {activeProjectTypes.map((type) => (
               <motion.div
                 key={type.id}
                 variants={{
-                  hidden: { opacity: 0, y: 40 },
+                  hidden: { opacity: 0, y: 30 },
                   visible: {
                     opacity: 1,
                     y: 0,
                     transition: {
-                      duration: 0.7,
+                      duration: 0.6,
                       ease: [0.25, 0.46, 0.45, 0.94] as const,
                     },
                   },
                 }}
-                whileHover={type.isComingSoon ? {} : { y: -8 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                whileHover={type.isComingSoon ? {} : { y: -6, scale: 1.01 }}
+                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
                 onClick={() => !type.isComingSoon && handleSelect(type.id)}
-                className={`w-full bg-white rounded-2xl overflow-hidden relative ${
+                className={`w-full bg-white rounded-3xl overflow-hidden border border-slate-100/80 shadow-[0_4px_20px_rgba(0,0,0,0.02)] relative transition-all duration-300 ${
                   type.isComingSoon
-                    ? "cursor-not-allowed"
-                    : "cursor-pointer hover:shadow-lg"
+                    ? "cursor-not-allowed opacity-80"
+                    : "cursor-pointer hover:shadow-[0_20px_40px_rgba(40,56,120,0.08)] hover:border-[#283878]/15 group"
                 }`}
               >
                 {/* Coming Soon Overlay */}
                 {type.isComingSoon && (
-                  <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center gap-2">
-                    <span className="bg-white text-[#283878] text-sm font-bold px-4 py-1.5 rounded-full shadow-lg tracking-wide">
+                  <div className="absolute inset-0 z-10 bg-slate-900/40 backdrop-blur-[2px] rounded-3xl flex flex-col items-center justify-center p-4">
+                    <span className="bg-white/95 text-[#283878] text-[10px] font-bold px-4 py-2 rounded-full shadow-md tracking-wider uppercase border border-white/20">
                       Coming Soon
                     </span>
                   </div>
                 )}
-                <div className="relative h-72 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
+                
+                <div className="relative h-52 bg-linear-to-br from-[#283878] to-[#1f2d5c] overflow-hidden">
                   {type.image?.url ? (
                     <motion.img
                       src={type.image.url}
@@ -240,24 +248,40 @@ export default function ChooseProjectTypePage() {
                         duration: 0.4,
                         ease: [0.25, 0.46, 0.45, 0.94],
                       }}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-transform duration-500 ${
+                        type.isComingSoon ? "filter grayscale brightness-75" : ""
+                      }`}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-white text-6xl font-bold opacity-20">
+                      <div className="text-white text-5xl font-bold opacity-15">
                         {type.name.charAt(0)}
                       </div>
                     </div>
                   )}
+                  {/* Subtle inner dark gradient for active cards */}
+                  {!type.isComingSoon && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  )}
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    {type.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    {type.description ||
-                      `Complete ${type.name.toLowerCase()} services`}
-                  </p>
+
+                <div className="p-5 relative flex flex-col h-[135px] justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-1 group-hover:text-[#283878] transition-colors duration-300">
+                      {type.name}
+                    </h3>
+                    <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
+                      {type.description ||
+                        `Complete ${type.name.toLowerCase()} services`}
+                    </p>
+                  </div>
+                  
+                  {!type.isComingSoon && (
+                    <div className="flex items-center text-[#283878] font-bold text-[10px] tracking-wider uppercase gap-1.5 mt-2.5 opacity-0 transform translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out">
+                      <span>Select Project</span>
+                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}

@@ -45,7 +45,7 @@ const SummaryContent = ({
           layout
         >
           <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
-          <div className="max-h-40 overflow-y-auto space-y-1.5 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-white/10 [&::-webkit-scrollbar-thumb]:bg-white/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/50">
+          <div className="max-h-40 overflow-y-auto space-y-1.5 pr-2 scrollbar-modern-dark">
             <AnimatePresence initial={false}>
               {additionalCosts.map((cost) => (
                 <motion.div
@@ -274,7 +274,7 @@ export const FloatingPriceCard = () => {
         )}
 
         <div
-          className={`fixed top-0 right-0 w-80 h-full bg-[#283878] text-white shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
+          className={`fixed top-0 right-0 w-80 h-full bg-[#283878] text-white shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto scrollbar-modern-dark ${
             isMobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
