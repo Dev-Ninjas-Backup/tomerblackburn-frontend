@@ -70,6 +70,8 @@ const CostCodeModal = ({
     Array<{
       id?: string;
       optionName: string;
+      basePrice?: number;
+      clientPrice?: number;
       priceModifier: number;
       displayOrder: number;
       isDefault: boolean;
@@ -155,13 +157,25 @@ const CostCodeModal = ({
       // Load existing options if ORANGE type
       if (data.questionType === "ORANGE" && data.options) {
         setOptions(
-          data.options.map((opt: any) => ({
-            id: opt.id,
-            optionName: opt.optionName,
-            priceModifier: Number(opt.priceModifier),
-            displayOrder: opt.displayOrder,
-            isDefault: opt.isDefault,
-          })),
+          data.options.map((opt: any) => {
+            const bPrice =
+              opt.basePrice !== undefined && opt.basePrice !== null
+                ? Number(opt.basePrice)
+                : 0;
+            const cPrice =
+              opt.clientPrice !== undefined && opt.clientPrice !== null
+                ? Number(opt.clientPrice)
+                : Number(opt.priceModifier) || 0;
+            return {
+              id: opt.id,
+              optionName: opt.optionName,
+              basePrice: bPrice,
+              clientPrice: cPrice,
+              priceModifier: cPrice,
+              displayOrder: opt.displayOrder,
+              isDefault: opt.isDefault,
+            };
+          }),
         );
       } else {
         setOptions([]);
@@ -233,7 +247,9 @@ const CostCodeModal = ({
             costCodeId: newCostCodeId,
             options: options.map((opt) => ({
               optionName: opt.optionName,
-              priceModifier: opt.priceModifier,
+              basePrice: opt.basePrice ?? 0,
+              clientPrice: opt.clientPrice ?? opt.priceModifier ?? 0,
+              priceModifier: opt.clientPrice ?? opt.priceModifier ?? 0,
               displayOrder: opt.displayOrder,
               isDefault: opt.isDefault,
             })),
@@ -258,7 +274,9 @@ const CostCodeModal = ({
                 id: option.id,
                 data: {
                   optionName: option.optionName,
-                  priceModifier: option.priceModifier,
+                  basePrice: option.basePrice ?? 0,
+                  clientPrice: option.clientPrice ?? option.priceModifier ?? 0,
+                  priceModifier: option.clientPrice ?? option.priceModifier ?? 0,
                   displayOrder: option.displayOrder,
                   isDefault: option.isDefault,
                 },
@@ -267,7 +285,9 @@ const CostCodeModal = ({
               await createOption.mutateAsync({
                 costCodeId: data.id,
                 optionName: option.optionName,
-                priceModifier: option.priceModifier,
+                basePrice: option.basePrice ?? 0,
+                clientPrice: option.clientPrice ?? option.priceModifier ?? 0,
+                priceModifier: option.clientPrice ?? option.priceModifier ?? 0,
                 displayOrder: option.displayOrder,
                 isDefault: option.isDefault,
               });
@@ -293,11 +313,107 @@ const CostCodeModal = ({
     }
   };
 
+  // Bi-directional price handlers for ORANGE options
+  const handleOptionBasePriceChange = (index: number, basePriceVal: number) => {
+    const markup = formData.markup || 0;
+    const clientPriceVal =
+      Math.round((basePriceVal + (basePriceVal * markup) / 100) * 100) / 100;
+
+    const newOptions = [...options];
+    newOptions[index] = {
+      ...newOptions[index],
+      basePrice: basePriceVal,
+      clientPrice: clientPriceVal,
+      priceModifier: clientPriceVal,
+    };
+    setOptions(newOptions);
+  };
+
+  const handleOptionClientPriceChange = (
+    index: number,
+    clientPriceVal: number,
+  ) => {
+    const markup = formData.markup || 0;
+    const basePriceVal =
+      markup > -100
+        ? Math.round((clientPriceVal / (1 + markup / 100)) * 100) / 100
+        : clientPriceVal;
+
+    const newOptions = [...options];
+    newOptions[index] = {
+      ...newOptions[index],
+      basePrice: basePriceVal,
+      clientPrice: clientPriceVal,
+      priceModifier: clientPriceVal,
+    };
+    setOptions(newOptions);
+  };
+
+  // Add a single new option
+  const handleAddOption = () => {
+    const parentBase = Number(formData.basePrice) || 0;
+    const parentClient =
+      Number(formData.clientPrice) ||
+      parentBase + (parentBase * (formData.markup || 0)) / 100;
+
+    setOptions([
+      ...options,
+      {
+        optionName: "",
+        basePrice: parentBase,
+        clientPrice: parentClient,
+        priceModifier: parentClient,
+        displayOrder: options.length,
+        isDefault: options.length === 0,
+      },
+    ]);
+  };
+
+  // Auto-generate 1-6 tiers based on parent basePrice and markup
+  const handleAutoGenerateTiers = () => {
+    const parentBase = Number(formData.basePrice) || 0;
+    const parentClient =
+      Number(formData.clientPrice) ||
+      parentBase + (parentBase * (formData.markup || 0)) / 100;
+
+    if (
+      options.length > 0 &&
+      !window.confirm(
+        "Auto-generating 1-6 tiers will replace the current options. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    // Track any existing option IDs for deletion if in edit mode
+    const idsToDelete = options
+      .map((opt) => opt.id)
+      .filter(Boolean) as string[];
+    if (idsToDelete.length > 0) {
+      setDeletedOptionIds((prev) => [...prev, ...idsToDelete]);
+    }
+
+    const generatedOptions = [1, 2, 3, 4, 5, 6].map((multiplier, idx) => {
+      const bPrice = Math.round(parentBase * multiplier * 100) / 100;
+      const cPrice = Math.round(parentClient * multiplier * 100) / 100;
+      return {
+        optionName: `${multiplier}`,
+        basePrice: bPrice,
+        clientPrice: cPrice,
+        priceModifier: cPrice,
+        displayOrder: idx,
+        isDefault: idx === 0,
+      };
+    });
+
+    setOptions(generatedOptions);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-9999 flex items-start justify-center bg-black/50 overflow-y-auto p-4">
-      <div className="bg-white rounded-lg w-full max-w-3xl p-6 my-8">
+    <div className="fixed inset-0 z-9999 flex items-start justify-center bg-black/50 overflow-y-auto p-2 sm:p-4">
+      <div className="bg-white rounded-lg w-full max-w-3xl p-4 sm:p-6 my-3 sm:my-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">
             {mode === "create" ? "Create" : "Edit"} Cost Code
@@ -659,112 +775,265 @@ const CostCodeModal = ({
             {/* Options Management for ORANGE type */}
             {formData.questionType === "ORANGE" && (
               <div className="col-span-2 border-t pt-4 mt-2">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    📋 Dropdown Options
-                  </h3>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setOptions([
-                        ...options,
-                        {
-                          optionName: "",
-                          priceModifier: 0,
-                          displayOrder: options.length,
-                          isDefault: options.length === 0,
-                        },
-                      ]);
-                    }}
-                    className="bg-[#2D4A8F] hover:bg-[#4064b8] text-white px-3 py-1 text-sm"
-                  >
-                    + Add Option
-                  </Button>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2.5 mb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2 flex-wrap">
+                      <span>📋</span> Dropdown Options
+                      {formData.markup !== undefined && formData.markup > 0 && (
+                        <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          Markup: {formData.markup}%
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Base costs are exported to Buildertrend. Client prices are auto-calculated from markup.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleAutoGenerateTiers}
+                      className="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1.5 text-xs rounded-md font-medium flex items-center justify-center gap-1 shadow-xs transition-colors"
+                      title="Auto-generate 1-6 tiers with base and client prices"
+                    >
+                      ⚡ Auto-Generate (1-6)
+                    </button>
+                    <Button
+                      type="button"
+                      onClick={handleAddOption}
+                      className="bg-[#2D4A8F] hover:bg-[#4064b8] text-white px-3 py-1.5 text-xs flex items-center justify-center rounded-md"
+                    >
+                      + Add Option
+                    </Button>
+                  </div>
                 </div>
 
                 {options.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded">
-                    No options added. Click "Add Option" to create dropdown
-                    choices.
+                  <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    No options added yet. Click <span className="font-semibold text-blue-600">+ Add Option</span> or <span className="font-semibold text-amber-600">⚡ Auto-Generate (1-6)</span> to create choices.
                   </p>
                 ) : (
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {options.map((option, index) => (
-                      <div
-                        key={index}
-                        className="flex gap-2 items-start bg-gray-50 p-3 rounded"
-                      >
-                        <div className="flex-1 grid grid-cols-3 gap-2">
-                          <input
-                            type="text"
-                            value={option.optionName}
-                            onChange={(e) => {
-                              const newOptions = [...options];
-                              newOptions[index].optionName = e.target.value;
-                              setOptions(newOptions);
-                            }}
-                            placeholder="Option name"
-                            className="border rounded px-2 py-1 text-sm"
-                            required
-                          />
-                          <input
-                            type="number"
-                            value={option.priceModifier}
-                            onChange={(e) => {
-                              const newOptions = [...options];
-                              newOptions[index].priceModifier =
-                                parseFloat(e.target.value) || 0;
-                              setOptions(newOptions);
-                            }}
-                            placeholder="Price"
-                            className="border rounded px-2 py-1 text-sm"
-                            step="0.01"
-                            min="0"
-                          />
+                  <>
+                    {/* Mobile Card Layout (< sm): Spacious, touch-friendly, zero clutter */}
+                    <div className="sm:hidden space-y-2.5 max-h-72 overflow-y-auto pr-0.5">
+                      {options.map((option, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50/90 border border-gray-200 rounded-lg p-3 space-y-2.5 shadow-2xs"
+                        >
+                          {/* Top Row: Option Title + Default Checkbox + Delete */}
                           <div className="flex items-center gap-2">
-                            <label className="flex items-center text-xs">
+                            <div className="flex-1">
+                              <input
+                                type="text"
+                                value={option.optionName}
+                                onChange={(e) => {
+                                  const newOptions = [...options];
+                                  newOptions[index].optionName = e.target.value;
+                                  setOptions(newOptions);
+                                }}
+                                placeholder="Option title (e.g. 1 unit)"
+                                className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                required
+                              />
+                            </div>
+                            <label
+                              className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border cursor-pointer select-none transition-colors shrink-0 ${
+                                option.isDefault
+                                  ? "bg-blue-50 border-blue-300 text-blue-700 font-semibold"
+                                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
+                              }`}
+                              title="Set as default option"
+                            >
                               <input
                                 type="checkbox"
                                 checked={option.isDefault}
                                 onChange={(e) => {
                                   const newOptions = options.map((opt, i) => ({
                                     ...opt,
-                                    isDefault:
-                                      i === index ? e.target.checked : false,
+                                    isDefault: i === index ? e.target.checked : false,
                                   }));
                                   setOptions(newOptions);
                                 }}
-                                className="mr-1"
+                                className="h-3.5 w-3.5 text-blue-600 rounded cursor-pointer"
                               />
                               Default
                             </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const removedOption = options[index];
+                                if (removedOption.id) {
+                                  setDeletedOptionIds([
+                                    ...deletedOptionIds,
+                                    removedOption.id,
+                                  ]);
+                                }
+                                setOptions(options.filter((_, i) => i !== index));
+                              }}
+                              className="text-red-500 hover:text-red-700 p-1.5 rounded-md hover:bg-red-50 transition-colors shrink-0"
+                              title="Remove option"
+                            >
+                              <X size={17} />
+                            </button>
+                          </div>
+
+                          {/* Bottom Row: Base Cost and Client Price Side-by-Side */}
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <label className="block text-gray-600 font-medium mb-1">
+                                Base Cost ($) <span className="text-[10px] text-gray-400 font-normal">(Builder)</span>
+                              </label>
+                              <input
+                                type="number"
+                                value={option.basePrice ?? 0}
+                                onChange={(e) =>
+                                  handleOptionBasePriceChange(
+                                    index,
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                placeholder="0.00"
+                                className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white font-mono text-gray-800 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-emerald-700 font-medium mb-1">
+                                Client Price ($) <span className="text-[10px] text-emerald-600 font-normal">({formData.markup || 0}%)</span>
+                              </label>
+                              <input
+                                type="number"
+                                value={option.clientPrice ?? 0}
+                                onChange={(e) =>
+                                  handleOptionClientPriceChange(
+                                    index,
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                placeholder="0.00"
+                                className="w-full border border-gray-300 rounded-md px-2.5 py-1.5 text-sm bg-white font-mono text-emerald-700 font-semibold focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const removedOption = options[index];
-                            // Track deleted option ID if it exists
-                            if (removedOption.id) {
-                              setDeletedOptionIds([
-                                ...deletedOptionIds,
-                                removedOption.id,
-                              ]);
-                            }
-                            setOptions(options.filter((_, i) => i !== index));
-                          }}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Remove option"
-                        >
-                          <X size={16} />
-                        </button>
+                      ))}
+                    </div>
+
+                    {/* Desktop/Tablet Table Layout (>= sm): Clean columns with guaranteed min-width */}
+                    <div className="hidden sm:block border border-gray-200 rounded-lg overflow-hidden bg-white">
+                      <div className="overflow-x-auto">
+                        <div className="min-w-[540px]">
+                          {/* Header */}
+                          <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-2.5 border-b border-gray-200">
+                            <div className="col-span-4">Option Title / Name *</div>
+                            <div className="col-span-3">Base Cost ($) (Builder)</div>
+                            <div className="col-span-3">Client Price ($)</div>
+                            <div className="col-span-1 text-center">Default</div>
+                            <div className="col-span-1 text-right pr-1">Action</div>
+                          </div>
+
+                          <div className="space-y-1 p-1.5 max-h-64 overflow-y-auto">
+                            {options.map((option, index) => (
+                              <div
+                                key={index}
+                                className="grid grid-cols-12 gap-2 items-center bg-gray-50 hover:bg-blue-50/40 p-2 rounded-md border border-gray-100 transition-colors"
+                              >
+                                <div className="col-span-4">
+                                  <input
+                                    type="text"
+                                    value={option.optionName}
+                                    onChange={(e) => {
+                                      const newOptions = [...options];
+                                      newOptions[index].optionName = e.target.value;
+                                      setOptions(newOptions);
+                                    }}
+                                    placeholder="e.g. 1 unit, Premium"
+                                    className="w-full border border-gray-300 rounded px-2.5 py-1 text-sm bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    required
+                                  />
+                                </div>
+                                <div className="col-span-3">
+                                  <input
+                                    type="number"
+                                    value={option.basePrice ?? 0}
+                                    onChange={(e) =>
+                                      handleOptionBasePriceChange(
+                                        index,
+                                        parseFloat(e.target.value) || 0,
+                                      )
+                                    }
+                                    placeholder="0.00"
+                                    className="w-full border border-gray-300 rounded px-2.5 py-1 text-sm bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none font-mono text-gray-800"
+                                    step="0.01"
+                                    min="0"
+                                    title="Builder Cost (Base Price)"
+                                  />
+                                </div>
+                                <div className="col-span-3">
+                                  <input
+                                    type="number"
+                                    value={option.clientPrice ?? 0}
+                                    onChange={(e) =>
+                                      handleOptionClientPriceChange(
+                                        index,
+                                        parseFloat(e.target.value) || 0,
+                                      )
+                                    }
+                                    placeholder="0.00"
+                                    className="w-full border border-gray-300 rounded px-2.5 py-1 text-sm bg-white focus:ring-1 focus:ring-emerald-500 focus:outline-none font-mono text-emerald-700 font-medium"
+                                    step="0.01"
+                                    min="0"
+                                    title="Client Price (Shown to user)"
+                                  />
+                                </div>
+                                <div className="col-span-1 flex justify-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={option.isDefault}
+                                    onChange={(e) => {
+                                      const newOptions = options.map((opt, i) => ({
+                                        ...opt,
+                                        isDefault: i === index ? e.target.checked : false,
+                                      }));
+                                      setOptions(newOptions);
+                                    }}
+                                    className="h-4 w-4 text-blue-600 rounded cursor-pointer"
+                                    title="Set as default option"
+                                  />
+                                </div>
+                                <div className="col-span-1 flex justify-end pr-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const removedOption = options[index];
+                                      if (removedOption.id) {
+                                        setDeletedOptionIds([
+                                          ...deletedOptionIds,
+                                          removedOption.id,
+                                        ]);
+                                      }
+                                      setOptions(options.filter((_, i) => i !== index));
+                                    }}
+                                    className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                                    title="Remove option"
+                                  >
+                                    <X size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 )}
                 <p className="text-xs text-gray-500 mt-2">
-                  💡 Add dropdown options that users can select from. Set price
-                  for each option.
+                  💡 <strong>Smart Auto-Calculation:</strong> Changing <em>Base Cost</em> automatically computes <em>Client Price</em> using the cost code's markup ({formData.markup || 0}%). Alternatively, modifying <em>Client Price</em> directly will back-calculate the Base Cost.
                 </p>
               </div>
             )}

@@ -16,6 +16,7 @@ export default function SmoothScrollProvider({
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
+      allowNestedScroll: true,
     });
 
     // Request Animation Frame loop
