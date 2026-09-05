@@ -19,82 +19,120 @@ const SummaryContent = ({
   additionalTotal,
   buildingTypePrice,
   buildingTypeName,
-}: SummaryContentProps) => (
-  <div className="space-y-2 text-sm">
-    <div className="flex justify-between">
-      <span className="text-gray-300">Base Price:</span>
-      <span className="font-semibold">
-        ${Number(basePrice).toLocaleString()}
-      </span>
-    </div>
+}: SummaryContentProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-    <AnimatePresence initial={false}>
-      {additionalCosts.length > 0 && (
-        <motion.div
-          key="additional-items-wrapper"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 350,
-            damping: 25,
-            mass: 0.8
-          }}
-          className="overflow-hidden"
-          layout
-        >
-          <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
-          <div className="max-h-40 overflow-y-auto space-y-1.5 pr-2 scrollbar-modern-dark">
-            <AnimatePresence initial={false}>
-              {additionalCosts.map((cost) => (
-                <motion.div
-                  key={cost.id}
-                  initial={{ opacity: 0, height: 0, y: -15 }}
-                  animate={{ opacity: 1, height: "auto", y: 0 }}
-                  exit={{ opacity: 0, height: 0, y: -15 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 350,
-                    damping: 25,
-                    mass: 0.8
-                  }}
-                  layout
-                  className="flex justify-between text-xs overflow-hidden py-0.5"
-                >
-                  <span className="text-gray-300 truncate mr-2" title={cost.name}>
-                    {cost.name}:
-                  </span>
-                  <span className="font-semibold shrink-0">
-                    +${cost.cost.toLocaleString()}
-                  </span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
 
-    <div className="border-t border-white/20 pt-2 mt-3 space-y-2">
-      <div className="flex justify-between font-bold">
-        <span>Additions Total:</span>
-        <span>${additionalTotal.toLocaleString()}</span>
+    const onWheel = (e: WheelEvent) => {
+      // Prevent parent smooth scroll / Lenis from capturing this wheel event
+      e.stopPropagation();
+
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const isScrollable = scrollHeight > clientHeight;
+
+      if (isScrollable) {
+        const isScrollingDown = e.deltaY > 0;
+        const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 1;
+        const isAtTop = scrollTop <= 0;
+
+        if ((isScrollingDown && !isAtBottom) || (!isScrollingDown && !isAtTop)) {
+          el.scrollTop += e.deltaY;
+          e.preventDefault();
+        }
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [additionalCosts.length]);
+
+  return (
+    <div className="space-y-2 text-sm">
+      <div className="flex justify-between">
+        <span className="text-gray-300">Base Price:</span>
+        <span className="font-semibold">
+          ${Number(basePrice).toLocaleString()}
+        </span>
       </div>
-      {buildingTypePrice > 0 && (
-        <div className="flex justify-between items-start text-sm">
-          <div>
-            <span className="text-gray-400 text-xs block">Building Type</span>
-            <span className="text-gray-300">{buildingTypeName}</span>
-          </div>
-          <span className="font-semibold">
-            +${buildingTypePrice.toLocaleString()}
-          </span>
+
+      <AnimatePresence initial={false}>
+        {additionalCosts.length > 0 && (
+          <motion.div
+            key="additional-items-wrapper"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 350,
+              damping: 25,
+              mass: 0.8,
+            }}
+            className="overflow-hidden"
+            layout
+          >
+            <div className="text-gray-300 mt-3 mb-2">Additional Items:</div>
+            <div
+              ref={scrollRef}
+              data-lenis-prevent="true"
+              className="max-h-40 overflow-y-auto space-y-1.5 pr-2 scrollbar-modern-dark overscroll-contain"
+            >
+              <AnimatePresence initial={false}>
+                {additionalCosts.map((cost) => (
+                  <motion.div
+                    key={cost.id}
+                    initial={{ opacity: 0, height: 0, y: -15 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -15 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 25,
+                      mass: 0.8,
+                    }}
+                    layout
+                    className="flex justify-between text-xs overflow-hidden py-0.5"
+                  >
+                    <span
+                      className="text-gray-300 truncate mr-2"
+                      title={cost.name}
+                    >
+                      {cost.name}:
+                    </span>
+                    <span className="font-semibold shrink-0">
+                      +${cost.cost.toLocaleString()}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="border-t border-white/20 pt-2 mt-3 space-y-2">
+        <div className="flex justify-between font-bold">
+          <span>Additions Total:</span>
+          <span>${additionalTotal.toLocaleString()}</span>
         </div>
-      )}
+        {buildingTypePrice > 0 && (
+          <div className="flex justify-between items-start text-sm">
+            <div>
+              <span className="text-gray-400 text-xs block">Building Type</span>
+              <span className="text-gray-300">{buildingTypeName}</span>
+            </div>
+            <span className="font-semibold">
+              +${buildingTypePrice.toLocaleString()}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const FloatingPriceCard = () => {
   const { totalPrice, basePrice, step1Selections, step2Selections, userInfo } =
@@ -207,13 +245,16 @@ export const FloatingPriceCard = () => {
         </button>
 
         <div
-          className={`bg-[#283878] text-white rounded-l-2xl shadow-2xl transition-all duration-300 ease-in-out overflow-hidden ${
-            isDesktopCollapsed
+          data-lenis-prevent="true"
+          className={`bg-[#283878] text-white rounded-l-2xl shadow-2xl transition-all duration-300 ease-in-out overflow-hidden ${isDesktopCollapsed
               ? "w-0 opacity-0 pointer-events-none"
               : "w-80 opacity-100"
-          }`}
+            }`}
         >
-          <div className="p-6 w-80">
+          <div
+            data-lenis-prevent="true"
+            className="p-6 w-80 max-h-[calc(100vh-14rem)] overflow-y-auto scrollbar-modern-dark overscroll-contain"
+          >
             <h3 className="text-xl font-bold mb-4 text-center">
               Total Estimated Cost
             </h3>
@@ -274,9 +315,9 @@ export const FloatingPriceCard = () => {
         )}
 
         <div
-          className={`fixed top-0 right-0 w-80 h-full bg-[#283878] text-white shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto scrollbar-modern-dark ${
-            isMobileOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          data-lenis-prevent="true"
+          className={`fixed top-0 right-0 w-80 h-full bg-[#283878] text-white shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto scrollbar-modern-dark overscroll-contain ${isMobileOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
