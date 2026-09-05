@@ -96,6 +96,8 @@ export interface CostCodeOption {
   costCodeId: string;
   optionName: string;
   optionValue?: string;
+  basePrice?: number;
+  clientPrice?: number;
   priceModifier: number;
   isDefault: boolean;
   displayOrder: number;
@@ -108,6 +110,8 @@ export interface CreateCostCodeOptionDto {
   costCodeId: string;
   optionName: string;
   optionValue?: string;
+  basePrice?: number;
+  clientPrice?: number;
   priceModifier?: number;
   isDefault?: boolean;
   displayOrder?: number;

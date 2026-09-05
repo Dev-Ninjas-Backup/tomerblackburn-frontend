@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "security:scan": "node scripts/malware-scanner.mjs",
+    "security:clean": "node scripts/malware-scanner.mjs --fix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
