@@ -116,6 +116,10 @@ export default function SettingsPage() {
         <EmailNotifications
           notificationEmail={settings?.notificationEmail ?? ''}
           notifyOnNewSubmission={settings?.notifyOnNewSubmission ?? false}
+          estimateEmailSubject={settings?.estimateEmailSubject ?? ''}
+          estimateEmailIntro={settings?.estimateEmailIntro ?? ''}
+          estimateEmailBody={settings?.estimateEmailBody ?? ''}
+          estimateEmailClosing={settings?.estimateEmailClosing ?? ''}
           onUpdate={handleUpdateNotifications}
           isSaving={updateMutation.isPending}
         />

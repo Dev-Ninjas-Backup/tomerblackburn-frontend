@@ -28,6 +28,10 @@ export interface SiteSettings {
   notificationEmail?: string;
   notifyOnNewSubmission?: boolean;
   maintenanceMode?: boolean;
+  estimateEmailSubject?: string;
+  estimateEmailIntro?: string;
+  estimateEmailBody?: string;
+  estimateEmailClosing?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +52,11 @@ export interface CreateSiteSettingsDto {
   notificationEmail?: string;
   notifyOnNewSubmission?: boolean;
   maintenanceMode?: boolean;
+  estimateEmailSubject?: string;
+  estimateEmailIntro?: string;
+  estimateEmailBody?: string;
+  estimateEmailClosing?: string;
 }
 
 export interface UpdateSiteSettingsDto extends Partial<CreateSiteSettingsDto> {}
+
