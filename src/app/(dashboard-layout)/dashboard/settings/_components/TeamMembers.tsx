@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, X, Edit2, Trash2, Power, ShieldCheck } from "lucide-react";
+import { Plus, X, Edit2, Trash2, Power, ShieldCheck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authService } from "@/services/auth.service";
@@ -29,12 +29,6 @@ const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
   VIEW_ONLY: "View Only",
-};
-
-const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: "text-[#2d4a8f]",
-  ADMIN: "text-green-700",
-  VIEW_ONLY: "text-gray-500",
 };
 
 export const TeamMembers = ({
@@ -151,108 +145,177 @@ export const TeamMembers = ({
     setEditingUser(null);
   };
 
+  // Render Role Badge
+  const renderRoleBadge = (memberRole: string) => (
+    <span
+      className={`text-xs font-semibold px-2.5 py-1 rounded-md whitespace-nowrap inline-block ${
+        memberRole === "SUPER_ADMIN"
+          ? "bg-indigo-50 text-[#283878] border border-indigo-100"
+          : memberRole === "ADMIN"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+          : "bg-gray-100 text-gray-700 border border-gray-200"
+      }`}
+    >
+      {ROLE_LABELS[memberRole] ?? memberRole}
+    </span>
+  );
+
+  // Render Status Badge
+  const renderStatusBadge = (isActive: boolean) => (
+    <span
+      className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1.5 ${
+        isActive
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
+          : "bg-rose-50 text-rose-700 border border-rose-200/60"
+      }`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full ${
+          isActive ? "bg-emerald-500" : "bg-rose-500"
+        }`}
+      />
+      {isActive ? "Active" : "Inactive"}
+    </span>
+  );
+
+  // Render Action Buttons
+  const renderActionButtons = (member: TeamMember) => (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => setPermissionsTarget(member)}
+        className="w-7 h-7 flex items-center justify-center hover:bg-blue-100/70 text-[#283878] rounded-md transition-colors"
+        title="Manage Permissions"
+        aria-label="Manage Permissions"
+      >
+        <ShieldCheck size={15} />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleToggleStatus(member.id)}
+        className={`w-7 h-7 flex items-center justify-center rounded-md transition-colors ${
+          member.isActive
+            ? "text-gray-500 hover:bg-gray-200/70 hover:text-gray-700"
+            : "text-emerald-600 hover:bg-emerald-100/70"
+        }`}
+        title={member.isActive ? "Deactivate Member" : "Activate Member"}
+        aria-label={member.isActive ? "Deactivate" : "Activate"}
+      >
+        <Power size={15} />
+      </button>
+      <button
+        type="button"
+        onClick={() => openEditModal(member)}
+        className="w-7 h-7 flex items-center justify-center hover:bg-blue-100/70 text-blue-600 rounded-md transition-colors"
+        title="Edit Member"
+        aria-label="Edit Member"
+      >
+        <Edit2 size={15} />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleDelete(member.id, member.name)}
+        className="w-7 h-7 flex items-center justify-center hover:bg-red-100/70 text-red-600 rounded-md transition-colors"
+        title="Delete Member"
+        aria-label="Delete Member"
+      >
+        <Trash2 size={15} />
+      </button>
+    </div>
+  );
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-xs">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <Users size={20} className="text-[#283878]" />
+            <h3 className="text-lg font-semibold text-gray-900">Team Members</h3>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5 hidden sm:block">
+            Manage your organization members, access roles, and permissions.
+          </p>
+        </div>
         {canManage && (
-          <button
+          <Button
+            size="sm"
             onClick={openAddModal}
-            className="text-sm text-[#2d4a8f] hover:underline font-medium flex items-center gap-1"
+            className="bg-[#283878] hover:bg-[#1f2d5c] text-white text-xs font-semibold shrink-0 gap-1.5 shadow-xs"
           >
-            <Plus size={16} />
+            <Plus size={15} />
             Add Member
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Role legend */}
-      <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-[#2d4a8f] inline-block" />
-          Super Admin — full access
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 text-xs text-gray-500 pb-3 border-b border-gray-100">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#283878] inline-block" />
+          <strong className="text-gray-700">Super Admin:</strong> Full access
         </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-green-600 inline-block" />
-          Admin — can edit
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
+          <strong className="text-gray-700">Admin:</strong> Can edit &amp; manage
         </span>
       </div>
 
+      {/* Member List */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="text-center py-8 text-gray-500">Loading...</div>
+          <div className="text-center py-8 text-gray-500 text-sm">Loading team members...</div>
         ) : members.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 text-sm">
             No team members found
           </div>
         ) : (
           members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+              className="p-3.5 sm:p-4 rounded-xl border border-gray-200/80 hover:border-gray-300 bg-white hover:bg-gray-50/40 transition-all overflow-hidden"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                  {member.name?.charAt(0).toUpperCase() ||
-                    member.email.charAt(0).toUpperCase()}
+              {/* Main Info Row */}
+              <div className="flex items-center justify-between gap-3">
+                {/* Avatar + Name + Email */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#283878] to-[#1a2550] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                    {member.name?.charAt(0).toUpperCase() ||
+                      member.email.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {member.name}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate" title={member.email}>
+                      {member.email}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {member.name}
-                  </p>
-                  <p className="text-xs text-gray-500">{member.email}</p>
+
+                {/* Desktop View: Badges + Actions aligned horizontally */}
+                <div className="hidden sm:flex items-center gap-3 shrink-0">
+                  {renderRoleBadge(member.role)}
+                  {renderStatusBadge(member.isActive)}
+
+                  {canManage && member.role !== "SUPER_ADMIN" && (
+                    <div className="flex items-center pl-2 border-l border-gray-200">
+                      {renderActionButtons(member)}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className={`text-sm font-medium ${ROLE_COLORS[member.role] ?? "text-gray-700"}`}
-                >
-                  {ROLE_LABELS[member.role] ?? member.role}
-                </span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    member.isActive
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {member.isActive ? "Active" : "Inactive"}
-                </span>
+
+              {/* Mobile View (< sm): Clean dedicated bottom toolbar */}
+              <div className="flex sm:hidden items-center justify-between gap-2 mt-3 pt-2.5 border-t border-gray-100">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {renderRoleBadge(member.role)}
+                  {renderStatusBadge(member.isActive)}
+                </div>
+
                 {canManage && member.role !== "SUPER_ADMIN" && (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setPermissionsTarget(member)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                      title="Manage Permissions"
-                    >
-                      <ShieldCheck size={16} className="text-[#2d4a8f]" />
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(member.id)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                      title={member.isActive ? "Deactivate" : "Activate"}
-                    >
-                      <Power
-                        size={16}
-                        className={
-                          member.isActive ? "text-gray-600" : "text-green-600"
-                        }
-                      />
-                    </button>
-                    <button
-                      onClick={() => openEditModal(member)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                      title="Edit"
-                    >
-                      <Edit2 size={16} className="text-blue-600" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(member.id, member.name)}
-                      className="p-1 hover:bg-gray-100 rounded"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} className="text-red-600" />
-                    </button>
+                  <div className="bg-gray-50 px-1 py-0.5 rounded-lg border border-gray-200/70 shrink-0">
+                    {renderActionButtons(member)}
                   </div>
                 )}
               </div>
@@ -273,13 +336,17 @@ export const TeamMembers = ({
       {/* Add/Edit Member Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-gray-200">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-900">
                 {editingUser ? "Edit Team Member" : "Add Team Member"}
               </h3>
-              <button onClick={resetForm} aria-label="Close modal">
-                <X size={20} className="text-gray-500" />
+              <button
+                onClick={resetForm}
+                aria-label="Close modal"
+                className="p-1 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={18} />
               </button>
             </div>
 
@@ -347,7 +414,7 @@ export const TeamMembers = ({
                   id="team-member-role"
                   value={role}
                   onChange={(e) => setRole(e.target.value as AssignableRole)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#283878] focus:border-transparent"
                 >
                   <option value="ADMIN">Admin</option>
                 </select>
@@ -364,7 +431,7 @@ export const TeamMembers = ({
                 </Button>
                 <Button
                   onClick={editingUser ? handleEdit : handleAdd}
-                  className="flex-1 bg-[#2d4a8f] hover:bg-[#243d75]"
+                  className="flex-1 bg-[#283878] hover:bg-[#1f2d5c] text-white font-semibold"
                   disabled={isSubmitting}
                 >
                   {isSubmitting

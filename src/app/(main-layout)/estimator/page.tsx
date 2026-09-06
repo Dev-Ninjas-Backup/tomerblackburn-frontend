@@ -3,8 +3,19 @@ import HowItWorksSection from "./_components/HowItWorksSection";
 import BathroomTypesSection from "./_components/BathroomTypesSection";
 import WhyChooseUsSection from "./_components/WhyChooseUsSection";
 import { estimatorPageService } from "@/services/estimator.service";
+import { getPageMetadata } from "@/lib/seo-helpers";
 
 export const revalidate = 60; // Revalidate every 60 seconds
+
+export async function generateMetadata() {
+  return getPageMetadata("/estimator", {
+    title: "Instant Online Remodel Estimator — Get Transparent Pricing | BBurn Builders",
+    description:
+      "Calculate live pricing and instantly configure your custom bathroom, kitchen, or home renovation in Chicago with our transparent cost estimator tool.",
+    keywords:
+      "remodel calculator, bathroom remodel cost estimator, instant construction estimate chicago, renovation quote bburn builders",
+  });
+}
 
 export default async function EstimatorPage() {
   let estimatorData = null;

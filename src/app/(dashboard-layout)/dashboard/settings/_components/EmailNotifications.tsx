@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Mail, Sparkles, RotateCcw, Info, Send, FileText } from 'lucide-react'
 
+import { EmailTemplatePreview } from './EmailTemplatePreview'
+
 const DEFAULT_TEMPLATE = {
   subject: 'Your Estimate Has Been Received — Next Steps',
   intro: `Thank you for taking the time to complete your estimate! We've received your submission and our team is currently reviewing the details.`,
@@ -129,13 +131,13 @@ export const EmailNotifications = ({
 
       {/* 2. Client Confirmation Email Customization Card */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Send size={20} className="text-[#283878]" />
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Client Auto-Reply Email Template</h3>
               <p className="text-xs text-gray-500">
-                Customize the wording of the email sent to clients after submitting an estimate.
+                Customize the wording on the left, and check the real-time interactive preview on the right.
               </p>
             </div>
           </div>
@@ -151,111 +153,126 @@ export const EmailNotifications = ({
           </Button>
         </div>
 
-        {/* Dynamic Tags Helper Banner */}
-        <div className="mb-6 p-3.5 bg-blue-50/70 border border-blue-100 rounded-lg flex items-start gap-2.5 text-xs text-blue-900">
-          <Info size={16} className="text-[#283878] shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="font-semibold text-[#283878]">Available Dynamic Placeholder Tags:</p>
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
-                {'{firstName}'}
-              </span>
-              <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
-                {'{submissionNumber}'}
-              </span>
-              <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
-                {'{totalAmount}'}
-              </span>
-              <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
-                {'{date}'}
-              </span>
+        {/* 2-Column Split Layout: Left Form Controls, Right Live Preview */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Form Controls */}
+          <div className="lg:col-span-6 xl:col-span-6 space-y-5">
+            {/* Dynamic Tags Helper Banner */}
+            <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-lg flex items-start gap-2.5 text-xs text-blue-900">
+              <Info size={16} className="text-[#283878] shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-[#283878]">Available Dynamic Placeholder Tags:</p>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
+                    {'{firstName}'}
+                  </span>
+                  <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
+                    {'{submissionNumber}'}
+                  </span>
+                  <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
+                    {'{totalAmount}'}
+                  </span>
+                  <span className="bg-white border border-blue-200 px-2 py-0.5 rounded-md font-mono text-[11px] text-gray-700">
+                    {'{date}'}
+                  </span>
+                </div>
+                <p className="text-gray-500 pt-1">
+                  Leave any field blank to automatically use the company&apos;s approved master wording.
+                </p>
+              </div>
             </div>
-            <p className="text-gray-500 pt-1">
-              Leave any field blank to automatically use the company&apos;s approved master wording.
-            </p>
-          </div>
-        </div>
 
-        <div className="space-y-5">
-          {/* Email Subject */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Subject Line
-            </label>
-            <Input
-              type="text"
-              placeholder={DEFAULT_TEMPLATE.subject}
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="max-w-xl"
+            {/* Email Subject */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email Subject Line
+              </label>
+              <Input
+                type="text"
+                placeholder={DEFAULT_TEMPLATE.subject}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Default: <em>Your Estimate Has Been Received — Next Steps</em>
+              </p>
+            </div>
+
+            {/* Intro Paragraph */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Opening / Greeting Message
+              </label>
+              <Textarea
+                rows={3}
+                placeholder={DEFAULT_TEMPLATE.intro}
+                value={intro}
+                onChange={(e) => setIntro(e.target.value)}
+                className="w-full text-sm leading-relaxed"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Appears directly below &ldquo;Hi {'{firstName}'},&rdquo;.
+              </p>
+            </div>
+
+            {/* Main Body Details */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Process &amp; Scope Details (Separate paragraphs with double Enter)
+              </label>
+              <Textarea
+                rows={6}
+                placeholder={DEFAULT_TEMPLATE.body}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                className="w-full text-sm leading-relaxed"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Explains the review process, walkthrough coordination, laser measurements, and 3D visual plan.
+              </p>
+            </div>
+
+            {/* Closing Paragraph */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Closing Message (Before Signature)
+              </label>
+              <Textarea
+                rows={3}
+                placeholder={DEFAULT_TEMPLATE.closing}
+                value={closing}
+                onChange={(e) => setClosing(e.target.value)}
+                className="w-full text-sm leading-relaxed"
+              />
+            </div>
+
+            {/* Left Column Action & Notice */}
+            <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <FileText size={14} className="text-gray-400 shrink-0" />
+                <span>The luxury layout, logo, estimate card, and PDF attachments remain 100% unbreakable.</span>
+              </div>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-6 font-semibold shrink-0"
+              >
+                {isSaving ? 'Saving Changes…' : 'Save Email Settings'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Column: Live Email Preview (Sticky on desktop) */}
+          <div className="lg:col-span-6 xl:col-span-6 lg:sticky lg:top-6">
+            <EmailTemplatePreview
+              subject={subject}
+              intro={intro}
+              body={body}
+              closing={closing}
+              defaultTemplate={DEFAULT_TEMPLATE}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Default: <em>Your Estimate Has Been Received — Next Steps</em>
-            </p>
           </div>
-
-          {/* Intro Paragraph */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Opening / Greeting Message
-            </label>
-            <Textarea
-              rows={3}
-              placeholder={DEFAULT_TEMPLATE.intro}
-              value={intro}
-              onChange={(e) => setIntro(e.target.value)}
-              className="w-full text-sm leading-relaxed"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Appears directly below &ldquo;Hi {'{firstName}'},&rdquo;.
-            </p>
-          </div>
-
-          {/* Main Body Details */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Process &amp; Scope Details (Separate paragraphs with double Enter)
-            </label>
-            <Textarea
-              rows={6}
-              placeholder={DEFAULT_TEMPLATE.body}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              className="w-full text-sm leading-relaxed"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Explains the review process, walkthrough coordination, laser measurements, and 3D visual plan.
-            </p>
-          </div>
-
-          {/* Closing Paragraph */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Closing Message (Before Signature)
-            </label>
-            <Textarea
-              rows={3}
-              placeholder={DEFAULT_TEMPLATE.closing}
-              value={closing}
-              onChange={(e) => setClosing(e.target.value)}
-              className="w-full text-sm leading-relaxed"
-            />
-          </div>
-        </div>
-
-        {/* Global Save Button */}
-        <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <FileText size={14} className="text-gray-400" />
-            <span>The luxury layout, logo, estimate overview card, and PDF attachments remain 100% unbreakable.</span>
-          </div>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-[#283878] hover:bg-[#1f2d5c] text-white px-6 font-semibold"
-          >
-            {isSaving ? 'Saving Changes…' : 'Save Email Settings'}
-          </Button>
         </div>
       </div>
     </div>
