@@ -6,9 +6,9 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   return getPageMetadata("/terms-of-service", {
-    title: "Terms of Service — BBurn Builders",
+    title: "Terms of Service | BBurn Builders",
     description:
-      "Review the terms and conditions for using the BBurn Builders website, online estimator, and remodeling services.",
+      "Review the terms of service and conditions for using the BBurn Builders website, online remodel estimator tool, and construction consulting services.",
     keywords: "terms of service bburn builders",
   });
 }

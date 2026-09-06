@@ -25,8 +25,8 @@ export const SeoOverviewTab = ({ settings, pages = [] }: SeoOverviewTabProps) =>
   const [socialPlatform, setSocialPlatform] = useState<'google' | 'facebook' | 'twitter'>('google');
 
   const homePage = pages.find((p) => p.path === '/') || pages[0];
-  const activeTitle = homePage?.title || settings?.defaultTitle || 'BBurn Builders — Premier Custom Remodeling & Construction | Chicago, IL';
-  const activeDesc = homePage?.description || settings?.defaultDescription || "Chicago's premier residential remodeling and construction company.";
+  const activeTitle = homePage?.title || settings?.defaultTitle || 'BBurn Builders — Premier Custom Remodeling | Chicago, IL';
+  const activeDesc = homePage?.description || settings?.defaultDescription || "Chicago's premier remodeling contractor. Specializing in luxury bathroom remodels, custom carpentry, and home renovations. Get your free instant estimate!";
   const activeKeywords = homePage?.keywords || settings?.defaultKeywords || '';
 
   // Calculate Health Score

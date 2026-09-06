@@ -9,11 +9,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const defaultMeta: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://bburnbuilders.com'),
     title: {
-      default: 'BBurn Builders — Premier Custom Remodeling & Construction | Chicago, IL',
+      default: 'BBurn Builders — Premier Custom Remodeling | Chicago, IL',
       template: '%s | BBurn Builders',
     },
     description:
-      "Chicago's premier residential remodeling and construction company. Specializing in luxury bathroom remodels, custom carpentry, plumbing, and whole-home renovations.",
+      "Chicago's premier remodeling contractor. Specializing in luxury bathroom remodels, custom carpentry, and home renovations. Get your free instant estimate!",
     keywords: [
       'home remodeling chicago',
       'bathroom remodel chicago',
@@ -23,8 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
       'bburn builders',
     ],
     openGraph: {
-      title: 'BBurn Builders — Premier Custom Remodeling & Construction',
-      description: "Chicago's premier residential remodeling and construction company.",
+      title: 'BBurn Builders — Premier Custom Remodeling | Chicago, IL',
+      description:
+        "Chicago's premier remodeling contractor. Specializing in luxury bathroom remodels, custom carpentry, and home renovations. Get your free instant estimate!",
       url: 'https://bburnbuilders.com',
       siteName: 'BBurn Builders',
       images: [
@@ -40,8 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'BBurn Builders — Premier Custom Remodeling & Construction',
-      description: "Chicago's premier residential remodeling and construction company.",
+      title: 'BBurn Builders — Premier Custom Remodeling | Chicago, IL',
+      description:
+        "Chicago's premier remodeling contractor. Specializing in luxury bathroom remodels, custom carpentry, and home renovations. Get your free instant estimate!",
       creator: '@bburnbuilders',
       images: ['/logo.png'],
     },

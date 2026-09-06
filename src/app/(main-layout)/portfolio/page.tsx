@@ -7,9 +7,9 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   return getPageMetadata("/portfolio", {
-    title: "Our Portfolio — Luxury Remodeling Projects & Transformations | BBurn Builders",
+    title: "Remodeling Portfolio & Transformations | BBurn Builders",
     description:
-      "Explore our gallery of completed bathroom remodels, custom carpentry, and architectural renovations across Chicago and surrounding suburbs.",
+      "Explore our portfolio of completed luxury bathroom remodels, custom carpentry, and architectural renovations across Chicago and surrounding suburbs.",
     keywords:
       "chicago remodeling portfolio, bathroom before after photos, luxury home renovation gallery, bburn builders projects",
   });

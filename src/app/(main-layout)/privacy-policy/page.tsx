@@ -6,9 +6,9 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   return getPageMetadata("/privacy-policy", {
-    title: "Privacy Policy — BBurn Builders",
+    title: "Privacy Policy | BBurn Builders",
     description:
-      "Review our privacy policy to understand how BBurn Builders collects, protects, and handles your personal information.",
+      "Review the privacy policy for BBurn Builders to understand how we collect, protect, and manage your personal data across our online estimator services.",
     keywords: "privacy policy bburn builders",
   });
 }
