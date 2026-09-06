@@ -21,6 +21,50 @@ const SummaryContent = ({
   buildingTypeName,
 }: SummaryContentProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomAnchorRef = useRef<HTMLDivElement>(null);
+  const prevCountRef = useRef<number>(additionalCosts.length);
+  const prevTotalRef = useRef<number>(additionalTotal);
+
+  // Auto-scroll to the latest selected item at the bottom when items are added or updated
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const isAdded = additionalCosts.length > prevCountRef.current;
+    const isUpdated = additionalTotal !== prevTotalRef.current;
+
+    prevCountRef.current = additionalCosts.length;
+    prevTotalRef.current = additionalTotal;
+
+    if (isAdded || isUpdated) {
+      const scrollToLatest = () => {
+        if (bottomAnchorRef.current) {
+          bottomAnchorRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+        if (el) {
+          el.scrollTo({
+            top: el.scrollHeight,
+            behavior: "smooth",
+          });
+        }
+      };
+
+      // Immediate scroll
+      scrollToLatest();
+
+      // Additional passes to account for Framer Motion spring expansion
+      const t1 = setTimeout(scrollToLatest, 60);
+      const t2 = setTimeout(scrollToLatest, 220);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [additionalCosts.length, additionalTotal]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -78,7 +122,7 @@ const SummaryContent = ({
             <div
               ref={scrollRef}
               data-lenis-prevent="true"
-              className="max-h-40 overflow-y-auto space-y-1.5 pr-2 scrollbar-modern-dark overscroll-contain"
+              className="max-h-48 sm:max-h-52 overflow-y-auto space-y-1.5 pr-2 scrollbar-modern-dark overscroll-contain scroll-smooth"
             >
               <AnimatePresence initial={false}>
                 {additionalCosts.map((cost) => (
@@ -108,6 +152,7 @@ const SummaryContent = ({
                   </motion.div>
                 ))}
               </AnimatePresence>
+              <div ref={bottomAnchorRef} className="h-0 w-full" />
             </div>
           </motion.div>
         )}

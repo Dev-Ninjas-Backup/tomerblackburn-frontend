@@ -81,6 +81,9 @@ const CostCodeModal = ({
   // Track deleted option IDs for update mode
   const [deletedOptionIds, setDeletedOptionIds] = useState<string[]>([]);
 
+  // Count for auto-generating sequential options (1 to N)
+  const [generateCount, setGenerateCount] = useState<number>(6);
+
   // Image state
   const [pendingImages, setPendingImages] = useState<{ file: File; preview: string }[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]);
@@ -369,8 +372,9 @@ const CostCodeModal = ({
     ]);
   };
 
-  // Auto-generate 1-6 tiers based on parent basePrice and markup
-  const handleAutoGenerateTiers = () => {
+  // Auto-generate 1 to N options dynamically based on parent basePrice and markup
+  const handleAutoGenerateTiers = (count: number = generateCount) => {
+    const numCount = Math.max(1, Math.min(50, Number(count) || 1));
     const parentBase = Number(formData.basePrice) || 0;
     const parentClient =
       Number(formData.clientPrice) ||
@@ -379,7 +383,7 @@ const CostCodeModal = ({
     if (
       options.length > 0 &&
       !window.confirm(
-        "Auto-generating 1-6 tiers will replace the current options. Continue?",
+        `Auto-generating options 1 to ${numCount} will replace the current options. Continue?`,
       )
     ) {
       return;
@@ -393,7 +397,8 @@ const CostCodeModal = ({
       setDeletedOptionIds((prev) => [...prev, ...idsToDelete]);
     }
 
-    const generatedOptions = [1, 2, 3, 4, 5, 6].map((multiplier, idx) => {
+    const generatedOptions = Array.from({ length: numCount }, (_, idx) => {
+      const multiplier = idx + 1;
       const bPrice = Math.round(parentBase * multiplier * 100) / 100;
       const cPrice = Math.round(parentClient * multiplier * 100) / 100;
       return {
@@ -789,19 +794,38 @@ const CostCodeModal = ({
                       Base costs are exported to Buildertrend. Client prices are auto-calculated from markup.
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleAutoGenerateTiers}
-                      className="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1.5 text-xs rounded-md font-medium flex items-center justify-center gap-1 shadow-xs transition-colors"
-                      title="Auto-generate 1-6 tiers with base and client prices"
-                    >
-                      ⚡ Auto-Generate (1-6)
-                    </button>
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-amber-500 shadow-2xs">
+                      <span className="text-[11px] text-gray-500 pl-2 pr-1 font-medium select-none whitespace-nowrap">
+                        1 to
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={generateCount}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          setGenerateCount(
+                            isNaN(val) ? 1 : Math.max(1, Math.min(50, val)),
+                          );
+                        }}
+                        className="w-10 text-center text-xs py-1.5 text-gray-900 font-semibold focus:outline-none bg-white border-x border-gray-200"
+                        title="Enter number of options to generate (e.g. 4, 8, 10)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAutoGenerateTiers(generateCount)}
+                        className="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1.5 text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap"
+                        title={`Auto-generate options 1 to ${generateCount}`}
+                      >
+                        ⚡ Auto-Generate
+                      </button>
+                    </div>
                     <Button
                       type="button"
                       onClick={handleAddOption}
-                      className="bg-[#2D4A8F] hover:bg-[#4064b8] text-white px-3 py-1.5 text-xs flex items-center justify-center rounded-md"
+                      className="bg-[#2D4A8F] hover:bg-[#4064b8] text-white px-3 py-1.5 text-xs flex items-center justify-center rounded-md whitespace-nowrap"
                     >
                       + Add Option
                     </Button>
@@ -810,7 +834,7 @@ const CostCodeModal = ({
 
                 {options.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                    No options added yet. Click <span className="font-semibold text-blue-600">+ Add Option</span> or <span className="font-semibold text-amber-600">⚡ Auto-Generate (1-6)</span> to create choices.
+                    No options added yet. Click <span className="font-semibold text-blue-600">+ Add Option</span> to create choices manually, or enter a quantity and click <span className="font-semibold text-amber-600">⚡ Auto-Generate</span> to generate 1 to {generateCount} options.
                   </p>
                 ) : (
                   <>
