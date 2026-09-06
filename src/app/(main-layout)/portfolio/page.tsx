@@ -1,13 +1,19 @@
 import React from "react";
 import ProjectSection from "./_components/ProjectSection";
 import { portfolioService } from "@/services/portfolio.service";
+import { getPageMetadata } from "@/lib/seo-helpers";
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export const metadata = {
-  title: "Portfolio - BBurn Builders",
-  description: "View our completed projects and see the quality of our work.",
-};
+export async function generateMetadata() {
+  return getPageMetadata("/portfolio", {
+    title: "Our Portfolio — Luxury Remodeling Projects & Transformations | BBurn Builders",
+    description:
+      "Explore our gallery of completed bathroom remodels, custom carpentry, and architectural renovations across Chicago and surrounding suburbs.",
+    keywords:
+      "chicago remodeling portfolio, bathroom before after photos, luxury home renovation gallery, bburn builders projects",
+  });
+}
 
 const PortfolioPage = async () => {
   let projects: any[] = [];

@@ -23,6 +23,7 @@ import {
   Calculator,
   DatabaseBackup,
   Activity,
+  SearchCheck,
 } from "lucide-react";
 
 interface NavItem {
@@ -68,6 +69,12 @@ const menuItems: NavItem[] = [
     label: "Web",
     href: "/dashboard/web",
     visible: (p) => p.webView,
+  },
+  {
+    icon: SearchCheck,
+    label: "SEO Management",
+    href: "/dashboard/seo",
+    visible: (p) => p.settingsView || p.webView,
   },
   {
     icon: Settings,
