@@ -9,9 +9,9 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   return getPageMetadata("/estimator", {
-    title: "Instant Online Remodel Estimator — Get Transparent Pricing | BBurn Builders",
+    title: "Online Remodel Estimator — Instant Pricing | BBurn Builders",
     description:
-      "Calculate live pricing and instantly configure your custom bathroom, kitchen, or home renovation in Chicago with our transparent cost estimator tool.",
+      "Calculate live remodeling costs and configure your custom bathroom or home renovation in Chicago with our instant, transparent project estimator tool.",
     keywords:
       "remodel calculator, bathroom remodel cost estimator, instant construction estimate chicago, renovation quote bburn builders",
   });

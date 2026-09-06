@@ -11,9 +11,9 @@ export const revalidate = 60;
 
 export async function generateMetadata() {
   return getPageMetadata("/", {
-    title: "BBurn Builders — Premier Custom Remodeling & Construction | Chicago, IL",
+    title: "BBurn Builders — Premier Custom Remodeling | Chicago, IL",
     description:
-      "Chicago's premier residential remodeling and construction company. Specializing in luxury bathroom remodels, custom carpentry, plumbing, and whole-home renovations.",
+      "Chicago's premier remodeling contractor. Specializing in luxury bathroom remodels, custom carpentry, and home renovations. Get your free instant estimate!",
     keywords:
       "home remodeling chicago, bathroom remodel chicago, custom carpentry, luxury renovations illinois, general contractor chicago, bburn builders",
   });

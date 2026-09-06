@@ -8,9 +8,9 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function generateMetadata() {
   return getPageMetadata("/about", {
-    title: "About BBurn Builders — Dedicated Craftsmanship & Elite Building Standards",
+    title: "About Us — Craftsmanship & Standards | BBurn Builders",
     description:
-      "Learn about BBurn Builders, our founder Tomer Blackburn, and our commitment to uncompromising craftsmanship, transparency, and architectural excellence in Chicago.",
+      "Learn about BBurn Builders, founder Tomer Blackburn, and our dedication to elite craftsmanship, transparency, and architectural remodeling in Chicago.",
     keywords:
       "about bburn builders, tomer blackburn, chicago general contractor team, luxury builder history",
   });
